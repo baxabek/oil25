@@ -18,7 +18,7 @@
   --text:#dde3f0; --muted:#5a6480; --muted2:#7b88a8;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}f
+html,body{height:100%}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 
 /* LOADING */
@@ -65,6 +65,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .item-pill{font-family:'Space Mono',monospace;font-size:10px;background:var(--surface2);border:1px solid var(--border);color:var(--muted2);padding:3px 9px;border-radius:20px}
 .item-pill b{color:var(--text)}
 .lock-btn{width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.sync-bar{display:flex;align-items:center;gap:6px;padding:6px 16px;font-size:11px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.sync-bar.ok{background:rgba(0,229,160,0.06);border-color:rgba(0,229,160,0.2)}
+.sync-bar.warn{background:rgba(255,200,77,0.08);border-color:rgba(255,200,77,0.3)}
+.sync-bar.dead{background:rgba(255,84,112,0.08);border-color:rgba(255,84,112,0.3)}
+.sync-bar-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sync-bar.ok .sync-bar-dot{background:var(--accent)}
+.sync-bar.warn .sync-bar-dot{background:var(--gold);animation:pulse 1.5s infinite}
+.sync-bar.dead .sync-bar-dot{background:var(--danger);animation:pulse .8s infinite}
+.sync-bar-text{color:var(--muted2);flex:1}
+.sync-bar.warn .sync-bar-text{color:var(--gold)}
+.sync-bar.dead .sync-bar-text{color:var(--danger)}
+.sync-bar-btn{font-size:10px;padding:2px 8px;border-radius:6px;border:1px solid;cursor:pointer;font-family:'Space Mono',monospace;background:transparent}
+.sync-bar.warn .sync-bar-btn{border-color:var(--gold);color:var(--gold)}
+.sync-bar.dead .sync-bar-btn{border-color:var(--danger);color:var(--danger)}
 .tabs{display:flex;margin:0 -16px;padding:0 16px;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 .tab{flex-shrink:0;padding:10px 14px 11px;border:none;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
@@ -302,6 +316,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <button class="tab" id="tab-analytics" onclick="switchTab('analytics')">&#x1F4CA; <span class="t" data-uz="Tahlil" data-en="Analytics">Tahlil</span></button>
     </div>
   </div>
+  <div class="sync-bar ok" id="syncBar">
+    <div class="sync-bar-dot"></div>
+    <div class="sync-bar-text" id="syncBarText">...</div>
+    <button class="sync-bar-btn" id="syncBarBtn" style="display:none" onclick="manualPing()">&#x1F504;</button>
+  </div>
 
   <div class="main">
 
@@ -509,6 +528,52 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- EDIT GOOD MODAL -->
+<div class="modal-overlay" id="editModal" onclick="closeModal('editModal')">
+  <div class="modal" onclick="event.stopPropagation()" style="padding-bottom:40px">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="editModalTitle">Edit Product</div>
+    <div style="margin-top:12px">
+      <div class="form-group">
+        <label class="form-label" id="editLabelCode">Code</label>
+        <input class="form-input" id="editCode" type="text" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="editLabelName">Name</label>
+        <input class="form-input no-upper" id="editName" type="text" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="editLabelType">Type</label>
+        <div class="type-toggle">
+          <button class="type-btn" id="editTypesolidBtn" onclick="setEditType('solid')">&#x1F4E6; <span id="editSolidLabel">Qattiq</span></button>
+          <button class="type-btn" id="editTypeliquidBtn" onclick="setEditType('liquid')">&#x1F4A7; <span id="editLiquidLabel">Suyuq</span></button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="editLabelQty">Quantity</label>
+        <div class="qty-row">
+          <input class="form-input" id="editQty" type="number" min="0" step="0.1" placeholder="0" inputmode="decimal">
+          <div class="unit-tag" id="editUnit">dona</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" id="editLabelCost">Cost price</label>
+          <input class="form-input price-input" id="editCostPrice" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal">
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="editLabelSell">Sell price</label>
+          <input class="form-input price-input" id="editSellPrice" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal">
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" id="cancelBtn6" onclick="closeModal('editModal')"></button>
+      <button class="btn btn-add" id="editSaveBtn" onclick="confirmEditGood()"></button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════
 //  CONFIG — CHANGE YOUR PINS HERE
@@ -539,6 +604,8 @@ var deleteTarget = null;
 var quickAddTarget = null;
 var deleteTxTarget = null;
 var undoTxTarget = null;
+var editTarget = null;
+var editSelectedType = 'solid';
 
 // ═══════════════════════════════════════════════
 //  TRANSLATIONS
@@ -608,6 +675,16 @@ var T = {
     codePlaceholder: 'mas. cs103',
     addCodePlaceholder: 'mas. cs103, bb12',
     namePlaceholder: 'Ixtiyoriy',
+    editProduct: 'Tovarni Tahrirlash',
+    editSave: 'Saqlash',
+    editCode: 'Kodi',
+    editName: 'Nomi',
+    editType: 'Turi',
+    editQty: 'Miqdor',
+    editCost: 'Tannarx',
+    editSell: 'Sotuv narxi',
+    editUpdated: 'Tovar yangilandi',
+    editCodeExists: 'Bu kod allaqachon mavjud!',
   },
   en: {
     enterPin: 'Select your role to enter',
@@ -673,6 +750,16 @@ var T = {
     codePlaceholder: 'e.g. cs103',
     addCodePlaceholder: 'e.g. cs103, bb12',
     namePlaceholder: 'Optional',
+    editProduct: 'Edit Product',
+    editSave: 'Save Changes',
+    editCode: 'Code',
+    editName: 'Name',
+    editType: 'Type',
+    editQty: 'Quantity',
+    editCost: 'Cost price',
+    editSell: 'Sell price',
+    editUpdated: 'Product updated',
+    editCodeExists: 'This code already exists!',
   }
 };
 
@@ -689,6 +776,7 @@ function setLang(l) {
   document.getElementById('roleManagerBtn').textContent = '👑 ' + t('manager');
   document.getElementById('roleSellerBtn').textContent = '👤 ' + t('seller');
   applyTranslations();
+  updateSyncBar();
 }
 
 function applyTranslations() {
@@ -721,9 +809,96 @@ function applyTranslations() {
 // ═══════════════════════════════════════════════
 //  DB
 // ═══════════════════════════════════════════════
+var lastSyncTime = null;
+var syncPingInterval = null;
+var WARN_AFTER_MS = 5 * 60 * 1000;   // 5 minutes — show yellow warning
+var DEAD_AFTER_MS = 15 * 60 * 1000;  // 15 minutes — show red danger
+
 function setSync(s) {
   var d = document.getElementById('syncDot');
   if (d) d.className = 'sync-dot' + (s === 'syncing' ? ' syncing' : s === 'error' ? ' error' : '');
+  if (s === 'ok') {
+    lastSyncTime = Date.now();
+    updateSyncBar();
+  }
+  if (s === 'error') updateSyncBar();
+}
+
+function updateSyncBar() {
+  var bar = document.getElementById('syncBar');
+  var txt = document.getElementById('syncBarText');
+  var btn = document.getElementById('syncBarBtn');
+  if (!bar || !txt) return;
+
+  if (!lastSyncTime) {
+    bar.className = 'sync-bar dead';
+    txt.textContent = lang === 'uz' ? '⚠️ Hech qachon sinxronlanmagan' : '⚠️ Never synced';
+    btn.style.display = 'inline-block';
+    return;
+  }
+
+  var ago = Date.now() - lastSyncTime;
+  var agoText = formatAgo(ago);
+
+  if (ago < WARN_AFTER_MS) {
+    bar.className = 'sync-bar ok';
+    txt.textContent = lang === 'uz' ? ('✓ Oxirgi sinx: ' + agoText) : ('✓ Last sync: ' + agoText);
+    btn.style.display = 'none';
+  } else if (ago < DEAD_AFTER_MS) {
+    bar.className = 'sync-bar warn';
+    txt.textContent = lang === 'uz' ? ('⚠️ ' + agoText + ' avval sinxronlangan — tekshiring') : ('⚠️ Last sync ' + agoText + ' ago — check connection');
+    btn.style.display = 'inline-block';
+  } else {
+    bar.className = 'sync-bar dead';
+    txt.textContent = lang === 'uz' ? ('🔴 ' + agoText + ' ulanish yoq! Supabase pauza qilgan bolishi mumkin') : ('🔴 No connection for ' + agoText + '! Supabase may be paused');
+    btn.style.display = 'inline-block';
+  }
+}
+
+function formatAgo(ms) {
+  var sec = Math.floor(ms / 1000);
+  var min = Math.floor(sec / 60);
+  var hr  = Math.floor(min / 60);
+  if (lang === 'uz') {
+    if (sec < 60)  return sec + ' soniya';
+    if (min < 60)  return min + ' daqiqa';
+    return hr + ' soat';
+  } else {
+    if (sec < 60)  return sec + 's';
+    if (min < 60)  return min + 'm';
+    return hr + 'h';
+  }
+}
+
+async function manualPing() {
+  var btn = document.getElementById('syncBarBtn');
+  if (btn) btn.textContent = '...';
+  try {
+    var res = await db.from('goods').select('id').limit(1);
+    if (res.error) throw res.error;
+    lastSyncTime = Date.now();
+    updateSyncBar();
+    showToast(lang === 'uz' ? 'Ulanish tiklandi!' : 'Connection restored!', 'success');
+  } catch(e) {
+    showToast(lang === 'uz' ? 'Ulanib bolmadi. Supabase pauza qilgan?' : 'Cannot connect. Is Supabase paused?', 'error');
+  } finally {
+    if (btn) btn.textContent = '&#x1F504;';
+  }
+}
+
+function startSyncMonitor() {
+  // update the bar every 30 seconds so the "X min ago" text stays fresh
+  if (syncPingInterval) clearInterval(syncPingInterval);
+  syncPingInterval = setInterval(function() {
+    updateSyncBar();
+    // silent background ping every 3 minutes to keep Supabase alive
+    var ago = lastSyncTime ? Date.now() - lastSyncTime : Infinity;
+    if (ago > 3 * 60 * 1000) {
+      db.from('goods').select('id').limit(1).then(function(res) {
+        if (!res.error) { lastSyncTime = Date.now(); updateSyncBar(); }
+      });
+    }
+  }, 30 * 1000);
 }
 
 async function dbLoad() {
@@ -789,6 +964,7 @@ try { window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.ready(
     document.getElementById('pinScreen').style.display = 'flex';
     setLang('uz');
     selectRole('manager');
+    startSyncMonitor();
   } catch(e) {
     document.getElementById('loadingScreen').style.display = 'none';
     document.getElementById('errTitle').textContent = t('connFail');
@@ -950,6 +1126,7 @@ function renderInventory() {
     var unit = g.type === 'liquid' ? 'litr' : t('unit');
     var actions = isManager
       ? '<button class="icon-btn" style="color:var(--accent)" onclick="openQuickAdd(\'' + esc(code) + '\')">+</button>' +
+        '<button class="icon-btn" style="color:var(--blue)" onclick="openEditGood(\'' + esc(code) + '\')">&#x270F;</button>' +
         '<button class="icon-btn" style="color:var(--danger)" onclick="quickSell(\'' + esc(code) + '\')">&#x2212;</button>' +
         '<button class="icon-btn" onclick="openDeleteGood(\'' + esc(code) + '\')">&#x1F5D1;</button>'
       : '';
@@ -1329,13 +1506,95 @@ async function confirmQuickAdd() {
 }
 
 // ═══════════════════════════════════════════════
-//  HELPERS
+//  EDIT GOOD
+// ═══════════════════════════════════════════════
+function openEditGood(code) {
+  editTarget = code;
+  var g = goods[code];
+  editSelectedType = g.type;
+
+  // set labels
+  document.getElementById('editModalTitle').textContent = t('editProduct') + ': ' + code.toUpperCase();
+  document.getElementById('editLabelCode').textContent = t('editCode');
+  document.getElementById('editLabelName').textContent = t('editName');
+  document.getElementById('editLabelType').textContent = t('editType');
+  document.getElementById('editLabelQty').textContent = t('editQty');
+  document.getElementById('editLabelCost').textContent = t('editCost');
+  document.getElementById('editLabelSell').textContent = t('editSell');
+  document.getElementById('cancelBtn6').textContent = t('cancel');
+  document.getElementById('editSaveBtn').textContent = t('editSave');
+  document.getElementById('editSolidLabel').textContent = lang === 'uz' ? 'Qattiq' : 'Solid';
+  document.getElementById('editLiquidLabel').textContent = lang === 'uz' ? 'Suyuq' : 'Liquid';
+
+  // populate fields
+  document.getElementById('editCode').value = code;
+  document.getElementById('editName').value = g.name || '';
+  document.getElementById('editQty').value = g.qty;
+  document.getElementById('editCostPrice').value = g.costPrice != null ? g.costPrice : '';
+  document.getElementById('editSellPrice').value = g.sellPrice != null ? g.sellPrice : '';
+  setEditType(g.type);
+
+  document.getElementById('editModal').classList.add('open');
+}
+
+function setEditType(type) {
+  editSelectedType = type;
+  document.getElementById('editTypesolidBtn').className = 'type-btn' + (type === 'solid' ? ' active-solid' : '');
+  document.getElementById('editTypeliquidBtn').className = 'type-btn' + (type === 'liquid' ? ' active-liquid' : '');
+  document.getElementById('editUnit').textContent = type === 'liquid' ? 'L' : t('unit');
+}
+
+async function confirmEditGood() {
+  var oldCode = editTarget;
+  var newCode = document.getElementById('editCode').value.trim().toLowerCase();
+  var name = document.getElementById('editName').value.trim();
+  var qty = parseFloat(document.getElementById('editQty').value) || 0;
+  var cpVal = document.getElementById('editCostPrice').value;
+  var spVal = document.getElementById('editSellPrice').value;
+  var costPrice = cpVal !== '' ? parseFloat(cpVal) : null;
+  var sellPrice = spVal !== '' ? parseFloat(spVal) : null;
+
+  if (!newCode) { showToast(t('enterCode'), 'error'); return; }
+  if (!/^[a-z0-9]+$/.test(newCode)) { showToast(t('codeFormat'), 'error'); return; }
+  if (newCode !== oldCode && goods[newCode]) { showToast(t('editCodeExists'), 'error'); return; }
+
+  var btn = document.getElementById('editSaveBtn');
+  btn.disabled = true;
+
+  try {
+    if (newCode !== oldCode) {
+      // create new entry, delete old one
+      goods[newCode] = { type: editSelectedType, qty: qty, name: name, costPrice: costPrice, sellPrice: sellPrice };
+      await dbSaveGood(newCode);
+      await dbDeleteGood(oldCode);
+      delete goods[oldCode];
+      // update all sales records that reference old code
+      sales.forEach(function(s) { if (s.code === oldCode) s.code = newCode; });
+    } else {
+      goods[oldCode].type = editSelectedType;
+      goods[oldCode].qty = qty;
+      goods[oldCode].name = name;
+      goods[oldCode].costPrice = costPrice;
+      goods[oldCode].sellPrice = sellPrice;
+      await dbSaveGood(oldCode);
+    }
+    closeModal('editModal');
+    showToast(newCode.toUpperCase() + ' ' + t('editUpdated'), 'success');
+    renderInventory();
+  } catch(e) {
+    showToast(t('saveFail'), 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 // ═══════════════════════════════════════════════
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
   if (id === 'deleteTxModal') deleteTxTarget = null;
   if (id === 'deleteModal') deleteTarget = null;
   if (id === 'undoTxModal') undoTxTarget = null;
+  if (id === 'editModal') editTarget = null;
 }
 
 var toastTimer;
