@@ -15,6 +15,7 @@
   --danger:#ff5470; --danger-dim:rgba(255,84,112,0.1);
   --gold:#ffc84d; --gold-dim:rgba(255,200,77,0.1);
   --purple:#b48bfa; --purple-dim:rgba(180,139,250,0.1);
+  --teal:#00d4c8; --teal-dim:rgba(0,212,200,0.1);
   --text:#dde3f0; --muted:#5a6480; --muted2:#7b88a8;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -104,7 +105,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 8px}
 .stat-chip-label{font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
 .stat-chip-val{font-family:'Space Mono',monospace;font-size:14px;font-weight:700}
-.c-accent{color:var(--accent)}.c-blue{color:var(--blue)}.c-purple{color:var(--purple)}.c-gold{color:var(--gold)}.c-danger{color:var(--danger)}
+.c-accent{color:var(--accent)}.c-blue{color:var(--blue)}.c-purple{color:var(--purple)}.c-gold{color:var(--gold)}.c-danger{color:var(--danger)}.c-teal{color:var(--teal)}
 
 /* GOODS */
 .goods-list{display:flex;flex-direction:column;gap:8px}
@@ -144,6 +145,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .form-input:focus{border-color:var(--accent)}
 .form-input.no-upper{text-transform:none}
 .form-input.price-input:focus{border-color:var(--gold)}
+.form-input.override-active{border-color:var(--gold);background:rgba(255,200,77,0.06)}
 .type-toggle{display:flex;gap:8px}
 .type-btn{flex:1;padding:9px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;text-align:center}
 .type-btn.active-liquid{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
@@ -165,6 +167,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .spp-item{flex:1;text-align:center}
 .spp-label{color:var(--muted);font-size:10px;margin-bottom:3px}
 .spp-val{font-family:'Space Mono',monospace;font-weight:700;font-size:12px}
+.price-override-hint{font-size:11px;color:var(--gold);margin-bottom:10px;padding:7px 10px;background:var(--gold-dim);border-radius:8px;border:1px solid rgba(255,200,77,.25)}
+.sell-tabs{display:flex;gap:6px;margin-bottom:12px}
+.sell-tab-btn{flex:1;padding:8px 10px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
+.sell-tab-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.sell-tab-btn.active.svc{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+
+/* SERVICES */
+.svc-list{display:flex;flex-direction:column;gap:8px}
+.svc-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;animation:slideIn .2s ease}
+.svc-icon{width:34px;height:34px;border-radius:9px;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.svc-info{flex:1;min-width:0}
+.svc-name{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.svc-price{font-size:11px;color:var(--teal);margin-top:2px;font-family:'Space Mono',monospace}
+.svc-actions{display:flex;gap:5px;flex-shrink:0}
+.svc-sell-btn{padding:7px 12px;border-radius:8px;border:1px solid var(--teal);background:var(--teal-dim);color:var(--teal);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.svc-sell-btn:active{transform:scale(.95)}
+.sell-svc-card{background:var(--surface);border:1px solid var(--teal);border-radius:12px;padding:14px;margin-bottom:10px;display:none;animation:slideIn .2s ease}
+.sell-svc-name{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:var(--teal)}
+.sell-svc-default{font-size:11px;color:var(--muted2);margin-top:3px}
 
 /* BUTTONS */
 .btn{width:100%;padding:13px;border-radius:12px;border:none;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;-webkit-appearance:none}
@@ -173,11 +194,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn-add{background:var(--accent);color:#05100a}
 .btn-sell{background:var(--danger);color:#fff}
 .btn-warn{background:var(--gold);color:#1a1000}
+.btn-teal{background:var(--teal);color:#001a19}
+.btn-outline-sm{padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--muted2);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.btn-outline-sm:active{opacity:.7}
 
 /* ANALYTICS */
-.period-tabs{display:flex;gap:6px;margin-bottom:16px}
+.period-tabs{display:flex;gap:6px;margin-bottom:10px}
 .period-btn{flex:1;padding:8px 2px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;transition:all .2s;-webkit-appearance:none}
 .period-btn.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+.analytics-view-tabs{display:flex;gap:6px;margin-bottom:14px}
+.av-btn{flex:1;padding:7px 4px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:'Space Mono',monospace;font-size:9px;cursor:pointer;transition:all .2s;text-align:center;-webkit-appearance:none}
+.av-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.av-btn.active.svc{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+.av-btn.active.both{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
 .analytics-hero{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 16px;margin-bottom:10px;text-align:center}
 .hero-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
 .hero-revenue{font-family:'Space Mono',monospace;font-size:30px;font-weight:700;color:var(--accent);line-height:1;margin-bottom:4px}
@@ -199,13 +228,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 /* TRANSACTIONS */
 .tx-row{display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:5px;transition:all .2s}
 .tx-row.edit-mode{border-color:rgba(255,84,112,.35)}
+.tx-row.tx-svc{border-color:rgba(0,212,200,.2)}
 .tx-info{flex:1;min-width:0}
 .tx-code{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;text-transform:uppercase}
 .tx-time{font-size:10px;color:var(--muted);margin-top:1px}
 .tx-right{text-align:right;flex-shrink:0}
 .tx-revenue{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--accent)}
+.tx-revenue.svc{color:var(--teal)}
 .tx-profit{font-family:'Space Mono',monospace;font-size:11px}
 .tx-qty{font-size:11px;color:var(--muted2)}
+.tx-type-badge{font-size:8px;padding:1px 5px;border-radius:10px;font-family:'Space Mono',monospace;vertical-align:middle;margin-left:4px}
+.tx-type-badge.prod{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(180,139,250,.3)}
+.tx-type-badge.svc{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(0,212,200,.3)}
 .tx-actions{display:flex;gap:5px;flex-shrink:0}
 .tx-btn{width:28px;height:28px;border-radius:7px;font-size:13px;cursor:pointer;display:none;align-items:center;justify-content:center;flex-shrink:0;border:1px solid}
 .tx-btn:active{transform:scale(.9)}
@@ -313,6 +347,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <button class="tab active" id="tab-inventory" onclick="switchTab('inventory')">&#x1F4E6; <span class="t" data-uz="Ombor" data-en="Inventory">Ombor</span></button>
       <button class="tab" id="tab-add" onclick="switchTab('add')">&#x2795; <span class="t" data-uz="Qoshish" data-en="Add">Qoshish</span></button>
       <button class="tab" id="tab-sell" onclick="switchTab('sell')">&#x1F4B8; <span class="t" data-uz="Sotish" data-en="Sell">Sotish</span></button>
+      <button class="tab" id="tab-services" onclick="switchTab('services')">&#x2699;&#xFE0F; <span class="t" data-uz="Xizmatlar" data-en="Services">Xizmatlar</span></button>
       <button class="tab" id="tab-analytics" onclick="switchTab('analytics')">&#x1F4CA; <span class="t" data-uz="Tahlil" data-en="Analytics">Tahlil</span></button>
     </div>
   </div>
@@ -383,39 +418,103 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
     <!-- SELL -->
     <div class="panel" id="panel-sell">
+      <!-- Sell sub-tabs -->
+      <div class="sell-tabs">
+        <button class="sell-tab-btn active" id="sellTabProduct" onclick="setSellTab('product')">&#x1F4E6; <span class="t" data-uz="Tovar" data-en="Product">Tovar</span></button>
+        <button class="sell-tab-btn" id="sellTabService" onclick="setSellTab('service')">&#x2699;&#xFE0F; <span class="t" data-uz="Xizmat" data-en="Service">Xizmat</span></button>
+      </div>
+
+      <!-- Product sell -->
+      <div id="sellProductPanel">
+        <div class="form-card">
+          <div class="form-section-title t" data-uz="Sotish" data-en="Sell / Extract Stock">Sotish</div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label t" data-uz="Tovar Kodi" data-en="Good Code">Tovar Kodi</label>
+            <input class="form-input" id="sellCode" type="text" oninput="onSellCodeInput()" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+          </div>
+        </div>
+        <div class="sell-found-card" id="sellResult">
+          <div class="sell-found-header">
+            <div>
+              <div class="sell-code" id="sellResultCode"></div>
+              <div class="sell-name" id="sellResultName"></div>
+            </div>
+            <div class="sell-stock-block">
+              <div class="sell-stock-label t" data-uz="Omborda" data-en="In stock">Omborda</div>
+              <div class="sell-stock-val" id="sellResultStock"></div>
+            </div>
+          </div>
+          <div class="sell-price-preview">
+            <div class="spp-item"><div class="spp-label t" data-uz="Tannarx" data-en="Cost/u">Tannarx</div><div class="spp-val c-danger" id="spp-cost">&#x2014;</div></div>
+            <div class="spp-item"><div class="spp-label t" data-uz="Narx" data-en="Set Price">Narx</div><div class="spp-val c-accent" id="spp-sell">&#x2014;</div></div>
+            <div class="spp-item"><div class="spp-label t" data-uz="Tushum" data-en="Revenue">Tushum</div><div class="spp-val c-gold" id="spp-rev">&#x2014;</div></div>
+            <div class="spp-item"><div class="spp-label t" data-uz="Foyda" data-en="Profit">Foyda</div><div class="spp-val" id="spp-profit">&#x2014;</div></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label t" data-uz="Sotish miqdori" data-en="Quantity">Sotish miqdori</label>
+            <div class="qty-row">
+              <input class="form-input" id="sellQty" type="number" min="0.01" step="0.1" placeholder="0" oninput="updateSellPreview()" inputmode="decimal">
+              <div class="unit-tag" id="sellUnit">dona</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="sellPriceLabel">&#x1F4B0; <span class="t" data-uz="Haqiqiy narx (ixtiyoriy)" data-en="Actual price (optional)">Haqiqiy narx (ixtiyoriy)</span></label>
+            <input class="form-input price-input" id="sellPriceOverride" type="number" min="0" step="0.01" placeholder="0.00" oninput="updateSellPreview()" inputmode="decimal">
+            <div id="sellOverrideHint" style="display:none" class="price-override-hint"></div>
+          </div>
+          <button class="btn btn-sell" id="sellBtn" onclick="sellGood()">&#x1F4B8; <span class="t" data-uz="Sotishni Tasdiqlash" data-en="Confirm Sale">Sotishni Tasdiqlash</span></button>
+        </div>
+      </div>
+
+      <!-- Service sell -->
+      <div id="sellServicePanel" style="display:none">
+        <div class="sell-svc-card" id="sellSvcResult">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <div style="width:36px;height:36px;border-radius:10px;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;font-size:18px">&#x2699;&#xFE0F;</div>
+            <div>
+              <div class="sell-svc-name" id="sellSvcName"></div>
+              <div class="sell-svc-default" id="sellSvcDefaultPrice"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label t" data-uz="Haqiqiy narx" data-en="Actual price">Haqiqiy narx</label>
+            <input class="form-input price-input" id="sellSvcPrice" type="number" min="0" step="0.01" placeholder="0.00" oninput="updateSvcPreview()" inputmode="decimal">
+          </div>
+          <div class="form-group">
+            <label class="form-label t" data-uz="Izoh (ixtiyoriy)" data-en="Note (optional)">Izoh (ixtiyoriy)</label>
+            <input class="form-input no-upper" id="sellSvcNote" type="text" autocomplete="off">
+          </div>
+          <div class="sell-price-preview" style="margin-bottom:14px">
+            <div class="spp-item"><div class="spp-label t" data-uz="Standart" data-en="Default">Standart</div><div class="spp-val c-teal" id="svc-spp-default">&#x2014;</div></div>
+            <div class="spp-item"><div class="spp-label t" data-uz="Haqiqiy" data-en="Actual">Haqiqiy</div><div class="spp-val c-gold" id="svc-spp-actual">&#x2014;</div></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-outline-sm" onclick="closeSvcSell()" style="flex:1">&#x2715;</button>
+            <button class="btn btn-teal" id="sellSvcBtn" onclick="sellService()" style="flex:3">&#x2699;&#xFE0F; <span class="t" data-uz="Xizmatni Qayd Etish" data-en="Record Service">Xizmatni Qayd Etish</span></button>
+          </div>
+        </div>
+        <div id="svcSellList" class="svc-list"></div>
+      </div>
+    </div>
+
+    <!-- SERVICES (Manager) -->
+    <div class="panel" id="panel-services">
       <div class="form-card">
-        <div class="form-section-title t" data-uz="Sotish" data-en="Sell / Extract Stock">Sotish</div>
-        <div class="form-group" style="margin-bottom:0">
-          <label class="form-label t" data-uz="Tovar Kodi" data-en="Good Code">Tovar Kodi</label>
-          <input class="form-input" id="sellCode" type="text" oninput="onSellCodeInput()" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-        </div>
-      </div>
-      <div class="sell-found-card" id="sellResult">
-        <div class="sell-found-header">
-          <div>
-            <div class="sell-code" id="sellResultCode"></div>
-            <div class="sell-name" id="sellResultName"></div>
-          </div>
-          <div class="sell-stock-block">
-            <div class="sell-stock-label t" data-uz="Omborda" data-en="In stock">Omborda</div>
-            <div class="sell-stock-val" id="sellResultStock"></div>
-          </div>
-        </div>
-        <div class="sell-price-preview">
-          <div class="spp-item"><div class="spp-label t" data-uz="Tannarx" data-en="Cost/u">Tannarx</div><div class="spp-val c-danger" id="spp-cost">&#x2014;</div></div>
-          <div class="spp-item"><div class="spp-label t" data-uz="Narx" data-en="Sell/u">Narx</div><div class="spp-val c-accent" id="spp-sell">&#x2014;</div></div>
-          <div class="spp-item"><div class="spp-label t" data-uz="Tushum" data-en="Revenue">Tushum</div><div class="spp-val c-gold" id="spp-rev">&#x2014;</div></div>
-          <div class="spp-item"><div class="spp-label t" data-uz="Foyda" data-en="Profit">Foyda</div><div class="spp-val" id="spp-profit">&#x2014;</div></div>
-        </div>
+        <div class="form-section-title">&#x2699;&#xFE0F; <span class="t" data-uz="Xizmat Qoshish" data-en="Add Service">Xizmat Qoshish</span></div>
         <div class="form-group">
-          <label class="form-label t" data-uz="Sotish miqdori" data-en="Quantity">Sotish miqdori</label>
-          <div class="qty-row">
-            <input class="form-input" id="sellQty" type="number" min="0.01" step="0.1" placeholder="0" oninput="updateSellPreview()" inputmode="decimal">
-            <div class="unit-tag" id="sellUnit">dona</div>
-          </div>
+          <label class="form-label t" data-uz="Xizmat nomi *" data-en="Service name *">Xizmat nomi *</label>
+          <input class="form-input no-upper" id="svcName" type="text" autocomplete="off">
         </div>
-        <button class="btn btn-sell" id="sellBtn" onclick="sellGood()">&#x1F4B8; <span class="t" data-uz="Sotishni Tasdiqlash" data-en="Confirm Sale">Sotishni Tasdiqlash</span></button>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label t" data-uz="Standart narxi" data-en="Default price">Standart narxi</label>
+          <input class="form-input price-input" id="svcDefaultPrice" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal">
+        </div>
       </div>
+      <button class="btn btn-teal" id="addSvcBtn" onclick="addService()" style="margin-bottom:14px">&#x2795; <span class="t" data-uz="Xizmatni Saqlash" data-en="Save Service">Xizmatni Saqlash</span></button>
+      <div class="section-header">
+        <div class="section-title">&#x2699;&#xFE0F; <span class="t" data-uz="Xizmatlar Royxati" data-en="Services List">Xizmatlar Royxati</span></div>
+      </div>
+      <div id="servicesList" class="svc-list"></div>
     </div>
 
     <!-- ANALYTICS -->
@@ -426,6 +525,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <button class="period-btn" onclick="setPeriod('month')" id="pb-month">-</button>
         <button class="period-btn" onclick="setPeriod('year')" id="pb-year">-</button>
         <button class="period-btn" onclick="setPeriod('all')" id="pb-all">-</button>
+      </div>
+      <div class="analytics-view-tabs">
+        <button class="av-btn active" id="av-products" onclick="setAnalyticsView('products')">&#x1F4E6; <span class="t" data-uz="Tovarlar" data-en="Products">Tovarlar</span></button>
+        <button class="av-btn" id="av-services" onclick="setAnalyticsView('services')">&#x2699;&#xFE0F; <span class="t" data-uz="Xizmatlar" data-en="Services">Xizmatlar</span></button>
+        <button class="av-btn" id="av-both" onclick="setAnalyticsView('both')">&#x1F4CA; <span class="t" data-uz="Barchasi" data-en="Combined">Barchasi</span></button>
       </div>
       <div class="analytics-hero">
         <div class="hero-label" id="heroLabel"></div>
@@ -442,7 +546,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="analytics-card"><div class="ac-label t" data-uz="Sotilgan Dona" data-en="Units Sold">Sotilgan Dona</div><div class="ac-val c-purple" id="ac-units">0</div><div class="ac-sub t" data-uz="Dona / litr" data-en="Items / litres">Dona / litr</div></div>
         <div class="analytics-card"><div class="ac-label t" data-uz="Ortacha Sotuv" data-en="Avg Sale">Ortacha Sotuv</div><div class="ac-val c-blue" id="ac-avg">$0.00</div><div class="ac-sub t" data-uz="Tushum / sotuv" data-en="Per transaction">Tushum / sotuv</div></div>
       </div>
-      <div class="section-header"><div class="section-title">&#x1F3C6; <span class="t" data-uz="Eng Kop Sotilgan" data-en="Top Goods">Eng Kop Sotilgan</span></div></div>
+      <div class="section-header"><div class="section-title">&#x1F3C6; <span class="t" data-uz="Eng Kop" data-en="Top Items">Eng Kop</span></div></div>
       <div id="topGoods"></div>
       <div class="section-header" style="margin-top:14px">
         <div class="section-title">&#x1F553; <span class="t" data-uz="Sotuvlar" data-en="Transactions">Sotuvlar</span></div>
@@ -574,9 +678,44 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+<!-- EDIT SERVICE MODAL -->
+<div class="modal-overlay" id="editSvcModal" onclick="closeModal('editSvcModal')">
+  <div class="modal" onclick="event.stopPropagation()" style="padding-bottom:40px">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="editSvcModalTitle">Edit Service</div>
+    <div style="margin-top:12px">
+      <div class="form-group">
+        <label class="form-label" id="editSvcLabelName">Name</label>
+        <input class="form-input no-upper" id="editSvcName" type="text" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="editSvcLabelPrice">Default Price</label>
+        <input class="form-input price-input" id="editSvcPrice" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" id="cancelBtnSvc" onclick="closeModal('editSvcModal')"></button>
+      <button class="btn btn-teal" id="editSvcSaveBtn" onclick="confirmEditService()"></button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE SERVICE MODAL -->
+<div class="modal-overlay" id="deleteSvcModal" onclick="closeModal('deleteSvcModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="deleteSvcTitle"></div>
+    <div class="modal-sub" id="deleteSvcSub"></div>
+    <div class="modal-actions">
+      <button class="btn-outline" id="cancelBtnSvcDel" onclick="closeModal('deleteSvcModal')"></button>
+      <button class="btn btn-sell" id="deleteSvcConfirmBtn" onclick="confirmDeleteService()"></button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════
-//  CONFIG — CHANGE YOUR PINS HERE
+//  CONFIG
 // ═══════════════════════════════════════════════
 var MANAGER_PIN = '1950';
 var SELLER_PIN  = '2290';
@@ -593,9 +732,12 @@ var db = supabase.createClient(SUPA_URL, SUPA_KEY);
 // ═══════════════════════════════════════════════
 var goods = {};
 var sales = [];
-var currentRole = null;  // 'manager' | 'seller'
+var services = {};      // id -> { name, defaultPrice }
+var serviceSales = [];  // service sale records
+var currentRole = null;
 var selectedType = 'solid';
 var activePeriod = 'day';
+var analyticsView = 'products'; // 'products' | 'services' | 'both'
 var lang = 'uz';
 var pinInput = '';
 var pinRole = 'manager';
@@ -606,6 +748,10 @@ var deleteTxTarget = null;
 var undoTxTarget = null;
 var editTarget = null;
 var editSelectedType = 'solid';
+var editSvcTarget = null;
+var deleteSvcTarget = null;
+var sellSvcTarget = null;  // service id currently being sold
+var activeSellTab = 'product';
 
 // ═══════════════════════════════════════════════
 //  TRANSLATIONS
@@ -614,152 +760,76 @@ var T = {
   uz: {
     enterPin: 'Kirish uchun rolni tanlang',
     wrongPin: 'Noto\'g\'iru PIN! Qayta urinib ko\'ring.',
-    manager: 'Manager',
-    seller: 'Sotuvchi',
+    manager: 'Manager', seller: 'Sotuvchi',
     day: 'Bugun', week: 'Hafta', month: 'Oy', year: 'Yil', all: 'Hammasi',
     dayLabel: 'Bugungi', weekLabel: 'Bu Haftagi', monthLabel: 'Bu Oydagi', yearLabel: 'Bu Yilgi', allLabel: 'Umumiy',
-    revenue: 'Tushum',
-    sales: 'ta sotuv',
-    noSales: 'Bu davrda sotuv yoq',
-    noTx: 'Hozircha sotuv yoq',
-    noGoods: 'Hozircha tovar yoq!',
-    nothingFound: 'Hech narsa topilmadi',
-    lowStock: 'KAM',
-    liquidGood: 'Suyuq tovar',
-    solidGood: 'Qattiq tovar',
-    litre: 'litr', unit: 'dona',
-    soldCount: 'ta sotildi',
-    profit: 'foyda',
-    marginHint: 'Marjinni korish uchun sotuv narxini kiriting',
-    margin: 'Marjin',
-    perUnit: 'dona uchun',
-    saved: 'saqlandi',
-    updated: 'yangilandi',
-    removed: 'ochirildi',
-    added: 'qoshildi',
-    soldMsg: 'dan sotildi',
-    enterCode: 'Kodni kiriting!',
-    codeFormat: 'Kod: faqat harf va raqamlar',
-    saveFail: 'Saqlash muvaffaqiyatsiz',
-    notFound: 'Tovar topilmadi',
-    enterQty: 'Miqdorni kiriting',
-    saleFail: 'Sotuv muvaffaqiyatsiz',
-    onlyAvail: 'mavjud!',
-    txDeleted: 'Sotuv ochirildi',
-    txUndone: 'Sotuv bekor qilindi — tovar qaytarildi',
-    cleared: 'Sotuvlar tozalandi',
-    deleteFail: 'Ochirish muvaffaqiyatsiz',
-    failed: 'Muvaffaqiyatsiz',
-    manageTitle: 'Ochirish: 🗑  |  Bekor qilish: ↩️',
-    done: '✕ Tayyor',
-    clearPeriod: '🗑 Davrni Tozalash',
-    deleteProduct: 'Tovarni Ochirish',
-    deleteProductSub1: 'tovarini ombordan ochirish?',
+    revenue: 'Tushum', sales: 'ta sotuv',
+    noSales: 'Bu davrda sotuv yoq', noTx: 'Hozircha sotuv yoq', noGoods: 'Hozircha tovar yoq!', nothingFound: 'Hech narsa topilmadi',
+    lowStock: 'KAM', liquidGood: 'Suyuq tovar', solidGood: 'Qattiq tovar',
+    litre: 'litr', unit: 'dona', soldCount: 'ta sotildi', profit: 'foyda',
+    marginHint: 'Marjinni korish uchun sotuv narxini kiriting', margin: 'Marjin', perUnit: 'dona uchun',
+    saved: 'saqlandi', updated: 'yangilandi', removed: 'ochirildi', added: 'qoshildi', soldMsg: 'dan sotildi',
+    enterCode: 'Kodni kiriting!', codeFormat: 'Kod: faqat harf va raqamlar', saveFail: 'Saqlash muvaffaqiyatsiz',
+    notFound: 'Tovar topilmadi', enterQty: 'Miqdorni kiriting', saleFail: 'Sotuv muvaffaqiyatsiz',
+    onlyAvail: 'mavjud!', txDeleted: 'Sotuv ochirildi', txUndone: 'Sotuv bekor qilindi — tovar qaytarildi',
+    cleared: 'Sotuvlar tozalandi', deleteFail: 'Ochirish muvaffaqiyatsiz', failed: 'Muvaffaqiyatsiz',
+    manageTitle: 'Ochirish: 🗑  |  Bekor qilish: ↩️', done: '✕ Tayyor', clearPeriod: '🗑 Davrni Tozalash',
+    deleteProduct: 'Tovarni Ochirish', deleteProductSub1: 'tovarini ombordan ochirish?',
     deleteProductSub2: 'ta sotuv yozuviga ega — kerak bolsa tahlildan alohida ochiring.',
-    cancel: 'Bekor qilish',
-    delete: 'Ochirish',
-    deleteTx: 'Sotuvni Ochirish',
-    undoTx: 'Sotuvni Bekor Qilish',
-    undoSub: 'Bu sotuvni bekor qilish va tovarni omborga qaytarish?',
-    undoConfirm: '↩️ Bekor Qilish',
-    clearAll: 'Sotuvlarni Tozalash',
-    clearAllSub1: 'davridagi',
-    clearAllSub2: 'ta sotuvni ochirish? Bu amalni qaytarib bolmaydi.',
-    clearConfirm: 'Hammasini Ochirish',
-    addStock: 'Ombor Toldirish',
-    addStockSub: 'tovarini toldirish',
-    addConfirm: 'Qoshish',
-    connFail: 'Ulanish Muvaffaqiyatsiz',
-    retry: 'Qayta urinish',
-    searchPlaceholder: 'Kodi yoki nomi boyicha...',
-    codePlaceholder: 'mas. cs103',
-    addCodePlaceholder: 'mas. cs103, bb12',
-    namePlaceholder: 'Ixtiyoriy',
-    editProduct: 'Tovarni Tahrirlash',
-    editSave: 'Saqlash',
-    editCode: 'Kodi',
-    editName: 'Nomi',
-    editType: 'Turi',
-    editQty: 'Miqdor',
-    editCost: 'Tannarx',
-    editSell: 'Sotuv narxi',
-    editUpdated: 'Tovar yangilandi',
-    editCodeExists: 'Bu kod allaqachon mavjud!',
+    cancel: 'Bekor qilish', delete: 'Ochirish',
+    deleteTx: 'Sotuvni Ochirish', undoTx: 'Sotuvni Bekor Qilish',
+    undoSub: 'Bu sotuvni bekor qilish va tovarni omborga qaytarish?', undoConfirm: '↩️ Bekor Qilish',
+    clearAll: 'Sotuvlarni Tozalash', clearAllSub1: 'davridagi', clearAllSub2: 'ta sotuvni ochirish? Bu amalni qaytarib bolmaydi.',
+    clearConfirm: 'Hammasini Ochirish', addStock: 'Ombor Toldirish', addStockSub: 'tovarini toldirish', addConfirm: 'Qoshish',
+    connFail: 'Ulanish Muvaffaqiyatsiz', retry: 'Qayta urinish',
+    searchPlaceholder: 'Kodi yoki nomi boyicha...', codePlaceholder: 'mas. cs103', addCodePlaceholder: 'mas. cs103, bb12', namePlaceholder: 'Ixtiyoriy',
+    editProduct: 'Tovarni Tahrirlash', editSave: 'Saqlash', editCode: 'Kodi', editName: 'Nomi', editType: 'Turi', editQty: 'Miqdor',
+    editCost: 'Tannarx', editSell: 'Sotuv narxi', editUpdated: 'Tovar yangilandi', editCodeExists: 'Bu kod allaqachon mavjud!',
+    priceOverride: 'Narx oʻzgartirildi: standart',
+    noServices: 'Xizmatlar yoq. Manager qossin.',
+    svcSaved: 'Xizmat saqlandi', svcDeleted: 'Xizmat ochirildi', svcUpdated: 'Xizmat yangilandi',
+    svcSaleRecorded: 'Xizmat yozildi', svcSaleFail: 'Xizmat yozib bolmadi',
+    enterSvcName: 'Xizmat nomini kiriting!', enterSvcPrice: 'Narxni kiriting!',
+    deleteService: 'Xizmatni Ochirish', deleteServiceSub: 'xizmatini ochirish?',
+    editService: 'Xizmatni Tahrirlash', svcName: 'Nomi', svcPrice: 'Standart narx',
+    analyticsProducts: 'Tovarlar', analyticsServices: 'Xizmatlar', analyticsBoth: 'Barchasi',
   },
   en: {
     enterPin: 'Select your role to enter',
     wrongPin: 'Wrong PIN! Try again.',
-    manager: 'Manager',
-    seller: 'Seller',
+    manager: 'Manager', seller: 'Seller',
     day: 'Day', week: 'Week', month: 'Month', year: 'Year', all: 'All',
     dayLabel: 'Today\'s', weekLabel: 'This Week\'s', monthLabel: 'This Month\'s', yearLabel: 'This Year\'s', allLabel: 'All Time',
-    revenue: 'Revenue',
-    sales: 'transactions',
-    noSales: 'No sales in this period',
-    noTx: 'No transactions yet',
-    noGoods: 'No goods yet!',
-    nothingFound: 'Nothing found',
-    lowStock: 'LOW',
-    liquidGood: 'Liquid good',
-    solidGood: 'Solid good',
-    litre: 'L', unit: 'units',
-    soldCount: 'sold',
-    profit: 'profit',
-    marginHint: 'Add sell price to see margin',
-    margin: 'Margin',
-    perUnit: 'per unit',
-    saved: 'saved',
-    updated: 'updated',
-    removed: 'removed',
-    added: 'added',
-    soldMsg: 'sold from',
-    enterCode: 'Enter a code!',
-    codeFormat: 'Code: letters & numbers only',
-    saveFail: 'Save failed',
-    notFound: 'Good not found',
-    enterQty: 'Enter quantity',
-    saleFail: 'Sale failed — check connection',
-    onlyAvail: 'available!',
-    txDeleted: 'Transaction deleted',
-    txUndone: 'Sale undone — stock restored',
-    cleared: 'Transactions cleared',
-    deleteFail: 'Delete failed',
-    failed: 'Failed',
-    manageTitle: 'Delete: 🗑  |  Undo sale: ↩️',
-    done: '✕ Done',
-    clearPeriod: '🗑 Clear Period',
-    deleteProduct: 'Delete Product',
-    deleteProductSub1: 'from inventory?',
+    revenue: 'Revenue', sales: 'transactions',
+    noSales: 'No sales in this period', noTx: 'No transactions yet', noGoods: 'No goods yet!', nothingFound: 'Nothing found',
+    lowStock: 'LOW', liquidGood: 'Liquid good', solidGood: 'Solid good',
+    litre: 'L', unit: 'units', soldCount: 'sold', profit: 'profit',
+    marginHint: 'Add sell price to see margin', margin: 'Margin', perUnit: 'per unit',
+    saved: 'saved', updated: 'updated', removed: 'removed', added: 'added', soldMsg: 'sold from',
+    enterCode: 'Enter a code!', codeFormat: 'Code: letters & numbers only', saveFail: 'Save failed',
+    notFound: 'Good not found', enterQty: 'Enter quantity', saleFail: 'Sale failed — check connection',
+    onlyAvail: 'available!', txDeleted: 'Transaction deleted', txUndone: 'Sale undone — stock restored',
+    cleared: 'Transactions cleared', deleteFail: 'Delete failed', failed: 'Failed',
+    manageTitle: 'Delete: 🗑  |  Undo sale: ↩️', done: '✕ Done', clearPeriod: '🗑 Clear Period',
+    deleteProduct: 'Delete Product', deleteProductSub1: 'from inventory?',
     deleteProductSub2: 'transaction records — delete from Analytics if needed.',
-    cancel: 'Cancel',
-    delete: 'Delete',
-    deleteTx: 'Delete Transaction',
-    undoTx: 'Undo Sale',
-    undoSub: 'Undo this sale and restore stock to inventory?',
-    undoConfirm: '↩️ Undo Sale',
-    clearAll: 'Clear Transactions',
-    clearAllSub1: 'Delete all',
-    clearAllSub2: 'transactions? This cannot be undone.',
-    clearConfirm: 'Clear All',
-    addStock: 'Add Stock',
-    addStockSub: 'Add quantity to',
-    addConfirm: 'Add',
-    connFail: 'Connection Failed',
-    retry: 'Retry',
-    searchPlaceholder: 'Search by code or name...',
-    codePlaceholder: 'e.g. cs103',
-    addCodePlaceholder: 'e.g. cs103, bb12',
-    namePlaceholder: 'Optional',
-    editProduct: 'Edit Product',
-    editSave: 'Save Changes',
-    editCode: 'Code',
-    editName: 'Name',
-    editType: 'Type',
-    editQty: 'Quantity',
-    editCost: 'Cost price',
-    editSell: 'Sell price',
-    editUpdated: 'Product updated',
-    editCodeExists: 'This code already exists!',
+    cancel: 'Cancel', delete: 'Delete',
+    deleteTx: 'Delete Transaction', undoTx: 'Undo Sale',
+    undoSub: 'Undo this sale and restore stock to inventory?', undoConfirm: '↩️ Undo Sale',
+    clearAll: 'Clear Transactions', clearAllSub1: 'Delete all', clearAllSub2: 'transactions? This cannot be undone.',
+    clearConfirm: 'Clear All', addStock: 'Add Stock', addStockSub: 'Add quantity to', addConfirm: 'Add',
+    connFail: 'Connection Failed', retry: 'Retry',
+    searchPlaceholder: 'Search by code or name...', codePlaceholder: 'e.g. cs103', addCodePlaceholder: 'e.g. cs103, bb12', namePlaceholder: 'Optional',
+    editProduct: 'Edit Product', editSave: 'Save Changes', editCode: 'Code', editName: 'Name', editType: 'Type', editQty: 'Quantity',
+    editCost: 'Cost price', editSell: 'Sell price', editUpdated: 'Product updated', editCodeExists: 'This code already exists!',
+    priceOverride: 'Price overridden: default',
+    noServices: 'No services yet. Manager can add them.',
+    svcSaved: 'Service saved', svcDeleted: 'Service deleted', svcUpdated: 'Service updated',
+    svcSaleRecorded: 'Service recorded', svcSaleFail: 'Could not save service sale',
+    enterSvcName: 'Enter service name!', enterSvcPrice: 'Enter a price!',
+    deleteService: 'Delete Service', deleteServiceSub: 'delete this service?',
+    editService: 'Edit Service', svcName: 'Name', svcPrice: 'Default price',
+    analyticsProducts: 'Products', analyticsServices: 'Services', analyticsBoth: 'Combined',
   }
 };
 
@@ -791,8 +861,7 @@ function applyTranslations() {
   if (ac) ac.placeholder = t('addCodePlaceholder');
   var an = document.getElementById('addName');
   if (an) an.placeholder = t('namePlaceholder');
-  var pbs = ['day','week','month','year','all'];
-  pbs.forEach(function(p) {
+  ['day','week','month','year','all'].forEach(function(p) {
     var el = document.getElementById('pb-' + p);
     if (el) el.textContent = t(p);
   });
@@ -803,7 +872,7 @@ function applyTranslations() {
   var mbt = document.getElementById('manageBarTitle');
   if (mbt) mbt.textContent = t('manageTitle');
   document.querySelectorAll('.cancel-text').forEach(function(el) { el.textContent = t('cancel'); });
-  if (currentRole) renderAnalytics();
+  if (currentRole) { renderAnalytics(); renderServices(); }
 }
 
 // ═══════════════════════════════════════════════
@@ -811,16 +880,13 @@ function applyTranslations() {
 // ═══════════════════════════════════════════════
 var lastSyncTime = null;
 var syncPingInterval = null;
-var WARN_AFTER_MS = 5 * 60 * 1000;   // 5 minutes — show yellow warning
-var DEAD_AFTER_MS = 15 * 60 * 1000;  // 15 minutes — show red danger
+var WARN_AFTER_MS = 5 * 60 * 1000;
+var DEAD_AFTER_MS = 15 * 60 * 1000;
 
 function setSync(s) {
   var d = document.getElementById('syncDot');
   if (d) d.className = 'sync-dot' + (s === 'syncing' ? ' syncing' : s === 'error' ? ' error' : '');
-  if (s === 'ok') {
-    lastSyncTime = Date.now();
-    updateSyncBar();
-  }
+  if (s === 'ok') { lastSyncTime = Date.now(); updateSyncBar(); }
   if (s === 'error') updateSyncBar();
 }
 
@@ -829,17 +895,13 @@ function updateSyncBar() {
   var txt = document.getElementById('syncBarText');
   var btn = document.getElementById('syncBarBtn');
   if (!bar || !txt) return;
-
   if (!lastSyncTime) {
     bar.className = 'sync-bar dead';
     txt.textContent = lang === 'uz' ? '⚠️ Hech qachon sinxronlanmagan' : '⚠️ Never synced';
-    btn.style.display = 'inline-block';
-    return;
+    btn.style.display = 'inline-block'; return;
   }
-
   var ago = Date.now() - lastSyncTime;
   var agoText = formatAgo(ago);
-
   if (ago < WARN_AFTER_MS) {
     bar.className = 'sync-bar ok';
     txt.textContent = lang === 'uz' ? ('✓ Oxirgi sinx: ' + agoText) : ('✓ Last sync: ' + agoText);
@@ -850,22 +912,20 @@ function updateSyncBar() {
     btn.style.display = 'inline-block';
   } else {
     bar.className = 'sync-bar dead';
-    txt.textContent = lang === 'uz' ? ('🔴 ' + agoText + ' ulanish yoq! Supabase pauza qilgan bolishi mumkin') : ('🔴 No connection for ' + agoText + '! Supabase may be paused');
+    txt.textContent = lang === 'uz' ? ('🔴 ' + agoText + ' ulanish yoq!') : ('🔴 No connection for ' + agoText + '!');
     btn.style.display = 'inline-block';
   }
 }
 
 function formatAgo(ms) {
-  var sec = Math.floor(ms / 1000);
-  var min = Math.floor(sec / 60);
-  var hr  = Math.floor(min / 60);
+  var sec = Math.floor(ms / 1000), min = Math.floor(sec / 60), hr = Math.floor(min / 60);
   if (lang === 'uz') {
-    if (sec < 60)  return sec + ' soniya';
-    if (min < 60)  return min + ' daqiqa';
+    if (sec < 60) return sec + ' soniya';
+    if (min < 60) return min + ' daqiqa';
     return hr + ' soat';
   } else {
-    if (sec < 60)  return sec + 's';
-    if (min < 60)  return min + 'm';
+    if (sec < 60) return sec + 's';
+    if (min < 60) return min + 'm';
     return hr + 'h';
   }
 }
@@ -876,22 +936,17 @@ async function manualPing() {
   try {
     var res = await db.from('goods').select('id').limit(1);
     if (res.error) throw res.error;
-    lastSyncTime = Date.now();
-    updateSyncBar();
+    lastSyncTime = Date.now(); updateSyncBar();
     showToast(lang === 'uz' ? 'Ulanish tiklandi!' : 'Connection restored!', 'success');
   } catch(e) {
-    showToast(lang === 'uz' ? 'Ulanib bolmadi. Supabase pauza qilgan?' : 'Cannot connect. Is Supabase paused?', 'error');
-  } finally {
-    if (btn) btn.textContent = '&#x1F504;';
-  }
+    showToast(lang === 'uz' ? 'Ulanib bolmadi.' : 'Cannot connect.', 'error');
+  } finally { if (btn) btn.textContent = '🔄'; }
 }
 
 function startSyncMonitor() {
-  // update the bar every 30 seconds so the "X min ago" text stays fresh
   if (syncPingInterval) clearInterval(syncPingInterval);
   syncPingInterval = setInterval(function() {
     updateSyncBar();
-    // silent background ping every 3 minutes to keep Supabase alive
     var ago = lastSyncTime ? Date.now() - lastSyncTime : Infinity;
     if (ago > 3 * 60 * 1000) {
       db.from('goods').select('id').limit(1).then(function(res) {
@@ -904,14 +959,25 @@ function startSyncMonitor() {
 async function dbLoad() {
   var g = await db.from('goods').select('*');
   var s = await db.from('sales').select('*').order('ts', { ascending: false });
+  var sv = await db.from('services').select('*').order('created_at', { ascending: true });
+  var ss = await db.from('service_sales').select('*').order('ts', { ascending: false });
   if (g.error) throw g.error;
   if (s.error) throw s.error;
+  if (sv.error) throw sv.error;
+  if (ss.error) throw ss.error;
   goods = {};
   (g.data || []).forEach(function(r) {
     goods[r.id] = { type: r.type, qty: Number(r.qty), name: r.name || '', costPrice: r.cost_price != null ? Number(r.cost_price) : null, sellPrice: r.sell_price != null ? Number(r.sell_price) : null };
   });
   sales = (s.data || []).map(function(r) {
     return { id: r.id, code: r.code, qty: Number(r.qty), revenue: Number(r.revenue), profit: Number(r.profit), ts: Number(r.ts) };
+  });
+  services = {};
+  (sv.data || []).forEach(function(r) {
+    services[r.id] = { name: r.name, defaultPrice: r.default_price != null ? Number(r.default_price) : null };
+  });
+  serviceSales = (ss.data || []).map(function(r) {
+    return { id: r.id, serviceId: r.service_id, serviceName: r.service_name, price: Number(r.price), note: r.note || '', ts: Number(r.ts) };
   });
 }
 
@@ -948,6 +1014,51 @@ async function dbDeleteSale(id) {
 async function dbDeleteSalesByPeriod(start) {
   setSync('syncing');
   var res = await db.from('sales').delete().gte('ts', start);
+  if (res.error) { setSync('error'); throw res.error; }
+  setSync('ok');
+}
+
+// Services DB
+async function dbSaveService(svc) {
+  setSync('syncing');
+  var res = await db.from('services').insert({ name: svc.name, default_price: svc.defaultPrice }).select('id').single();
+  if (res.error) { setSync('error'); throw res.error; }
+  setSync('ok');
+  return res.data.id;
+}
+
+async function dbUpdateService(id, svc) {
+  setSync('syncing');
+  var res = await db.from('services').update({ name: svc.name, default_price: svc.defaultPrice }).eq('id', id);
+  if (res.error) { setSync('error'); throw res.error; }
+  setSync('ok');
+}
+
+async function dbDeleteService(id) {
+  setSync('syncing');
+  var res = await db.from('services').delete().eq('id', id);
+  if (res.error) { setSync('error'); throw res.error; }
+  setSync('ok');
+}
+
+async function dbSaveServiceSale(ss) {
+  setSync('syncing');
+  var res = await db.from('service_sales').insert({ service_id: ss.serviceId, service_name: ss.serviceName, price: ss.price, note: ss.note || null, ts: ss.ts }).select('id').single();
+  if (res.error) { setSync('error'); throw res.error; }
+  setSync('ok');
+  return res.data.id;
+}
+
+async function dbDeleteServiceSale(id) {
+  setSync('syncing');
+  var res = await db.from('service_sales').delete().eq('id', id);
+  if (res.error) { setSync('error'); throw res.error; }
+  setSync('ok');
+}
+
+async function dbDeleteServiceSalesByPeriod(start) {
+  setSync('syncing');
+  var res = await db.from('service_sales').delete().gte('ts', start);
   if (res.error) { setSync('error'); throw res.error; }
   setSync('ok');
 }
@@ -990,9 +1101,7 @@ function pinKey(k) {
   if (pinInput.length >= 4) return;
   pinInput += k;
   updatePinDots();
-  if (pinInput.length === 4) {
-    setTimeout(checkPin, 150);
-  }
+  if (pinInput.length === 4) setTimeout(checkPin, 150);
 }
 
 function pinDel() {
@@ -1003,8 +1112,7 @@ function pinDel() {
 
 function updatePinDots() {
   for (var i = 0; i < 4; i++) {
-    var dot = document.getElementById('pd' + i);
-    dot.className = 'pin-dot' + (i < pinInput.length ? ' filled' : '');
+    document.getElementById('pd' + i).className = 'pin-dot' + (i < pinInput.length ? ' filled' : '');
   }
 }
 
@@ -1018,10 +1126,7 @@ function checkPin() {
   } else {
     for (var i = 0; i < 4; i++) document.getElementById('pd' + i).className = 'pin-dot error';
     document.getElementById('pinError').textContent = t('wrongPin');
-    setTimeout(function() {
-      pinInput = '';
-      updatePinDots();
-    }, 800);
+    setTimeout(function() { pinInput = ''; updatePinDots(); }, 800);
   }
 }
 
@@ -1041,10 +1146,12 @@ function launchApp() {
   badge.className = 'role-badge ' + currentRole;
   badge.textContent = currentRole === 'manager' ? t('manager') : t('seller');
 
-  // Show/hide tabs based on role
-  document.getElementById('tab-inventory').style.display = currentRole === 'manager' ? '' : 'none';
-  document.getElementById('tab-add').style.display = currentRole === 'manager' ? '' : 'none';
-  document.getElementById('tab-analytics').style.display = currentRole === 'manager' ? '' : 'none';
+  // Role-based tab visibility
+  var isManager = currentRole === 'manager';
+  document.getElementById('tab-inventory').style.display = isManager ? '' : 'none';
+  document.getElementById('tab-add').style.display = isManager ? '' : 'none';
+  document.getElementById('tab-services').style.display = isManager ? '' : 'none';
+  document.getElementById('tab-analytics').style.display = isManager ? '' : 'none';
 
   document.getElementById('appShell').style.display = 'block';
   applyTranslations();
@@ -1063,7 +1170,7 @@ function launchApp() {
 //  TABS
 // ═══════════════════════════════════════════════
 function switchTab(tab) {
-  var allTabs = ['inventory', 'add', 'sell', 'analytics'];
+  var allTabs = ['inventory', 'add', 'sell', 'services', 'analytics'];
   allTabs.forEach(function(name) {
     var tabEl = document.getElementById('tab-' + name);
     var panelEl = document.getElementById('panel-' + name);
@@ -1071,7 +1178,21 @@ function switchTab(tab) {
     if (panelEl) panelEl.classList.toggle('active', name === tab);
   });
   if (tab === 'inventory') renderInventory();
+  if (tab === 'services') renderServices();
+  if (tab === 'sell') { renderSvcSellList(); }
   if (tab === 'analytics') { exitEditMode(); renderAnalytics(); }
+}
+
+// ═══════════════════════════════════════════════
+//  SELL TABS (Product vs Service)
+// ═══════════════════════════════════════════════
+function setSellTab(tab) {
+  activeSellTab = tab;
+  document.getElementById('sellTabProduct').className = 'sell-tab-btn' + (tab === 'product' ? ' active' : '');
+  document.getElementById('sellTabService').className = 'sell-tab-btn' + (tab === 'service' ? ' active svc' : '');
+  document.getElementById('sellProductPanel').style.display = tab === 'product' ? '' : 'none';
+  document.getElementById('sellServicePanel').style.display = tab === 'service' ? '' : 'none';
+  if (tab === 'service') renderSvcSellList();
 }
 
 // ═══════════════════════════════════════════════
@@ -1113,7 +1234,7 @@ function renderInventory() {
 
   var list = document.getElementById('goodsList');
   if (!keys.length) {
-    list.innerHTML = '<div class="empty-state"><div class="emoji">' + (q ? '&#x1F50D;' : '&#x1F4E6;') + '</div><p>' + (q ? t('nothingFound') : t('noGoods')) + '</p></div>';
+    list.innerHTML = '<div class="empty-state"><div class="emoji">' + (q ? '🔍' : '📦') + '</div><p>' + (q ? t('nothingFound') : t('noGoods')) + '</p></div>';
     return;
   }
 
@@ -1126,13 +1247,13 @@ function renderInventory() {
     var unit = g.type === 'liquid' ? 'litr' : t('unit');
     var actions = isManager
       ? '<button class="icon-btn" style="color:var(--accent)" onclick="openQuickAdd(\'' + esc(code) + '\')">+</button>' +
-        '<button class="icon-btn" style="color:var(--blue)" onclick="openEditGood(\'' + esc(code) + '\')">&#x270F;</button>' +
-        '<button class="icon-btn" style="color:var(--danger)" onclick="quickSell(\'' + esc(code) + '\')">&#x2212;</button>' +
-        '<button class="icon-btn" onclick="openDeleteGood(\'' + esc(code) + '\')">&#x1F5D1;</button>'
+        '<button class="icon-btn" style="color:var(--blue)" onclick="openEditGood(\'' + esc(code) + '\')">✏</button>' +
+        '<button class="icon-btn" style="color:var(--danger)" onclick="quickSell(\'' + esc(code) + '\')">−</button>' +
+        '<button class="icon-btn" onclick="openDeleteGood(\'' + esc(code) + '\')">🗑</button>'
       : '';
     return '<div class="good-card">' +
       '<div class="good-card-main">' +
-        '<div class="good-icon ' + g.type + '">' + (g.type === 'liquid' ? '&#x1F4A7;' : '&#x1F4E6;') + '</div>' +
+        '<div class="good-icon ' + g.type + '">' + (g.type === 'liquid' ? '💧' : '📦') + '</div>' +
         '<div class="good-info">' +
           '<div class="good-code">' + esc(code) + (isLow ? '<span class="low-badge">' + t('lowStock') + '</span>' : '') + '</div>' +
           '<div class="good-name">' + esc(g.name || (g.type === 'liquid' ? t('liquidGood') : t('solidGood'))) + '</div>' +
@@ -1143,9 +1264,9 @@ function renderInventory() {
         '</div>' +
       '</div>' +
       '<div class="good-price-bar">' +
-        '<div class="price-cell"><div class="price-label">' + t('perUnit').replace('dona ', '') + (lang === 'uz' ? 'Tannarx' : 'Cost') + '</div><div class="price-value cost">' + (g.costPrice != null ? fmt(g.costPrice) : '&#x2014;') + '</div></div>' +
-        '<div class="price-cell"><div class="price-label">' + (lang === 'uz' ? 'Narx' : 'Sell') + '</div><div class="price-value sell">' + (g.sellPrice != null ? fmt(g.sellPrice) : '&#x2014;') + '</div></div>' +
-        '<div class="price-cell"><div class="price-label">Marjin</div><div class="price-value ' + (m >= 0 ? 'margin-pos' : 'margin-neg') + '">' + (mPct !== null ? (m >= 0 ? '+' : '') + fmt(m) + ' (' + mPct + '%)' : '&#x2014;') + '</div></div>' +
+        '<div class="price-cell"><div class="price-label">' + (lang === 'uz' ? 'Tannarx' : 'Cost') + '</div><div class="price-value cost">' + (g.costPrice != null ? fmt(g.costPrice) : '—') + '</div></div>' +
+        '<div class="price-cell"><div class="price-label">' + (lang === 'uz' ? 'Narx' : 'Sell') + '</div><div class="price-value sell">' + (g.sellPrice != null ? fmt(g.sellPrice) : '—') + '</div></div>' +
+        '<div class="price-cell"><div class="price-label">Marjin</div><div class="price-value ' + (m >= 0 ? 'margin-pos' : 'margin-neg') + '">' + (mPct !== null ? (m >= 0 ? '+' : '') + fmt(m) + ' (' + mPct + '%)' : '—') + '</div></div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -1185,7 +1306,7 @@ async function addGood() {
 }
 
 // ═══════════════════════════════════════════════
-//  SELL
+//  SELL PRODUCT
 // ═══════════════════════════════════════════════
 function onSellCodeInput() {
   var code = document.getElementById('sellCode').value.trim().toLowerCase();
@@ -1201,6 +1322,11 @@ function onSellCodeInput() {
   document.getElementById('sellUnit').textContent = g.type === 'liquid' ? 'L' : t('unit');
   document.getElementById('spp-cost').textContent = g.costPrice != null ? fmt(g.costPrice) : '—';
   document.getElementById('spp-sell').textContent = g.sellPrice != null ? fmt(g.sellPrice) : '—';
+  // Pre-fill price override with set price
+  var overrideEl = document.getElementById('sellPriceOverride');
+  overrideEl.value = g.sellPrice != null ? g.sellPrice : '';
+  overrideEl.className = 'form-input price-input';
+  document.getElementById('sellOverrideHint').style.display = 'none';
   document.getElementById('sellQty').value = '';
   updateSellPreview();
 }
@@ -1210,7 +1336,25 @@ function updateSellPreview() {
   var qty = parseFloat(document.getElementById('sellQty').value) || 0;
   if (!goods[code]) return;
   var g = goods[code];
-  var rev = qty * (g.sellPrice || 0);
+  // Use override price if entered, else set price
+  var overrideVal = document.getElementById('sellPriceOverride').value;
+  var actualPrice = overrideVal !== '' ? parseFloat(overrideVal) : (g.sellPrice || 0);
+  var setPrice = g.sellPrice || 0;
+  var overrideEl = document.getElementById('sellPriceOverride');
+  var hintEl = document.getElementById('sellOverrideHint');
+
+  if (overrideVal !== '' && parseFloat(overrideVal) !== setPrice) {
+    overrideEl.className = 'form-input price-input override-active';
+    if (setPrice) {
+      hintEl.style.display = 'block';
+      hintEl.textContent = t('priceOverride') + ': ' + fmt(setPrice) + ' → ' + fmt(parseFloat(overrideVal));
+    }
+  } else {
+    overrideEl.className = 'form-input price-input';
+    hintEl.style.display = 'none';
+  }
+
+  var rev = qty * actualPrice;
   var profit = rev - qty * (g.costPrice || 0);
   document.getElementById('spp-rev').textContent = qty ? fmt(rev) : '—';
   var pe = document.getElementById('spp-profit');
@@ -1227,8 +1371,13 @@ async function sellGood() {
   if (qty > g.qty) { showToast(t('onlyAvail') + ' ' + fmtQty(g.qty, g.type), 'error'); return; }
   var btn = document.getElementById('sellBtn');
   btn.disabled = true;
-  var revenue = qty * (g.sellPrice || 0);
+
+  // Use override price if set, else fall back to sellPrice
+  var overrideVal = document.getElementById('sellPriceOverride').value;
+  var actualPrice = overrideVal !== '' ? parseFloat(overrideVal) : (g.sellPrice || 0);
+  var revenue = qty * actualPrice;
   var profit = revenue - qty * (g.costPrice || 0);
+
   var sale = { code: code, qty: qty, revenue: revenue, profit: profit, ts: Date.now() };
   var prevQty = g.qty;
   g.qty = parseFloat((g.qty - qty).toFixed(4));
@@ -1238,6 +1387,9 @@ async function sellGood() {
     sales.unshift(sale);
     showToast(fmtQty(qty, g.type) + ' ' + t('soldMsg') + ' ' + code.toUpperCase(), 'success');
     document.getElementById('sellQty').value = '';
+    document.getElementById('sellPriceOverride').value = g.sellPrice != null ? g.sellPrice : '';
+    document.getElementById('sellOverrideHint').style.display = 'none';
+    document.getElementById('sellPriceOverride').className = 'form-input price-input';
     onSellCodeInput();
   } catch(e) {
     g.qty = prevQty;
@@ -1245,7 +1397,182 @@ async function sellGood() {
   } finally { btn.disabled = false; }
 }
 
-function quickSell(code) { switchTab('sell'); document.getElementById('sellCode').value = code; onSellCodeInput(); }
+function quickSell(code) {
+  switchTab('sell');
+  setSellTab('product');
+  document.getElementById('sellCode').value = code;
+  onSellCodeInput();
+}
+
+// ═══════════════════════════════════════════════
+//  SERVICES (Manager CRUD)
+// ═══════════════════════════════════════════════
+async function addService() {
+  var name = document.getElementById('svcName').value.trim();
+  var priceVal = document.getElementById('svcDefaultPrice').value;
+  var defaultPrice = priceVal !== '' ? parseFloat(priceVal) : null;
+  if (!name) { showToast(t('enterSvcName'), 'error'); return; }
+  var btn = document.getElementById('addSvcBtn');
+  btn.disabled = true;
+  try {
+    var svc = { name: name, defaultPrice: defaultPrice };
+    var id = await dbSaveService(svc);
+    services[id] = svc;
+    document.getElementById('svcName').value = '';
+    document.getElementById('svcDefaultPrice').value = '';
+    showToast(t('svcSaved'), 'success');
+    renderServices();
+  } catch(e) { showToast(t('saveFail'), 'error'); }
+  finally { btn.disabled = false; }
+}
+
+function renderServices() {
+  var list = document.getElementById('servicesList');
+  var ids = Object.keys(services);
+  if (!ids.length) {
+    list.innerHTML = '<div class="empty-state"><div class="emoji">⚙️</div><p>' + t('noServices') + '</p></div>';
+    return;
+  }
+  list.innerHTML = ids.map(function(id) {
+    var s = services[id];
+    return '<div class="svc-card">' +
+      '<div class="svc-icon">⚙️</div>' +
+      '<div class="svc-info">' +
+        '<div class="svc-name">' + esc(s.name) + '</div>' +
+        '<div class="svc-price">' + (s.defaultPrice != null ? fmt(s.defaultPrice) : '—') + '</div>' +
+      '</div>' +
+      '<div class="svc-actions">' +
+        '<button class="icon-btn" style="color:var(--blue)" onclick="openEditService(\'' + esc(id) + '\')">✏</button>' +
+        '<button class="icon-btn" style="color:var(--danger)" onclick="openDeleteService(\'' + esc(id) + '\')">🗑</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function openEditService(id) {
+  editSvcTarget = id;
+  var s = services[id];
+  document.getElementById('editSvcModalTitle').textContent = t('editService');
+  document.getElementById('editSvcLabelName').textContent = t('svcName');
+  document.getElementById('editSvcLabelPrice').textContent = t('svcPrice');
+  document.getElementById('editSvcName').value = s.name;
+  document.getElementById('editSvcPrice').value = s.defaultPrice != null ? s.defaultPrice : '';
+  document.getElementById('cancelBtnSvc').textContent = t('cancel');
+  document.getElementById('editSvcSaveBtn').textContent = t('editSave');
+  document.getElementById('editSvcModal').classList.add('open');
+}
+
+async function confirmEditService() {
+  if (!editSvcTarget) return;
+  var id = editSvcTarget;
+  var name = document.getElementById('editSvcName').value.trim();
+  var priceVal = document.getElementById('editSvcPrice').value;
+  var defaultPrice = priceVal !== '' ? parseFloat(priceVal) : null;
+  if (!name) { showToast(t('enterSvcName'), 'error'); return; }
+  var btn = document.getElementById('editSvcSaveBtn');
+  btn.disabled = true;
+  try {
+    var svc = { name: name, defaultPrice: defaultPrice };
+    await dbUpdateService(id, svc);
+    services[id] = svc;
+    closeModal('editSvcModal');
+    showToast(t('svcUpdated'), 'success');
+    renderServices();
+  } catch(e) { showToast(t('saveFail'), 'error'); }
+  finally { btn.disabled = false; }
+}
+
+function openDeleteService(id) {
+  deleteSvcTarget = id;
+  var s = services[id];
+  document.getElementById('deleteSvcTitle').textContent = t('deleteService');
+  document.getElementById('deleteSvcSub').textContent = '"' + s.name + '" ' + t('deleteServiceSub');
+  document.getElementById('cancelBtnSvcDel').textContent = t('cancel');
+  document.getElementById('deleteSvcConfirmBtn').textContent = t('delete');
+  document.getElementById('deleteSvcModal').classList.add('open');
+}
+
+async function confirmDeleteService() {
+  if (!deleteSvcTarget) return;
+  var id = deleteSvcTarget;
+  closeModal('deleteSvcModal');
+  try {
+    await dbDeleteService(id);
+    delete services[id];
+    showToast(t('svcDeleted'), 'warn');
+    renderServices();
+  } catch(e) { showToast(t('deleteFail'), 'error'); }
+}
+
+// ═══════════════════════════════════════════════
+//  SELL SERVICE
+// ═══════════════════════════════════════════════
+function renderSvcSellList() {
+  var list = document.getElementById('svcSellList');
+  var ids = Object.keys(services);
+  if (!ids.length) {
+    list.innerHTML = '<div class="empty-state"><div class="emoji">⚙️</div><p>' + t('noServices') + '</p></div>';
+    return;
+  }
+  list.innerHTML = ids.map(function(id) {
+    var s = services[id];
+    return '<div class="svc-card">' +
+      '<div class="svc-icon">⚙️</div>' +
+      '<div class="svc-info">' +
+        '<div class="svc-name">' + esc(s.name) + '</div>' +
+        '<div class="svc-price">' + (s.defaultPrice != null ? fmt(s.defaultPrice) : '—') + '</div>' +
+      '</div>' +
+      '<button class="svc-sell-btn" onclick="openSvcSell(\'' + esc(id) + '\')">' + (lang === 'uz' ? 'Qayd' : 'Record') + '</button>' +
+    '</div>';
+  }).join('');
+}
+
+function openSvcSell(id) {
+  sellSvcTarget = id;
+  var s = services[id];
+  document.getElementById('sellSvcResult').style.display = 'block';
+  document.getElementById('sellSvcName').textContent = s.name.toUpperCase();
+  document.getElementById('sellSvcDefaultPrice').textContent = s.defaultPrice != null
+    ? (lang === 'uz' ? 'Standart: ' : 'Default: ') + fmt(s.defaultPrice)
+    : (lang === 'uz' ? 'Standart narx yoq' : 'No default price');
+  document.getElementById('sellSvcPrice').value = s.defaultPrice != null ? s.defaultPrice : '';
+  document.getElementById('sellSvcNote').value = '';
+  document.getElementById('svc-spp-default').textContent = s.defaultPrice != null ? fmt(s.defaultPrice) : '—';
+  updateSvcPreview();
+  document.getElementById('sellSvcResult').scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeSvcSell() {
+  sellSvcTarget = null;
+  document.getElementById('sellSvcResult').style.display = 'none';
+}
+
+function updateSvcPreview() {
+  var priceVal = document.getElementById('sellSvcPrice').value;
+  var actual = priceVal !== '' ? parseFloat(priceVal) : null;
+  document.getElementById('svc-spp-actual').textContent = actual != null ? fmt(actual) : '—';
+}
+
+async function sellService() {
+  if (!sellSvcTarget) return;
+  var id = sellSvcTarget;
+  var s = services[id];
+  var priceVal = document.getElementById('sellSvcPrice').value;
+  var price = priceVal !== '' ? parseFloat(priceVal) : null;
+  if (price == null || isNaN(price)) { showToast(t('enterSvcPrice'), 'error'); return; }
+  var note = document.getElementById('sellSvcNote').value.trim();
+  var btn = document.getElementById('sellSvcBtn');
+  btn.disabled = true;
+  var ss = { serviceId: id, serviceName: s.name, price: price, note: note, ts: Date.now() };
+  try {
+    var newId = await dbSaveServiceSale(ss);
+    ss.id = newId;
+    serviceSales.unshift(ss);
+    showToast(s.name + ' ' + t('svcSaleRecorded'), 'success');
+    closeSvcSell();
+  } catch(e) { showToast(t('svcSaleFail'), 'error'); }
+  finally { btn.disabled = false; }
+}
 
 // ═══════════════════════════════════════════════
 //  ANALYTICS
@@ -1255,6 +1582,14 @@ function setPeriod(p) {
   ['day','week','month','year','all'].forEach(function(x) {
     document.getElementById('pb-' + x).classList.toggle('active', x === p);
   });
+  renderAnalytics();
+}
+
+function setAnalyticsView(v) {
+  analyticsView = v;
+  document.getElementById('av-products').className = 'av-btn' + (v === 'products' ? ' active' : '');
+  document.getElementById('av-services').className = 'av-btn' + (v === 'services' ? ' active svc' : '');
+  document.getElementById('av-both').className = 'av-btn' + (v === 'both' ? ' active both' : '');
   renderAnalytics();
 }
 
@@ -1271,64 +1606,132 @@ function periodStart(p) {
 function renderAnalytics() {
   var lk = { day:'dayLabel', week:'weekLabel', month:'monthLabel', year:'yearLabel', all:'allLabel' };
   var start = periodStart(activePeriod);
-  var f = sales.filter(function(s) { return s.ts >= start; });
-  var totalRev = f.reduce(function(a,s) { return a+s.revenue; }, 0);
-  var totalProfit = f.reduce(function(a,s) { return a+s.profit; }, 0);
-  var totalCost = totalRev - totalProfit;
-  var totalQty = f.reduce(function(a,s) { return a+s.qty; }, 0);
-  var margin = totalRev ? ((totalProfit/totalRev)*100).toFixed(1) : 0;
-  var avgSale = f.length ? totalRev/f.length : 0;
 
-  document.getElementById('heroLabel').textContent = t(lk[activePeriod]) + ' ' + t('revenue');
+  var filteredSales = (analyticsView === 'services') ? [] : sales.filter(function(s) { return s.ts >= start; });
+  var filteredSvcSales = (analyticsView === 'products') ? [] : serviceSales.filter(function(s) { return s.ts >= start; });
+
+  var totalRev = filteredSales.reduce(function(a,s) { return a+s.revenue; }, 0)
+               + filteredSvcSales.reduce(function(a,s) { return a+s.price; }, 0);
+  var totalProfit = filteredSales.reduce(function(a,s) { return a+s.profit; }, 0)
+                  + filteredSvcSales.reduce(function(a,s) { return a+s.price; }, 0); // services = 100% profit (no cost)
+  var totalCost = filteredSales.reduce(function(a,s) { return a+(s.revenue-s.profit); }, 0);
+  var totalQty = filteredSales.reduce(function(a,s) { return a+s.qty; }, 0)
+               + filteredSvcSales.length;
+  var txCount = filteredSales.length + filteredSvcSales.length;
+  var margin = totalRev ? ((totalProfit/totalRev)*100).toFixed(1) : 0;
+  var avgSale = txCount ? totalRev/txCount : 0;
+
+  var viewSuffix = analyticsView === 'products' ? (' · ' + t('analyticsProducts')) :
+                   analyticsView === 'services' ? (' · ' + t('analyticsServices')) : (' · ' + t('analyticsBoth'));
+
+  document.getElementById('heroLabel').textContent = t(lk[activePeriod]) + ' ' + t('revenue') + viewSuffix;
   document.getElementById('heroRevenue').textContent = fmt(totalRev);
   var hp = document.getElementById('heroProfit');
   hp.textContent = (totalProfit >= 0 ? '+' : '') + fmt(totalProfit);
   hp.style.color = totalProfit >= 0 ? 'var(--accent)' : 'var(--danger)';
-  document.getElementById('heroTxn').textContent = f.length + ' ' + t('sales');
+  document.getElementById('heroTxn').textContent = txCount + ' ' + t('sales');
   document.getElementById('ac-cost').textContent = fmt(totalCost);
   document.getElementById('ac-margin').textContent = margin + '%';
   document.getElementById('ac-units').textContent = totalQty % 1 === 0 ? totalQty : totalQty.toFixed(2);
   document.getElementById('ac-avg').textContent = fmt(avgSale);
 
-  var byCode = {};
-  f.forEach(function(s) {
-    if (!byCode[s.code]) byCode[s.code] = { revenue:0, profit:0, qty:0 };
-    byCode[s.code].revenue += s.revenue;
-    byCode[s.code].profit += s.profit;
-    byCode[s.code].qty += s.qty;
+  // Top items
+  var byItem = {};
+  filteredSales.forEach(function(s) {
+    if (!byItem[s.code]) byItem[s.code] = { revenue:0, profit:0, qty:0, type:'prod' };
+    byItem[s.code].revenue += s.revenue;
+    byItem[s.code].profit += s.profit;
+    byItem[s.code].qty += s.qty;
   });
-  var sorted = Object.entries(byCode).sort(function(a,b) { return b[1].revenue-a[1].revenue; }).slice(0,5);
+  filteredSvcSales.forEach(function(s) {
+    var key = '⚙ ' + s.serviceName;
+    if (!byItem[key]) byItem[key] = { revenue:0, profit:0, qty:0, type:'svc' };
+    byItem[key].revenue += s.price;
+    byItem[key].profit += s.price;
+    byItem[key].qty += 1;
+  });
+  var sorted = Object.entries(byItem).sort(function(a,b) { return b[1].revenue-a[1].revenue; }).slice(0,5);
   document.getElementById('topGoods').innerHTML = sorted.length ? sorted.map(function(entry, i) {
     var code = entry[0], d = entry[1];
+    var badge = d.type === 'svc' ? '<span class="tx-type-badge svc">SVC</span>' : '<span class="tx-type-badge prod">PRD</span>';
     return '<div class="top-good-row">' +
       '<div class="tg-rank">#' + (i+1) + '</div>' +
-      '<div style="flex:1"><div class="tg-code">' + esc(code) + '</div><div style="font-size:10px;color:var(--muted)">' + (d.qty%1===0?d.qty:d.qty.toFixed(2)) + ' ' + t('soldCount') + '</div></div>' +
+      '<div style="flex:1"><div class="tg-code">' + esc(code) + badge + '</div><div style="font-size:10px;color:var(--muted)">' + (d.qty%1===0?d.qty:d.qty.toFixed(2)) + ' ' + t('soldCount') + '</div></div>' +
       '<div style="text-align:right"><div style="font-family:\'Space Mono\',monospace;font-size:12px;color:var(--accent)">' + fmt(d.revenue) + '</div>' +
       '<div style="font-family:\'Space Mono\',monospace;font-size:11px;color:' + (d.profit>=0?'var(--accent)':'var(--danger)') + '">' + (d.profit>=0?'+':'') + fmt(d.profit) + ' ' + t('profit') + '</div></div>' +
     '</div>';
   }).join('') : '<div class="no-data">' + t('noSales') + '</div>';
 
+  // Transaction history (combined, sorted by ts)
   var txContainer = document.getElementById('txHistory');
-  if (!f.length) { txContainer.innerHTML = '<div class="no-data">' + t('noTx') + '</div>'; return; }
+  var allTx = [];
+  filteredSales.forEach(function(s) { allTx.push({ kind:'prod', data:s, ts:s.ts }); });
+  filteredSvcSales.forEach(function(s) { allTx.push({ kind:'svc', data:s, ts:s.ts }); });
+  allTx.sort(function(a,b) { return b.ts-a.ts; });
+
+  if (!allTx.length) { txContainer.innerHTML = '<div class="no-data">' + t('noTx') + '</div>'; return; }
   txContainer.className = editModeActive ? 'edit-mode-on' : '';
-  txContainer.innerHTML = f.slice().sort(function(a,b) { return b.ts-a.ts; }).map(function(s) {
-    var g = goods[s.code];
-    var d = new Date(s.ts);
+  txContainer.innerHTML = allTx.map(function(tx) {
+    var d = new Date(tx.ts);
     var ts = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
-    var unit = g ? (g.type === 'liquid' ? 'L' : 'd') : '';
-    return '<div class="tx-row ' + (editModeActive ? 'edit-mode' : '') + '">' +
-      '<div class="tx-actions">' +
-        '<button class="tx-btn tx-undo-btn" onclick="openUndoTx(\'' + s.id + '\')" title="Undo">&#x21A9;&#xFE0F;</button>' +
-        '<button class="tx-btn tx-del-btn" onclick="openDeleteTx(\'' + s.id + '\')" title="Delete">&#x1F5D1;</button>' +
-      '</div>' +
-      '<div class="tx-info"><div class="tx-code">' + esc(s.code) + '</div><div class="tx-time">' + ts + '</div></div>' +
-      '<div class="tx-right">' +
-        '<div class="tx-revenue">' + fmt(s.revenue) + '</div>' +
-        '<div class="tx-profit" style="color:' + (s.profit>=0?'var(--accent)':'var(--danger)') + '">' + (s.profit>=0?'+':'') + fmt(s.profit) + '</div>' +
-        '<div class="tx-qty">' + (s.qty%1===0?s.qty:s.qty.toFixed(2)) + ' ' + unit + '</div>' +
-      '</div>' +
-    '</div>';
+    if (tx.kind === 'prod') {
+      var s = tx.data;
+      var g = goods[s.code];
+      var unit = g ? (g.type === 'liquid' ? 'L' : 'd') : '';
+      return '<div class="tx-row ' + (editModeActive ? 'edit-mode' : '') + '">' +
+        '<div class="tx-actions">' +
+          '<button class="tx-btn tx-undo-btn" onclick="openUndoTx(\'' + s.id + '\')" title="Undo">↩️</button>' +
+          '<button class="tx-btn tx-del-btn" onclick="openDeleteTx(\'' + s.id + '\')" title="Delete">🗑</button>' +
+        '</div>' +
+        '<div class="tx-info"><div class="tx-code">' + esc(s.code) + '<span class="tx-type-badge prod">PRD</span></div><div class="tx-time">' + ts + '</div></div>' +
+        '<div class="tx-right">' +
+          '<div class="tx-revenue">' + fmt(s.revenue) + '</div>' +
+          '<div class="tx-profit" style="color:' + (s.profit>=0?'var(--accent)':'var(--danger)') + '">' + (s.profit>=0?'+':'') + fmt(s.profit) + '</div>' +
+          '<div class="tx-qty">' + (s.qty%1===0?s.qty:s.qty.toFixed(2)) + ' ' + unit + '</div>' +
+        '</div>' +
+      '</div>';
+    } else {
+      var ss = tx.data;
+      return '<div class="tx-row tx-svc ' + (editModeActive ? 'edit-mode' : '') + '">' +
+        '<div class="tx-actions">' +
+          '<button class="tx-btn tx-del-btn" onclick="openDeleteSvcTx(\'' + ss.id + '\')" title="Delete">🗑</button>' +
+        '</div>' +
+        '<div class="tx-info"><div class="tx-code">' + esc(ss.serviceName) + '<span class="tx-type-badge svc">SVC</span></div>' +
+        '<div class="tx-time">' + ts + (ss.note ? ' · ' + esc(ss.note) : '') + '</div></div>' +
+        '<div class="tx-right">' +
+          '<div class="tx-revenue svc">' + fmt(ss.price) + '</div>' +
+          '<div class="tx-profit" style="color:var(--teal)">+' + fmt(ss.price) + '</div>' +
+        '</div>' +
+      '</div>';
+    }
   }).join('');
+}
+
+// Delete service tx
+var deleteSvcTxTarget = null;
+function openDeleteSvcTx(id) {
+  deleteSvcTxTarget = id;
+  var ss = serviceSales.find(function(x) { return x.id === id; });
+  if (!ss) return;
+  document.getElementById('deleteTxModalTitle').textContent = t('deleteTx');
+  document.getElementById('deleteTxSub').textContent = ss.serviceName + ' — ' + fmt(ss.price);
+  document.getElementById('cancelBtn2').textContent = t('cancel');
+  document.getElementById('deleteTxConfirmBtn').textContent = t('delete');
+  document.getElementById('deleteTxConfirmBtn').onclick = confirmDeleteSvcTx;
+  document.getElementById('deleteTxModal').classList.add('open');
+}
+
+async function confirmDeleteSvcTx() {
+  if (!deleteSvcTxTarget) return;
+  var id = deleteSvcTxTarget;
+  document.getElementById('deleteTxConfirmBtn').onclick = confirmDeleteTx; // restore
+  closeModal('deleteTxModal');
+  try {
+    await dbDeleteServiceSale(id);
+    serviceSales = serviceSales.filter(function(x) { return x.id !== id; });
+    showToast(t('txDeleted'), 'warn');
+    renderAnalytics();
+  } catch(e) { showToast(t('deleteFail'), 'error'); }
 }
 
 // ═══════════════════════════════════════════════
@@ -1343,10 +1746,8 @@ function toggleEditMode() {
     document.getElementById('manageDoneBtn').textContent = t('done');
     document.getElementById('manageClearBtn').textContent = t('clearPeriod');
     document.getElementById('manageBarTitle').textContent = t('manageTitle');
-    btn.innerHTML = '&#x2715; <span class="t" data-uz="Tayyor" data-en="Done">' + t('done') + '</span>';
-  } else {
-    exitEditMode();
-  }
+    btn.innerHTML = '✕ <span class="t" data-uz="Tayyor" data-en="Done">' + t('done') + '</span>';
+  } else { exitEditMode(); }
   renderAnalytics();
 }
 
@@ -1355,11 +1756,11 @@ function exitEditMode() {
   var bar = document.getElementById('manageBar');
   var btn = document.getElementById('editModeToggle');
   if (bar) bar.classList.remove('visible');
-  if (btn) btn.innerHTML = '&#x270F;&#xFE0F; <span class="t" data-uz="Boshqarish" data-en="Manage">' + t('manageTitle').split(':')[0] + '</span>';
+  if (btn) btn.innerHTML = '✏️ <span class="t" data-uz="Boshqarish" data-en="Manage">' + t('manageTitle').split(':')[0] + '</span>';
 }
 
 // ═══════════════════════════════════════════════
-//  UNDO TRANSACTION (restore stock)
+//  UNDO TRANSACTION
 // ═══════════════════════════════════════════════
 function openUndoTx(id) {
   undoTxTarget = id;
@@ -1380,7 +1781,6 @@ async function confirmUndoTx() {
   closeModal('undoTxModal');
   if (!s) return;
   try {
-    // restore stock
     if (goods[s.code]) {
       goods[s.code].qty = parseFloat((goods[s.code].qty + s.qty).toFixed(4));
       await dbSaveGood(s.code);
@@ -1388,10 +1788,8 @@ async function confirmUndoTx() {
     await dbDeleteSale(id);
     sales = sales.filter(function(x) { return x.id !== id; });
     showToast(t('txUndone'), 'warn');
-    renderAnalytics();
-    renderInventory();
+    renderAnalytics(); renderInventory();
   } catch(e) {
-    // rollback qty
     if (goods[s.code]) goods[s.code].qty = parseFloat((goods[s.code].qty - s.qty).toFixed(4));
     showToast(t('failed'), 'error');
   }
@@ -1409,6 +1807,7 @@ function openDeleteTx(id) {
   document.getElementById('deleteTxSub').textContent = s.code.toUpperCase() + ' — ' + (s.qty%1===0?s.qty:s.qty.toFixed(2)) + ', ' + fmt(s.revenue) + ' (' + d.toLocaleDateString() + ')';
   document.getElementById('cancelBtn2').textContent = t('cancel');
   document.getElementById('deleteTxConfirmBtn').textContent = t('delete');
+  document.getElementById('deleteTxConfirmBtn').onclick = confirmDeleteTx;
   document.getElementById('deleteTxModal').classList.add('open');
 }
 
@@ -1429,7 +1828,8 @@ async function confirmDeleteTx() {
 // ═══════════════════════════════════════════════
 function openClearAllModal() {
   var start = periodStart(activePeriod);
-  var count = sales.filter(function(s) { return s.ts >= start; }).length;
+  var count = sales.filter(function(s) { return s.ts >= start; }).length
+            + serviceSales.filter(function(s) { return s.ts >= start; }).length;
   document.getElementById('clearAllTitle').textContent = t('clearAll');
   document.getElementById('clearAllSub').textContent = t('clearAllSub1') + ' ' + count + ' ' + t('clearAllSub2');
   document.getElementById('cancelBtn4').textContent = t('cancel');
@@ -1441,8 +1841,9 @@ async function confirmClearAll() {
   var start = periodStart(activePeriod);
   closeModal('clearAllModal');
   try {
-    await dbDeleteSalesByPeriod(start);
+    await Promise.all([dbDeleteSalesByPeriod(start), dbDeleteServiceSalesByPeriod(start)]);
     sales = sales.filter(function(s) { return s.ts < start; });
+    serviceSales = serviceSales.filter(function(s) { return s.ts < start; });
     exitEditMode();
     showToast(t('cleared'), 'warn');
     renderAnalytics();
@@ -1512,8 +1913,6 @@ function openEditGood(code) {
   editTarget = code;
   var g = goods[code];
   editSelectedType = g.type;
-
-  // set labels
   document.getElementById('editModalTitle').textContent = t('editProduct') + ': ' + code.toUpperCase();
   document.getElementById('editLabelCode').textContent = t('editCode');
   document.getElementById('editLabelName').textContent = t('editName');
@@ -1525,15 +1924,12 @@ function openEditGood(code) {
   document.getElementById('editSaveBtn').textContent = t('editSave');
   document.getElementById('editSolidLabel').textContent = lang === 'uz' ? 'Qattiq' : 'Solid';
   document.getElementById('editLiquidLabel').textContent = lang === 'uz' ? 'Suyuq' : 'Liquid';
-
-  // populate fields
   document.getElementById('editCode').value = code;
   document.getElementById('editName').value = g.name || '';
   document.getElementById('editQty').value = g.qty;
   document.getElementById('editCostPrice').value = g.costPrice != null ? g.costPrice : '';
   document.getElementById('editSellPrice').value = g.sellPrice != null ? g.sellPrice : '';
   setEditType(g.type);
-
   document.getElementById('editModal').classList.add('open');
 }
 
@@ -1553,22 +1949,17 @@ async function confirmEditGood() {
   var spVal = document.getElementById('editSellPrice').value;
   var costPrice = cpVal !== '' ? parseFloat(cpVal) : null;
   var sellPrice = spVal !== '' ? parseFloat(spVal) : null;
-
   if (!newCode) { showToast(t('enterCode'), 'error'); return; }
   if (!/^[a-z0-9]+$/.test(newCode)) { showToast(t('codeFormat'), 'error'); return; }
   if (newCode !== oldCode && goods[newCode]) { showToast(t('editCodeExists'), 'error'); return; }
-
   var btn = document.getElementById('editSaveBtn');
   btn.disabled = true;
-
   try {
     if (newCode !== oldCode) {
-      // create new entry, delete old one
       goods[newCode] = { type: editSelectedType, qty: qty, name: name, costPrice: costPrice, sellPrice: sellPrice };
       await dbSaveGood(newCode);
       await dbDeleteGood(oldCode);
       delete goods[oldCode];
-      // update all sales records that reference old code
       sales.forEach(function(s) { if (s.code === oldCode) s.code = newCode; });
     } else {
       goods[oldCode].type = editSelectedType;
@@ -1581,22 +1972,26 @@ async function confirmEditGood() {
     closeModal('editModal');
     showToast(newCode.toUpperCase() + ' ' + t('editUpdated'), 'success');
     renderInventory();
-  } catch(e) {
-    showToast(t('saveFail'), 'error');
-  } finally {
-    btn.disabled = false;
-  }
+  } catch(e) { showToast(t('saveFail'), 'error'); }
+  finally { btn.disabled = false; }
 }
 
 // ═══════════════════════════════════════════════
+//  MODAL CLOSE
+// ═══════════════════════════════════════════════
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
-  if (id === 'deleteTxModal') deleteTxTarget = null;
+  if (id === 'deleteTxModal') { deleteTxTarget = null; deleteSvcTxTarget = null; }
   if (id === 'deleteModal') deleteTarget = null;
   if (id === 'undoTxModal') undoTxTarget = null;
   if (id === 'editModal') editTarget = null;
+  if (id === 'editSvcModal') editSvcTarget = null;
+  if (id === 'deleteSvcModal') deleteSvcTarget = null;
 }
 
+// ═══════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════
 var toastTimer;
 function showToast(msg, type) {
   type = type || '';
@@ -1607,6 +2002,9 @@ function showToast(msg, type) {
   toastTimer = setTimeout(function() { t2.className = 'toast'; }, 2800);
 }
 
+// ═══════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════
 function fmt(n) {
   if (n == null || isNaN(n)) return '—';
   return '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
