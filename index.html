@@ -6,6 +6,7 @@
 <title>Tovar Boshqaruvi</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 :root {
@@ -186,6 +187,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .sell-svc-card{background:var(--surface);border:1px solid var(--teal);border-radius:12px;padding:14px;margin-bottom:10px;display:none;animation:slideIn .2s ease}
 .sell-svc-name{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:var(--teal)}
 .sell-svc-default{font-size:11px;color:var(--muted2);margin-top:3px}
+
+/* CHART */
+.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 12px;margin-bottom:10px}
+.chart-title{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.chart-canvas-wrap{position:relative;height:160px;width:100%}
+
+/* FREE SERVICE ENTRY */
+.free-svc-divider{display:flex;align-items:center;gap:8px;margin:14px 0}
+.free-svc-divider-line{flex:1;height:1px;background:var(--border)}
+.free-svc-divider-text{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
+.free-svc-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;animation:slideIn .2s ease}
 
 /* BUTTONS */
 .btn{width:100%;padding:13px;border-radius:12px;border:none;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;-webkit-appearance:none}
@@ -494,6 +506,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           </div>
         </div>
         <div id="svcSellList" class="svc-list"></div>
+        <!-- FREE ENTRY SERVICE -->
+        <div class="free-svc-divider">
+          <div class="free-svc-divider-line"></div>
+          <div class="free-svc-divider-text t" data-uz="Royhatda yoq? Qolda kiriting" data-en="Not in list? Enter manually">Royhatda yoq? Qolda kiriting</div>
+          <div class="free-svc-divider-line"></div>
+        </div>
+        <div class="free-svc-card">
+          <div class="form-group">
+            <label class="form-label t" data-uz="Xizmat nomi *" data-en="Service name *">Xizmat nomi *</label>
+            <input class="form-input no-upper" id="freeSvcName" type="text" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label class="form-label t" data-uz="Narx *" data-en="Price *">Narx *</label>
+            <input class="form-input price-input" id="freeSvcPrice" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal">
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label t" data-uz="Izoh (ixtiyoriy)" data-en="Note (optional)">Izoh (ixtiyoriy)</label>
+            <input class="form-input no-upper" id="freeSvcNote" type="text" autocomplete="off">
+          </div>
+          <div style="margin-top:12px">
+            <button class="btn btn-teal" id="freeSvcBtn" onclick="sellFreeService()">&#x2795; <span class="t" data-uz="Xizmatni Qayd Etish" data-en="Record Service">Xizmatni Qayd Etish</span></button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -548,6 +583,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div>
       <div class="section-header"><div class="section-title">&#x1F3C6; <span class="t" data-uz="Eng Kop" data-en="Top Items">Eng Kop</span></div></div>
       <div id="topGoods"></div>
+      <div class="chart-wrap" style="margin-top:14px">
+        <div class="chart-title">&#x1F4C8; <span class="t" data-uz="Kunlik Daromad" data-en="Daily Revenue">Kunlik Daromad</span></div>
+        <div class="chart-canvas-wrap"><canvas id="revenueChart"></canvas></div>
+      </div>
       <div class="section-header" style="margin-top:14px">
         <div class="section-title">&#x1F553; <span class="t" data-uz="Sotuvlar" data-en="Transactions">Sotuvlar</span></div>
         <span id="editModeToggle" class="section-action" onclick="toggleEditMode()">&#x270F;&#xFE0F; <span class="t" data-uz="Boshqarish" data-en="Manage">Boshqarish</span></span>
@@ -1574,6 +1613,28 @@ async function sellService() {
   finally { btn.disabled = false; }
 }
 
+async function sellFreeService() {
+  var name = document.getElementById('freeSvcName').value.trim();
+  var priceVal = document.getElementById('freeSvcPrice').value;
+  var price = priceVal !== '' ? parseFloat(priceVal) : null;
+  var note = document.getElementById('freeSvcNote').value.trim();
+  if (!name) { showToast(t('enterSvcName'), 'error'); return; }
+  if (price == null || isNaN(price) || price <= 0) { showToast(t('enterSvcPrice'), 'error'); return; }
+  var btn = document.getElementById('freeSvcBtn');
+  btn.disabled = true;
+  var ss = { serviceId: null, serviceName: name, price: price, note: note, ts: Date.now() };
+  try {
+    var newId = await dbSaveServiceSale(ss);
+    ss.id = newId;
+    serviceSales.unshift(ss);
+    showToast(name + ' ' + t('svcSaleRecorded'), 'success');
+    document.getElementById('freeSvcName').value = '';
+    document.getElementById('freeSvcPrice').value = '';
+    document.getElementById('freeSvcNote').value = '';
+  } catch(e) { showToast(t('svcSaleFail'), 'error'); }
+  finally { btn.disabled = false; }
+}
+
 // ═══════════════════════════════════════════════
 //  ANALYTICS
 // ═══════════════════════════════════════════════
@@ -1662,6 +1723,9 @@ function renderAnalytics() {
     '</div>';
   }).join('') : '<div class="no-data">' + t('noSales') + '</div>';
 
+  // Revenue chart
+  renderRevenueChart(filteredSales, filteredSvcSales);
+
   // Transaction history (combined, sorted by ts)
   var txContainer = document.getElementById('txHistory');
   var allTx = [];
@@ -1705,6 +1769,138 @@ function renderAnalytics() {
       '</div>';
     }
   }).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  REVENUE CHART
+// ═══════════════════════════════════════════════
+var revenueChartInstance = null;
+
+function renderRevenueChart(filteredSales, filteredSvcSales) {
+  var canvas = document.getElementById('revenueChart');
+  if (!canvas) return;
+
+  // Build day buckets: last N days depending on period
+  var now = new Date();
+  var days = activePeriod === 'day' ? 1 :
+             activePeriod === 'week' ? 7 :
+             activePeriod === 'month' ? 30 :
+             activePeriod === 'year' ? 12 : 14;
+  var useMonths = activePeriod === 'year';
+
+  var labels = [], prodData = [], svcData = [];
+
+  if (useMonths) {
+    // Last 12 months
+    for (var m = 11; m >= 0; m--) {
+      var d = new Date(now.getFullYear(), now.getMonth() - m, 1);
+      labels.push(d.toLocaleString('default', { month: 'short' }));
+      var mStart = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+      var mEnd   = new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime();
+      prodData.push(filteredSales.filter(function(s) { return s.ts >= mStart && s.ts < mEnd; }).reduce(function(a,s){ return a+s.revenue; },0));
+      svcData.push(filteredSvcSales.filter(function(s) { return s.ts >= mStart && s.ts < mEnd; }).reduce(function(a,s){ return a+s.price; },0));
+    }
+  } else {
+    for (var i = days - 1; i >= 0; i--) {
+      var day = new Date(now);
+      day.setDate(now.getDate() - i);
+      day.setHours(0,0,0,0);
+      var dayEnd = day.getTime() + 86400000;
+      var dayStart = day.getTime();
+      labels.push(days === 1 ? (lang === 'uz' ? 'Bugun' : 'Today') : (day.getMonth()+1) + '/' + day.getDate());
+      prodData.push(filteredSales.filter(function(s){ return s.ts >= dayStart && s.ts < dayEnd; }).reduce(function(a,s){ return a+s.revenue; },0));
+      svcData.push(filteredSvcSales.filter(function(s){ return s.ts >= dayStart && s.ts < dayEnd; }).reduce(function(a,s){ return a+s.price; },0));
+    }
+  }
+
+  var combined = labels.map(function(_,i){ return prodData[i] + svcData[i]; });
+
+  if (revenueChartInstance) { revenueChartInstance.destroy(); revenueChartInstance = null; }
+
+  revenueChartInstance = new Chart(canvas, {
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          type: 'bar',
+          label: lang === 'uz' ? 'Tovar' : 'Products',
+          data: prodData,
+          backgroundColor: 'rgba(77,159,255,0.45)',
+          borderColor: 'rgba(77,159,255,0.9)',
+          borderWidth: 1,
+          borderRadius: 4,
+          stack: 'rev'
+        },
+        {
+          type: 'bar',
+          label: lang === 'uz' ? 'Xizmat' : 'Services',
+          data: svcData,
+          backgroundColor: 'rgba(0,212,200,0.45)',
+          borderColor: 'rgba(0,212,200,0.9)',
+          borderWidth: 1,
+          borderRadius: 4,
+          stack: 'rev'
+        },
+        {
+          type: 'line',
+          label: lang === 'uz' ? 'Jami' : 'Total',
+          data: combined,
+          borderColor: '#00e5a0',
+          backgroundColor: 'rgba(0,229,160,0.08)',
+          borderWidth: 2,
+          pointBackgroundColor: '#00e5a0',
+          pointRadius: combined.length > 15 ? 2 : 4,
+          pointHoverRadius: 6,
+          tension: 0.4,
+          fill: false,
+          stack: undefined
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          labels: {
+            color: '#7b88a8',
+            font: { family: "'Space Mono', monospace", size: 9 },
+            boxWidth: 10,
+            padding: 10
+          }
+        },
+        tooltip: {
+          backgroundColor: '#171e2e',
+          borderColor: '#243050',
+          borderWidth: 1,
+          titleColor: '#dde3f0',
+          bodyColor: '#7b88a8',
+          titleFont: { family: "'Space Mono', monospace", size: 11 },
+          bodyFont: { family: "'Space Mono', monospace", size: 10 },
+          callbacks: {
+            label: function(ctx) {
+              return ' ' + ctx.dataset.label + ': $' + ctx.parsed.y.toFixed(2);
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { color: '#5a6480', font: { family: "'Space Mono', monospace", size: 8 }, maxRotation: 0 },
+          grid: { color: 'rgba(36,48,80,0.6)' }
+        },
+        y: {
+          stacked: false,
+          ticks: { color: '#5a6480', font: { family: "'Space Mono', monospace", size: 8 }, callback: function(v){ return '$'+v; } },
+          grid: { color: 'rgba(36,48,80,0.6)' },
+          beginAtZero: true
+        }
+      }
+    }
+  });
 }
 
 // Delete service tx
