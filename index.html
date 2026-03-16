@@ -1426,7 +1426,7 @@ async function addGood() {
       if (costPrice !== null) goods[code].costPrice = costPrice;
       if (sellPrice !== null) goods[code].sellPrice = sellPrice;
     } else {
-      goods[code] = { type: selectedType, qty: qty, name: name, costPrice: costPrice, sellPrice: sellPrice };
+      goods[code] = { type: selectedType, qty: qty, name: name, costPrice: costPrice, sellPrice: sellPrice, barcode: null };
     }
     await dbSaveGood(code);
     ['addCode','addName','addQty','addCostPrice','addSellPrice'].forEach(function(id) { document.getElementById(id).value = ''; });
@@ -1535,7 +1535,7 @@ function quickSell(code) {
   document.getElementById('sellCode').value = code; onSellCodeInput();
 }
 function sellerSellCard(code) {
-  document.getElementById('tab-sell').style.display='';
+  document.getElementById('tab-sell').style.display='none';
   switchTab('sell'); setSellTab('product');
   document.getElementById('sellCode').value=code; onSellCodeInput();
   setTimeout(function(){var el=document.getElementById('sellResult');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},150);
@@ -1822,7 +1822,10 @@ function renderAnalytics() {
   var viewSuffix = analyticsView === 'products' ? (' · ' + t('analyticsProducts')) :
                    analyticsView === 'services' ? (' · ' + t('analyticsServices')) : (' · ' + t('analyticsBoth'));
 
-  document.getElementById('heroLabel').textContent = t(lk[activePeriod]) + ' ' + t('revenue') + viewSuffix;
+  var periodLabel = activePeriod === 'custom'
+    ? (lang === 'uz' ? 'Tanlangan davr' : 'Custom Range')
+    : t(lk[activePeriod]);
+  document.getElementById('heroLabel').textContent = periodLabel + ' ' + t('revenue') + viewSuffix;
   document.getElementById('heroRevenue').textContent = fmt(totalRev);
   var hp = document.getElementById('heroProfit');
   hp.textContent = (totalProfit >= 0 ? '+' : '') + fmt(totalProfit);
@@ -1917,36 +1920,42 @@ function renderRevenueChart(filteredSales, filteredSvcSales) {
   var canvas = document.getElementById('revenueChart');
   if (!canvas) return;
 
-  // Build day buckets: last N days depending on period
   var now = new Date();
-  var days = activePeriod === 'day' ? 1 :
-             activePeriod === 'week' ? 7 :
-             activePeriod === 'month' ? 30 :
-             activePeriod === 'year' ? 12 : 14;
   var useMonths = activePeriod === 'year';
-
   var labels = [], prodData = [], svcData = [];
 
-  if (useMonths) {
-    // Last 12 months
+  if (activePeriod === 'custom' && customDateFrom && customDateTo) {
+    // Build day buckets for custom range
+    var rangeMs = customDateTo - customDateFrom;
+    var rangeDays = Math.round(rangeMs / 86400000) + 1;
+    for (var i = 0; i < rangeDays; i++) {
+      var day = new Date(customDateFrom + i * 86400000);
+      var dayStart = new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime();
+      var dayEnd = dayStart + 86400000;
+      labels.push((day.getMonth()+1) + '/' + day.getDate());
+      prodData.push(filteredSales.filter(function(s){ return s.ts >= dayStart && s.ts < dayEnd; }).reduce(function(a,s){ return a+s.revenue; },0));
+      svcData.push(filteredSvcSales.filter(function(s){ return s.ts >= dayStart && s.ts < dayEnd; }).reduce(function(a,s){ return a+s.price; },0));
+    }
+  } else if (useMonths) {
     for (var m = 11; m >= 0; m--) {
       var d = new Date(now.getFullYear(), now.getMonth() - m, 1);
       labels.push(d.toLocaleString('default', { month: 'short' }));
       var mStart = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
       var mEnd   = new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime();
-      prodData.push(filteredSales.filter(function(s) { return s.ts >= mStart && s.ts < mEnd; }).reduce(function(a,s){ return a+s.revenue; },0));
-      svcData.push(filteredSvcSales.filter(function(s) { return s.ts >= mStart && s.ts < mEnd; }).reduce(function(a,s){ return a+s.price; },0));
+      prodData.push(filteredSales.filter(function(s){ return s.ts >= mStart && s.ts < mEnd; }).reduce(function(a,s){ return a+s.revenue; },0));
+      svcData.push(filteredSvcSales.filter(function(s){ return s.ts >= mStart && s.ts < mEnd; }).reduce(function(a,s){ return a+s.price; },0));
     }
   } else {
-    for (var i = days - 1; i >= 0; i--) {
-      var day = new Date(now);
-      day.setDate(now.getDate() - i);
-      day.setHours(0,0,0,0);
-      var dayEnd = day.getTime() + 86400000;
-      var dayStart = day.getTime();
-      labels.push(days === 1 ? (lang === 'uz' ? 'Bugun' : 'Today') : (day.getMonth()+1) + '/' + day.getDate());
-      prodData.push(filteredSales.filter(function(s){ return s.ts >= dayStart && s.ts < dayEnd; }).reduce(function(a,s){ return a+s.revenue; },0));
-      svcData.push(filteredSvcSales.filter(function(s){ return s.ts >= dayStart && s.ts < dayEnd; }).reduce(function(a,s){ return a+s.price; },0));
+    var days = activePeriod === 'day' ? 1 : activePeriod === 'week' ? 7 : activePeriod === 'month' ? 30 : 14;
+    for (var j = days - 1; j >= 0; j--) {
+      var day2 = new Date(now);
+      day2.setDate(now.getDate() - j);
+      day2.setHours(0,0,0,0);
+      var dayEnd2 = day2.getTime() + 86400000;
+      var dayStart2 = day2.getTime();
+      labels.push(days === 1 ? (lang === 'uz' ? 'Bugun' : 'Today') : (day2.getMonth()+1) + '/' + day2.getDate());
+      prodData.push(filteredSales.filter(function(s){ return s.ts >= dayStart2 && s.ts < dayEnd2; }).reduce(function(a,s){ return a+s.revenue; },0));
+      svcData.push(filteredSvcSales.filter(function(s){ return s.ts >= dayStart2 && s.ts < dayEnd2; }).reduce(function(a,s){ return a+s.price; },0));
     }
   }
 
