@@ -314,7 +314,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .scan-btn:active{transform:scale(.97)}
 #scannerOverlay{position:fixed;inset:0;background:#000;z-index:2000;display:none;flex-direction:column;align-items:center;justify-content:center}
 #scannerOverlay.open{display:flex}
-#scannerVideo{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+#scannerViewport{position:absolute;inset:0;overflow:hidden}
+#scannerViewport video{position:absolute;inset:0;width:100%!important;height:100%!important;object-fit:cover}
+#scannerViewport canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:none}
 .scanner-ui{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:10}
 .scanner-frame{width:280px;height:170px;border:3px solid var(--accent);border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,0.6);position:relative}
 .scanner-line{position:absolute;left:10px;right:10px;height:2px;background:var(--accent);opacity:.9;top:50%;animation:scanLine 1.5s ease-in-out infinite}
@@ -2370,7 +2372,7 @@ function startCamera(){
   if(!window.Quagga){showToast(lang==='uz'?'Skaner yuklanmadi':'Scanner not loaded','error');return;}
   try{
     Quagga.init({
-      inputStream:{name:'Live',type:'LiveStream',target:document.getElementById('scannerVideo'),constraints:{facingMode:'environment',width:1280,height:720}},
+      inputStream:{name:'Live',type:'LiveStream',target:document.getElementById('scannerViewport'),constraints:{facingMode:'environment',width:1280,height:720}},
       frequency:10,
       decoder:{readers:['ean_reader','ean_8_reader','code_128_reader','code_39_reader','upc_reader','upc_e_reader','codabar_reader']},
       locate:true,locator:{patchSize:'medium',halfSample:true}
@@ -2390,9 +2392,16 @@ function startCamera(){
   }catch(e){showToast('Error: '+e.message,'error');var b=document.getElementById('scannerRetryBtn');if(b)b.style.display='block';}
 }
 function stopCamera(){
-  try{Quagga.offDetected();Quagga.stop();}catch(e){}
-  var v=document.getElementById('scannerVideo');
-  if(v&&v.srcObject){try{v.srcObject.getTracks().forEach(function(t){t.stop()});}catch(e){}v.srcObject=null;}
+  try{Quagga.offDetected();}catch(e){}
+  try{Quagga.stop();}catch(e){}
+  // Also stop any raw video tracks in the viewport
+  var vp=document.getElementById('scannerViewport');
+  if(vp){
+    var videos=vp.querySelectorAll('video');
+    videos.forEach(function(v){
+      if(v.srcObject){try{v.srcObject.getTracks().forEach(function(t){t.stop()});}catch(e){}v.srcObject=null;}
+    });
+  }
 }
 function handleScannedBarcode(barcode){
   scannedBarcode=barcode;
@@ -2468,7 +2477,8 @@ async function confirmNewProductFromBarcode(){
 
 <!-- SCANNER OVERLAY -->
 <div id="scannerOverlay">
-  <video id="scannerVideo" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"></video>
+  <!-- QuaggaJS renders camera feed into this div -->
+  <div id="scannerViewport" style="position:absolute;inset:0;overflow:hidden"></div>
   <div class="scanner-ui">
     <div class="scanner-frame"><div class="scanner-line"></div></div>
     <div class="scanner-hint" id="scannerHint">Barkodni kameraga togrilang</div>
