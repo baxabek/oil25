@@ -2352,16 +2352,21 @@ function esc(s) {
 // BARCODE SCANNER
 var scannerMode='sell',scannerActive=false,scannedBarcode=null,bcNewType='solid',lastBcTime=0,lastBcCode='';
 function openScanner(mode){
-  scannerMode=mode; stopCamera(); scannerActive=true;
+  scannerMode=mode; scannerActive=true;
   document.getElementById('scannerOverlay').classList.add('open');
   var btn=document.getElementById('scannerRetryBtn'); if(btn)btn.style.display='none';
   document.getElementById('scannerHint').textContent=mode==='add'?(lang==='uz'?'Yangi tovar barkodini skanerlang':'Scan new product barcode'):(lang==='uz'?'Barkodni kameraga togrilang':'Point camera at barcode');
-  setTimeout(startCamera,400);
+  // Small delay then start — no stopCamera so browser keeps permission
+  setTimeout(startCamera,200);
 }
 function closeScanner(){
   scannerActive=false;
   document.getElementById('scannerOverlay').classList.remove('open');
-  stopCamera();
+  // Stop Quagga processing but don't kill camera stream
+  // This way next open won't ask for permission again
+  try{Quagga.offDetected();}catch(e){}
+  try{Quagga.pause();}catch(e){}
+  try{Quagga.stop();}catch(e){}
 }
 function reopenScanner(){
   scannerActive=true;
@@ -2371,16 +2376,39 @@ function reopenScanner(){
 function startCamera(){
   if(!window.Quagga){showToast(lang==='uz'?'Skaner yuklanmadi':'Scanner not loaded','error');return;}
   try{
+    // Remove any leftover Quagga canvas/video from previous session
+    var vp=document.getElementById('scannerViewport');
+    if(vp) vp.innerHTML='';
+
     Quagga.init({
-      inputStream:{name:'Live',type:'LiveStream',target:document.getElementById('scannerViewport'),constraints:{facingMode:'environment',width:1280,height:720}},
+      inputStream:{
+        name:'Live',
+        type:'LiveStream',
+        target:document.getElementById('scannerViewport'),
+        constraints:{
+          facingMode:'environment',
+          width:{ideal:1280},
+          height:{ideal:720}
+        },
+        // KEY FIX: willReadFrequently improves canvas performance
+        willReadFrequently:true
+      },
       frequency:10,
       decoder:{readers:['ean_reader','ean_8_reader','code_128_reader','code_39_reader','upc_reader','upc_e_reader','codabar_reader']},
-      locate:true,locator:{patchSize:'medium',halfSample:true}
+      locate:true,
+      locator:{patchSize:'medium',halfSample:true},
+      numOfWorkers:0
     },function(err){
-      if(err){console.error(err);showToast(lang==='uz'?'Kamera ochilmadi':'Camera failed','error');var b=document.getElementById('scannerRetryBtn');if(b)b.style.display='block';return;}
+      if(err){
+        console.error('Quagga init error:',err);
+        showToast(lang==='uz'?'Kamera ochilmadi':'Camera failed','error');
+        var b=document.getElementById('scannerRetryBtn');if(b)b.style.display='block';
+        return;
+      }
       if(!scannerActive){stopCamera();return;}
       Quagga.start();
     });
+
     Quagga.onDetected(function(result){
       if(!scannerActive)return;
       var code=result.codeResult.code,now=Date.now();
@@ -2389,7 +2417,12 @@ function startCamera(){
       if(navigator.vibrate)navigator.vibrate(100);
       stopCamera(); closeScanner(); handleScannedBarcode(code);
     });
-  }catch(e){showToast('Error: '+e.message,'error');var b=document.getElementById('scannerRetryBtn');if(b)b.style.display='block';}
+
+  }catch(e){
+    console.error('Scanner exception:',e);
+    showToast('Error: '+e.message,'error');
+    var b=document.getElementById('scannerRetryBtn');if(b)b.style.display='block';
+  }
 }
 function stopCamera(){
   try{Quagga.offDetected();}catch(e){}
