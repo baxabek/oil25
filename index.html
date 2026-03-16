@@ -6,7 +6,7 @@
 <title>Tovar Boshqaruvi</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.19.1/umd/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap');
@@ -2464,6 +2464,8 @@ var bcNewType = 'solid';
 
 function openScanner(mode) {
   scannerMode = mode;
+  // Always reset state before opening
+  stopCamera();
   scannerActive = true;
   document.getElementById('scannerOverlay').classList.add('open');
   document.getElementById('scannerStatus').style.display = 'none';
@@ -2473,7 +2475,8 @@ function openScanner(mode) {
   } else {
     hint.textContent = lang === 'uz' ? "Barkodni ramkaga togrilang" : "Align barcode with frame";
   }
-  startCamera();
+  // Small delay to ensure previous session is fully stopped
+  setTimeout(startCamera, 150);
 }
 
 function closeScanner() {
@@ -2482,33 +2485,99 @@ function closeScanner() {
   stopCamera();
 }
 
+function reopenScanner() {
+  // Used to re-open scanner after a failed scan without page reload
+  scannerActive = true;
+  startCamera();
+}
+
 function startCamera() {
-  if (!window.ZXing) { showToast(lang === 'uz' ? 'Skaner yuklanmadi' : 'Scanner not loaded', 'error'); return; }
+  if (!window.ZXing) {
+    showToast(lang === 'uz' ? 'Skaner yuklanmadi' : 'Scanner not loaded', 'error');
+    return;
+  }
+  // Stop any existing session first
+  stopCamera();
+
   try {
-    codeReader = new ZXing.BrowserMultiFormatReader();
-    codeReader.decodeFromVideoDevice(null, 'scannerVideo', function(result, err) {
-      if (!scannerActive) return;
-      if (result) {
-        var barcode = result.getText();
-        stopCamera();
-        closeScanner();
-        handleScannedBarcode(barcode);
-      }
+    // Configure hints for faster, multi-orientation scanning
+    var hints = new Map();
+    var formats = [
+      ZXing.BarcodeFormat.EAN_13,
+      ZXing.BarcodeFormat.EAN_8,
+      ZXing.BarcodeFormat.CODE_128,
+      ZXing.BarcodeFormat.CODE_39,
+      ZXing.BarcodeFormat.QR_CODE,
+      ZXing.BarcodeFormat.DATA_MATRIX,
+      ZXing.BarcodeFormat.UPC_A,
+      ZXing.BarcodeFormat.UPC_E,
+      ZXing.BarcodeFormat.ITF,
+      ZXing.BarcodeFormat.CODABAR
+    ];
+    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);  // scan all orientations
+
+    codeReader = new ZXing.BrowserMultiFormatReader(hints, {
+      delayBetweenScanAttempts: 100  // scan every 100ms = very fast
     });
+
+    // Get rear camera specifically (better for barcodes)
+    var videoConstraints = {
+      facingMode: { ideal: 'environment' },  // rear camera
+      width: { ideal: 1280 },
+      height: { ideal: 720 }
+    };
+
+    navigator.mediaDevices.getUserMedia({ video: videoConstraints }).then(function(stream) {
+      if (!scannerActive) { stream.getTracks().forEach(function(t){t.stop();}); return; }
+      var video = document.getElementById('scannerVideo');
+      video.srcObject = stream;
+      video.play();
+
+      // Start decoding from the video element directly
+      codeReader.decodeFromVideoElement('scannerVideo', function(result, err) {
+        if (!scannerActive) return;
+        if (result) {
+          var barcode = result.getText();
+          // Vibrate to give feedback
+          if (navigator.vibrate) navigator.vibrate(100);
+          stopCamera();
+          closeScanner();
+          handleScannedBarcode(barcode);
+        }
+        // Ignore errors - they fire every frame when no barcode visible
+      });
+    }).catch(function(err) {
+      // Fallback: try without camera constraints
+      codeReader.decodeFromVideoDevice(null, 'scannerVideo', function(result, err2) {
+        if (!scannerActive) return;
+        if (result) {
+          var barcode = result.getText();
+          if (navigator.vibrate) navigator.vibrate(100);
+          stopCamera();
+          closeScanner();
+          handleScannedBarcode(barcode);
+        }
+      });
+    });
+
   } catch(e) {
-    showToast(lang === 'uz' ? 'Kamera ochilmadi' : 'Camera failed', 'error');
+    showToast(lang === 'uz' ? 'Kamera ochilmadi: ' + e.message : 'Camera failed: ' + e.message, 'error');
     closeScanner();
   }
 }
 
 function stopCamera() {
+  scannerActive = false;
   if (codeReader) {
     try { codeReader.reset(); } catch(e) {}
     codeReader = null;
   }
   var video = document.getElementById('scannerVideo');
   if (video && video.srcObject) {
-    video.srcObject.getTracks().forEach(function(t) { t.stop(); });
+    try {
+      video.srcObject.getTracks().forEach(function(t) { t.stop(); });
+    } catch(e) {}
     video.srcObject = null;
   }
 }
@@ -2669,6 +2738,7 @@ async function confirmNewProductFromBarcode() {
     <div class="scanner-hint" id="scannerHint">Barkodni ramkaga to'g'rilang</div>
   </div>
   <button class="scanner-close" onclick="closeScanner()">&#x2715;</button>
+  <button class="scanner-retry" onclick="reopenScanner()" id="scannerRetryBtn" style="position:absolute;bottom:100px;left:50%;transform:translateX(-50%);padding:10px 24px;border-radius:20px;border:2px solid var(--accent);background:rgba(0,229,160,0.15);color:var(--accent);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:none">&#x1F504; Qayta</button>
   <div class="scanner-status" id="scannerStatus" style="display:none"></div>
 </div>
 
