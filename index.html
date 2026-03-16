@@ -133,6 +133,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .price-value.cost{color:var(--danger)}.price-value.sell{color:var(--accent)}
 .margin-pos{color:var(--accent)}.margin-neg{color:var(--danger)}
 .low-badge{font-size:9px;background:var(--danger-dim);color:var(--danger);border:1px solid rgba(255,84,112,.25);padding:1px 5px;border-radius:20px;margin-left:4px;vertical-align:middle}
+.seller-sell-btn{padding:8px 16px;border-radius:9px;border:1px solid var(--danger);background:var(--danger-dim);color:var(--danger);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap}
+.seller-sell-btn:active{transform:scale(.95);background:var(--danger)}
 
 /* FORMS */
 .form-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px}
@@ -474,6 +476,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             <input class="form-input price-input" id="sellPriceOverride" type="number" min="0" step="0.01" placeholder="0.00" oninput="updateSellPreview()" inputmode="decimal">
             <div id="sellOverrideHint" style="display:none" class="price-override-hint"></div>
           </div>
+          <div class="form-group">
+            <label class="form-label t" data-uz="Izoh (ixtiyoriy)" data-en="Note (optional)">Izoh (ixtiyoriy)</label>
+            <input class="form-input no-upper" id="sellNote" type="text" autocomplete="off" style="text-transform:none">
+          </div>
           <button class="btn btn-sell" id="sellBtn" onclick="sellGood()">&#x1F4B8; <span class="t" data-uz="Sotishni Tasdiqlash" data-en="Confirm Sale">Sotishni Tasdiqlash</span></button>
         </div>
       </div>
@@ -805,7 +811,7 @@ var activeSellTab = 'product';
 var T = {
   uz: {
     enterPin: 'Kirish uchun rolni tanlang',
-    wrongPin: 'Noto\'g\'iru PIN! Qayta urinib ko\'ring.',
+    wrongPin: 'Notogri PIN! Qayta urinib ko\'ring.',
     manager: 'Manager', seller: 'Sotuvchi',
     day: 'Bugun', week: 'Hafta', month: 'Oy', year: 'Yil', all: 'Hammasi',
     dayLabel: 'Bugungi', weekLabel: 'Bu Haftagi', monthLabel: 'Bu Oydagi', yearLabel: 'Bu Yilgi', allLabel: 'Umumiy',
@@ -1044,7 +1050,7 @@ async function dbDeleteGood(code) {
 
 async function dbSaveSale(sale) {
   setSync('syncing');
-  var res = await db.from('sales').insert({ code: sale.code, qty: sale.qty, revenue: sale.revenue, profit: sale.profit, ts: sale.ts }).select('id').single();
+  var res = await db.from('sales').insert({ code: sale.code, qty: sale.qty, revenue: sale.revenue, profit: sale.profit, ts: sale.ts, note: sale.note || null }).select('id').single();
   if (res.error) { setSync('error'); throw res.error; }
   setSync('ok');
   return res.data.id;
@@ -1190,7 +1196,7 @@ function checkPin() {
     if (pinAttempts >= MAX_PIN_ATTEMPTS) {
       pinLockedUntil = Date.now() + LOCKOUT_DURATION_MS;
       pinAttempts = 0;
-      document.getElementById('pinError').textContent = (lang === 'uz' ? '🔒 5 ta xato! 5 daqiqa bloklandi.' : '🔒 5 wrong attempts! Locked for 5 minutes.');
+      document.getElementById('pinError').textContent = (lang === 'uz' ? '5 ta xato! 5 daqiqa bloklandi.' : '🔒 5 wrong attempts! Locked for 5 minutes.');
       // Start countdown display
       if (lockoutTimer) clearInterval(lockoutTimer);
       lockoutTimer = setInterval(function() {
@@ -1200,12 +1206,12 @@ function checkPin() {
           document.getElementById('pinError').textContent = '';
         } else {
           var s = Math.ceil(remaining / 1000);
-          document.getElementById('pinError').textContent = (lang === 'uz' ? '🔒 Bloklangan! ' + s + ' soniya.' : '🔒 Locked! ' + s + 's remaining.');
+          document.getElementById('pinError').textContent = (lang === 'uz' ? 'Bloklangan! ' + s + ' soniya.' : '🔒 Locked! ' + s + 's remaining.');
         }
       }, 1000);
     } else {
       var attemptsLeft = MAX_PIN_ATTEMPTS - pinAttempts;
-      document.getElementById('pinError').textContent = (lang === 'uz' ? 'Noto'g'ri PIN! ' + attemptsLeft + ' ta urinish qoldi.' : 'Wrong PIN! ' + attemptsLeft + ' attempts left.');
+      document.getElementById('pinError').textContent = (lang === 'uz' ? 'Notogri PIN! ' + attemptsLeft + ' ta urinish qoldi.' : 'Wrong PIN! ' + attemptsLeft + ' attempts left.');
     }
     setTimeout(function() { pinInput = ''; updatePinDots(); }, 800);
   }
@@ -1218,7 +1224,7 @@ function startSessionTimer() {
       lockApp();
       // Show timeout message briefly after lock
       setTimeout(function() {
-        document.getElementById('pinError').textContent = (lang === 'uz' ? '⏱ 20 daqiqa faolsizlik — qayta kiring.' : '⏱ 20 min inactivity — please log in again.');
+        document.getElementById('pinError').textContent = (lang === 'uz' ? '20 daqiqa faolsizlik - qayta kiring.' : '⏱ 20 min inactivity — please log in again.');
       }, 100);
     }
   }, SESSION_TIMEOUT_MS);
@@ -1248,8 +1254,9 @@ function launchApp() {
 
   // Role-based tab visibility
   var isManager = currentRole === 'manager';
-  document.getElementById('tab-inventory').style.display = isManager ? '' : 'none';
+  document.getElementById('tab-inventory').style.display = '';  // both see inventory
   document.getElementById('tab-add').style.display = isManager ? '' : 'none';
+  document.getElementById('tab-sell').style.display = isManager ? '' : 'none';  // seller uses card buttons instead
   document.getElementById('tab-services').style.display = isManager ? '' : 'none';
   document.getElementById('tab-analytics').style.display = isManager ? '' : 'none';
 
@@ -1259,11 +1266,7 @@ function launchApp() {
   document.getElementById('addSellPrice').addEventListener('input', updateMarginPreview);
   setType('solid');
 
-  if (currentRole === 'seller') {
-    switchTab('sell');
-  } else {
-    switchTab('inventory');
-  }
+  switchTab('inventory');
 }
 
 // Reset session timer on any user interaction
@@ -1354,7 +1357,7 @@ function renderInventory() {
         '<button class="icon-btn" style="color:var(--blue)" onclick="openEditGood(\'' + esc(code) + '\')">✏</button>' +
         '<button class="icon-btn" style="color:var(--danger)" onclick="quickSell(\'' + esc(code) + '\')">−</button>' +
         '<button class="icon-btn" onclick="openDeleteGood(\'' + esc(code) + '\')">🗑</button>'
-      : '';
+      : '<button class="seller-sell-btn" onclick="sellerSellCard(\'' + esc(code) + '\')">&#x1F4B8; ' + (lang === 'uz' ? 'Sotish' : 'Sell') + '</button>';
     return '<div class="good-card">' +
       '<div class="good-card-main">' +
         '<div class="good-icon ' + g.type + '">' + (g.type === 'liquid' ? '💧' : '📦') + '</div>' +
@@ -1482,7 +1485,8 @@ async function sellGood() {
   var revenue = qty * actualPrice;
   var profit = revenue - qty * (g.costPrice || 0);
 
-  var sale = { code: code, qty: qty, revenue: revenue, profit: profit, ts: Date.now() };
+  var saleNote = document.getElementById('sellNote') ? document.getElementById('sellNote').value.trim() : '';
+  var sale = { code: code, qty: qty, revenue: revenue, profit: profit, ts: Date.now(), note: saleNote };
   var prevQty = g.qty;
   g.qty = parseFloat((g.qty - qty).toFixed(4));
   try {
@@ -1494,7 +1498,14 @@ async function sellGood() {
     document.getElementById('sellPriceOverride').value = g.sellPrice != null ? g.sellPrice : '';
     document.getElementById('sellOverrideHint').style.display = 'none';
     document.getElementById('sellPriceOverride').className = 'form-input price-input';
+    if (document.getElementById('sellNote')) document.getElementById('sellNote').value = '';
     onSellCodeInput();
+    if (currentRole === 'seller') {
+      setTimeout(function() {
+        document.getElementById('tab-sell').style.display = 'none';
+        switchTab('inventory');
+      }, 1200);
+    }
   } catch(e) {
     g.qty = prevQty;
     showToast(t('saleFail'), 'error');
@@ -1506,6 +1517,18 @@ function quickSell(code) {
   setSellTab('product');
   document.getElementById('sellCode').value = code;
   onSellCodeInput();
+}
+
+function sellerSellCard(code) {
+  document.getElementById('tab-sell').style.display = '';
+  switchTab('sell');
+  if (typeof setSellTab === 'function') setSellTab('product');
+  var codeEl = document.getElementById('sellCode');
+  if (codeEl) { codeEl.value = code; onSellCodeInput(); }
+  setTimeout(function() {
+    var el = document.getElementById('sellResult');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 150);
 }
 
 // ═══════════════════════════════════════════════
