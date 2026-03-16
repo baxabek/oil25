@@ -426,7 +426,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div>
       <div class="search-wrap">
         <span class="search-icon">&#x1F50D;</span>
-        <input type="text" id="searchInput" oninput="renderInventory()">
+        <input type="text" id="searchInput" oninput="debouncedSearch()">
       </div>
       <div class="goods-list" id="goodsList"></div>
     </div>
@@ -859,6 +859,12 @@ var editSvcTarget = null;
 var deleteSvcTarget = null;
 var sellSvcTarget = null;  // service id currently being sold
 var activeSellTab = 'product';
+var searchDebounceTimer = null;
+function debouncedSearch() {
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(renderInventory, 150);
+}
+var analyticsCache = { period: null, view: null, salesLen: -1, svcLen: -1 };
 
 // ═══════════════════════════════════════════════
 //  TRANSLATIONS
@@ -1064,10 +1070,13 @@ function startSyncMonitor() {
 }
 
 async function dbLoad() {
-  var g = await db.from('goods').select('*');
-  var s = await db.from('sales').select('*').order('ts', { ascending: false });
-  var sv = await db.from('services').select('*').order('created_at', { ascending: true });
-  var ss = await db.from('service_sales').select('*').order('ts', { ascending: false });
+  var cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000; // 90 days
+  var [g, s, sv, ss] = await Promise.all([
+    db.from('goods').select('*'),
+    db.from('sales').select('*').gte('ts', cutoff).order('ts', { ascending: false }),
+    db.from('services').select('*').order('created_at', { ascending: true }),
+    db.from('service_sales').select('*').gte('ts', cutoff).order('ts', { ascending: false })
+  ]);
   if (g.error) throw g.error;
   if (s.error) throw s.error;
   if (sv.error) throw sv.error;
@@ -1093,7 +1102,7 @@ async function dbSaveGood(code) {
   var g = goods[code];
   var res = await db.from('goods').upsert({ id: code, type: g.type, qty: g.qty, name: g.name || null, cost_price: g.costPrice, sell_price: g.sellPrice, barcode: g.barcode || null });
   if (res.error) { setSync('error'); throw res.error; }
-  setSync('ok');
+  setSync('ok'); saveCache();
 }
 
 async function dbDeleteGood(code) {
@@ -1107,7 +1116,7 @@ async function dbSaveSale(sale) {
   setSync('syncing');
   var res = await db.from('sales').insert({ code: sale.code, qty: sale.qty, revenue: sale.revenue, profit: sale.profit, ts: sale.ts, actual_price: sale.actualPrice || null, note: sale.note || null }).select('id').single();
   if (res.error) { setSync('error'); throw res.error; }
-  setSync('ok');
+  setSync('ok'); saveCache();
   return res.data.id;
 }
 
@@ -1152,7 +1161,7 @@ async function dbSaveServiceSale(ss) {
   setSync('syncing');
   var res = await db.from('service_sales').insert({ service_id: ss.serviceId, service_name: ss.serviceName, price: ss.price, note: ss.note || null, ts: ss.ts }).select('id').single();
   if (res.error) { setSync('error'); throw res.error; }
-  setSync('ok');
+  setSync('ok'); saveCache();
   return res.data.id;
 }
 
@@ -1171,24 +1180,75 @@ async function dbDeleteServiceSalesByPeriod(start) {
 }
 
 // ═══════════════════════════════════════════════
+//  LOCAL CACHE
+// ═══════════════════════════════════════════════
+var CACHE_KEY = 'tb_cache_v2';
+var CACHE_MAX_AGE = 5 * 60 * 1000; // 5 minutes
+
+function saveCache() {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
+      ts: Date.now(), goods: goods, sales: sales,
+      services: services, serviceSales: serviceSales
+    }));
+  } catch(e) {}
+}
+
+function loadCache() {
+  try {
+    var raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return false;
+    var c = JSON.parse(raw);
+    if (Date.now() - c.ts > CACHE_MAX_AGE) return false;
+    goods = c.goods || {};
+    sales = c.sales || [];
+    services = c.services || {};
+    serviceSales = c.serviceSales || [];
+    return true;
+  } catch(e) { return false; }
+}
+
+function clearCache() {
+  try { localStorage.removeItem(CACHE_KEY); } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════
 //  BOOT
 // ═══════════════════════════════════════════════
 try { window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.ready(); window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.expand(); } catch(e) {}
 
 (async function() {
-  try {
-    await dbLoad();
+  var hadCache = loadCache();
+  if (hadCache) {
+    // Show PIN screen instantly from cache
     document.getElementById('loadingScreen').style.display = 'none';
     document.getElementById('pinScreen').style.display = 'flex';
     setLang('uz');
     selectRole('manager');
     startSyncMonitor();
-  } catch(e) {
-    document.getElementById('loadingScreen').style.display = 'none';
-    document.getElementById('errTitle').textContent = t('connFail');
-    document.getElementById('errorMsg').textContent = 'Error: ' + (e.message || String(e));
-    document.getElementById('retryBtn').textContent = t('retry');
-    document.getElementById('errorScreen').style.display = 'flex';
+    // Sync fresh data in background
+    dbLoad().then(function() {
+      saveCache();
+      lastSyncTime = Date.now(); updateSyncBar();
+      if (currentRole) { renderInventory(); renderAnalytics(); renderServices(); }
+    }).catch(function() { /* keep cached data, sync bar will show warning */ });
+  } else {
+    // No cache — must wait for DB
+    try {
+      await dbLoad();
+      saveCache();
+      document.getElementById('loadingScreen').style.display = 'none';
+      document.getElementById('pinScreen').style.display = 'flex';
+      setLang('uz');
+      selectRole('manager');
+      startSyncMonitor();
+    } catch(e) {
+      document.getElementById('loadingScreen').style.display = 'none';
+      document.getElementById('errTitle').textContent = t('connFail');
+      document.getElementById('errorMsg').textContent = 'Error: ' + (e.message || String(e));
+      document.getElementById('retryBtn').textContent = t('retry');
+      document.getElementById('errorScreen').style.display = 'flex';
+    }
   }
 })();
 
@@ -1504,30 +1564,38 @@ async function sellGood() {
   var btn = document.getElementById('sellBtn');
   btn.disabled = true;
 
-  // Use override price if set, else fall back to sellPrice
   var overrideVal = document.getElementById('sellPriceOverride').value;
   var actualPrice = overrideVal !== '' ? parseFloat(overrideVal) : (g.sellPrice || 0);
   var revenue = qty * actualPrice;
   var profit = revenue - qty * (g.costPrice || 0);
+  var saleNote = document.getElementById('sellNote') ? document.getElementById('sellNote').value.trim() : '';
+  var sale = { code: code, qty: qty, revenue: revenue, profit: profit, ts: Date.now(), actualPrice: actualPrice, note: saleNote, id: 'tmp_' + Date.now() };
 
-  var saleNote = document.getElementById('sellNote')?document.getElementById('sellNote').value.trim():'';
-  var sale = { code: code, qty: qty, revenue: revenue, profit: profit, ts: Date.now(), actualPrice: actualPrice, note: saleNote };
+  // ⚡ Optimistic update — instant UI response
   var prevQty = g.qty;
   g.qty = parseFloat((g.qty - qty).toFixed(4));
+  sales.unshift(sale);
+  analyticsCache.key = null; // invalidate analytics cache
+  showToast(fmtQty(qty, g.type) + ' ' + t('soldMsg') + ' ' + code.toUpperCase(), 'success');
+  document.getElementById('sellQty').value = '';
+  document.getElementById('sellPriceOverride').value = g.sellPrice != null ? g.sellPrice : '';
+  document.getElementById('sellOverrideHint').style.display = 'none';
+  document.getElementById('sellPriceOverride').className = 'form-input price-input';
+  onSellCodeInput();
+  btn.disabled = false;
+
+  // Sync to DB in background
   try {
     var results = await Promise.all([dbSaveGood(code), dbSaveSale(sale)]);
-    sale.id = results[1];
-    sales.unshift(sale);
-    showToast(fmtQty(qty, g.type) + ' ' + t('soldMsg') + ' ' + code.toUpperCase(), 'success');
-    document.getElementById('sellQty').value = '';
-    document.getElementById('sellPriceOverride').value = g.sellPrice != null ? g.sellPrice : '';
-    document.getElementById('sellOverrideHint').style.display = 'none';
-    document.getElementById('sellPriceOverride').className = 'form-input price-input';
-    onSellCodeInput();
+    sale.id = results[1]; // replace tmp id with real uuid
   } catch(e) {
+    // Roll back on failure
     g.qty = prevQty;
+    sales = sales.filter(function(s) { return s.id !== sale.id; });
+    analyticsCache.key = null;
     showToast(t('saleFail'), 'error');
-  } finally { btn.disabled = false; }
+    onSellCodeInput();
+  }
 }
 
 function quickSell(code) {
@@ -1705,6 +1773,7 @@ async function sellService() {
     var newId = await dbSaveServiceSale(ss);
     ss.id = newId;
     serviceSales.unshift(ss);
+    analyticsCache.key = null;
     showToast(s.name + ' ' + t('svcSaleRecorded'), 'success');
     closeSvcSell();
   } catch(e) { showToast(t('svcSaleFail'), 'error'); }
@@ -1725,6 +1794,7 @@ async function sellFreeService() {
     var newId = await dbSaveServiceSale(ss);
     ss.id = newId;
     serviceSales.unshift(ss);
+    analyticsCache.key = null;
     showToast(name + ' ' + t('svcSaleRecorded'), 'success');
     document.getElementById('freeSvcName').value = '';
     document.getElementById('freeSvcPrice').value = '';
@@ -1803,8 +1873,15 @@ function periodStart(p) {
 function renderAnalytics() {
   var lk = { day:'dayLabel', week:'weekLabel', month:'monthLabel', year:'yearLabel', all:'allLabel' };
   var start = periodStart(activePeriod);
-
   var end = periodEnd(activePeriod);
+
+  // Skip full re-render if nothing changed
+  var cacheKey = activePeriod + '|' + analyticsView + '|' + (customDateFrom||'') + '|' + (customDateTo||'');
+  if (!editModeActive &&
+      analyticsCache.key === cacheKey &&
+      analyticsCache.salesLen === sales.length &&
+      analyticsCache.svcLen === serviceSales.length) return;
+  analyticsCache = { key: cacheKey, salesLen: sales.length, svcLen: serviceSales.length };
   var filteredSales = (analyticsView === 'services') ? [] : sales.filter(function(s) { return s.ts >= start && s.ts <= end; });
   var filteredSvcSales = (analyticsView === 'products') ? [] : serviceSales.filter(function(s) { return s.ts >= start && s.ts <= end; });
 
@@ -1875,7 +1952,12 @@ function renderAnalytics() {
 
   if (!allTx.length) { txContainer.innerHTML = '<div class="no-data">' + t('noTx') + '</div>'; return; }
   txContainer.className = editModeActive ? 'edit-mode-on' : '';
-  txContainer.innerHTML = allTx.map(function(tx) {
+
+  var PAGE = 50;
+  var shown = allTx.slice(0, PAGE);
+  var rest = allTx.length - PAGE;
+
+  txContainer.innerHTML = shown.map(function(tx) {
     var d = new Date(tx.ts);
     var ts = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
     if (tx.kind === 'prod') {
@@ -1909,6 +1991,48 @@ function renderAnalytics() {
       '</div>';
     }
   }).join('');
+
+  if (rest > 0) {
+    txContainer.innerHTML += '<button onclick="loadMoreTx(' + JSON.stringify(allTx).replace(/</g,'\\u003c') + ',' + PAGE + ')" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">' +
+      (lang==='uz' ? '+ Yana ' + rest + ' ta ko\'rish' : '+ Load ' + rest + ' more') + '</button>';
+  }
+}
+
+function loadMoreTx(allTx, from) {
+  var PAGE = 50;
+  var txContainer = document.getElementById('txHistory');
+  var btn = txContainer.querySelector('button');
+  if (btn) btn.remove();
+  var shown = allTx.slice(from, from + PAGE);
+  var rest = allTx.length - from - PAGE;
+  txContainer.innerHTML += shown.map(function(tx) {
+    var d = new Date(tx.ts);
+    var ts = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    if (tx.kind === 'prod') {
+      var s = tx.data;
+      var g = goods[s.code];
+      var unit = g ? (g.type === 'liquid' ? 'L' : 'd') : '';
+      return '<div class="tx-row ' + (editModeActive ? 'edit-mode' : '') + '">' +
+        '<div class="tx-actions"><button class="tx-btn tx-undo-btn" onclick="openUndoTx(\'' + s.id + '\')" title="Undo">↩️</button>' +
+        '<button class="tx-btn tx-del-btn" onclick="openDeleteTx(\'' + s.id + '\')" title="Delete">🗑</button></div>' +
+        '<div class="tx-info"><div class="tx-code">' + esc(s.code) + '<span class="tx-type-badge prod">PRD</span></div><div class="tx-time">' + ts + '</div></div>' +
+        '<div class="tx-right"><div class="tx-revenue">' + fmt(s.revenue) + '</div>' +
+        '<div class="tx-profit" style="color:' + (s.profit>=0?'var(--accent)':'var(--danger)') + '">' + (s.profit>=0?'+':'') + fmt(s.profit) + '</div>' +
+        '<div class="tx-qty">' + (s.qty%1===0?s.qty:s.qty.toFixed(2)) + ' ' + unit + '</div></div></div>';
+    } else {
+      var ss = tx.data;
+      return '<div class="tx-row tx-svc ' + (editModeActive ? 'edit-mode' : '') + '">' +
+        '<div class="tx-actions"><button class="tx-btn tx-del-btn" onclick="openDeleteSvcTx(\'' + ss.id + '\')" title="Delete">🗑</button></div>' +
+        '<div class="tx-info"><div class="tx-code">' + esc(ss.serviceName) + '<span class="tx-type-badge svc">SVC</span></div>' +
+        '<div class="tx-time">' + ts + (ss.note ? ' · ' + esc(ss.note) : '') + '</div></div>' +
+        '<div class="tx-right"><div class="tx-revenue svc">' + fmt(ss.price) + '</div>' +
+        '<div class="tx-profit" style="color:var(--teal)">+' + fmt(ss.price) + '</div></div></div>';
+    }
+  }).join('');
+  if (rest > 0) {
+    txContainer.innerHTML += '<button onclick="loadMoreTx(' + JSON.stringify(allTx).replace(/</g,'\\u003c') + ',' + (from+PAGE) + ')" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">' +
+      (lang==='uz' ? '+ Yana ' + rest + ' ta ko\'rish' : '+ Load ' + rest + ' more') + '</button>';
+  }
 }
 
 // ═══════════════════════════════════════════════
