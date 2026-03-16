@@ -291,6 +291,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* ERROR SCREEN */
 #errorScreen{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9998;padding:32px;text-align:center;gap:12px}
+
+/* DATE FILTER */
+.date-filter-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:none;animation:slideIn .2s ease}
+.date-filter-wrap.open{display:block}
+.date-filter-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.date-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);font-family:'Space Mono',monospace;font-size:12px;outline:none;-webkit-appearance:none;appearance:none}
+.date-input:focus{border-color:var(--gold)}
+.date-filter-label{font-size:11px;color:var(--muted2);width:30px;flex-shrink:0;font-family:'Space Mono',monospace}
+.date-apply-btn{padding:9px 16px;border-radius:9px;border:none;background:var(--gold);color:#1a1000;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
+.date-apply-btn:active{transform:scale(.97)}
+.date-clear-btn{padding:9px 12px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--muted2);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer}
+.period-btn.custom-active{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+.active-date-badge{font-size:10px;color:var(--purple);font-family:'Space Mono',monospace;margin-bottom:10px;padding:5px 12px;background:var(--purple-dim);border:1px solid rgba(180,139,250,.3);border-radius:8px;text-align:center}
 </style>
 </head>
 <body>
@@ -560,6 +573,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <button class="period-btn" onclick="setPeriod('month')" id="pb-month">-</button>
         <button class="period-btn" onclick="setPeriod('year')" id="pb-year">-</button>
         <button class="period-btn" onclick="setPeriod('all')" id="pb-all">-</button>
+        <button class="period-btn" onclick="toggleDateFilter()" id="pb-custom">&#x1F4C5;</button>
+      </div>
+      <div id="activeDateBadge" class="active-date-badge" style="display:none"></div>
+      <div class="date-filter-wrap" id="dateFilterWrap">
+        <div class="date-filter-row">
+          <div class="date-filter-label" id="dfFromLabel">Dan:</div>
+          <input type="date" class="date-input" id="dateFrom">
+        </div>
+        <div class="date-filter-row">
+          <div class="date-filter-label" id="dfToLabel">Ga:</div>
+          <input type="date" class="date-input" id="dateTo">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="date-clear-btn" onclick="clearDateFilter()" id="dfClearBtn">&#x2715; Bekor</button>
+          <button class="date-apply-btn" onclick="applyDateFilter()" id="dfApplyBtn">&#x2713; Qollash</button>
+        </div>
       </div>
       <div class="analytics-view-tabs">
         <button class="av-btn active" id="av-products" onclick="setAnalyticsView('products')">&#x1F4E6; <span class="t" data-uz="Tovarlar" data-en="Products">Tovarlar</span></button>
@@ -776,6 +805,8 @@ var serviceSales = [];  // service sale records
 var currentRole = null;
 var selectedType = 'solid';
 var activePeriod = 'day';
+var customDateFrom = null;  // ms timestamp — start of custom range
+var customDateTo = null;    // ms timestamp — end of custom range (end of day)
 var analyticsView = 'products'; // 'products' | 'services' | 'both'
 var lang = 'uz';
 var pinInput = '';
@@ -912,6 +943,26 @@ function applyTranslations() {
   if (mbt) mbt.textContent = t('manageTitle');
   document.querySelectorAll('.cancel-text').forEach(function(el) { el.textContent = t('cancel'); });
   if (currentRole) { renderAnalytics(); renderServices(); }
+  // Date filter labels
+  var dfFrom = document.getElementById('dfFromLabel');
+  var dfTo = document.getElementById('dfToLabel');
+  var dfApply = document.getElementById('dfApplyBtn');
+  var dfClear = document.getElementById('dfClearBtn');
+  var pbCustom = document.getElementById('pb-custom');
+  if (dfFrom) dfFrom.textContent = lang === 'uz' ? 'Dan:' : 'From:';
+  if (dfTo) dfTo.textContent = lang === 'uz' ? 'Ga:' : 'To:';
+  if (dfApply) dfApply.textContent = lang === 'uz' ? '✓ Qollash' : '✓ Apply';
+  if (dfClear) dfClear.textContent = lang === 'uz' ? '✕ Bekor' : '✕ Clear';
+  if (pbCustom) pbCustom.title = lang === 'uz' ? 'Sana tanlash' : 'Custom date';
+  // update badge text if custom is active
+  if (activePeriod === 'custom' && customDateFrom) {
+    var badge = document.getElementById('activeDateBadge');
+    if (badge) {
+      var fs = new Date(customDateFrom).toLocaleDateString();
+      var ts = new Date(customDateTo).toLocaleDateString();
+      badge.textContent = (lang === 'uz' ? 'Sana: ' : 'Date: ') + (fs === ts ? fs : fs + ' — ' + ts);
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -1187,7 +1238,7 @@ function launchApp() {
 
   // Role-based tab visibility
   var isManager = currentRole === 'manager';
-  document.getElementById('tab-inventory').style.display = isManager ? '' : 'none';
+  document.getElementById('tab-inventory').style.display = '';  // both roles see inventory
   document.getElementById('tab-add').style.display = isManager ? '' : 'none';
   document.getElementById('tab-services').style.display = isManager ? '' : 'none';
   document.getElementById('tab-analytics').style.display = isManager ? '' : 'none';
@@ -1198,11 +1249,8 @@ function launchApp() {
   document.getElementById('addSellPrice').addEventListener('input', updateMarginPreview);
   setType('solid');
 
-  if (currentRole === 'seller') {
-    switchTab('sell');
-  } else {
-    switchTab('inventory');
-  }
+  // Both roles start on inventory — seller sees goods list, can tap to sell
+  switchTab('inventory');
 }
 
 // ═══════════════════════════════════════════════
@@ -1289,7 +1337,7 @@ function renderInventory() {
         '<button class="icon-btn" style="color:var(--blue)" onclick="openEditGood(\'' + esc(code) + '\')">✏</button>' +
         '<button class="icon-btn" style="color:var(--danger)" onclick="quickSell(\'' + esc(code) + '\')">−</button>' +
         '<button class="icon-btn" onclick="openDeleteGood(\'' + esc(code) + '\')">🗑</button>'
-      : '';
+      : '<button class="icon-btn" style="color:var(--danger);width:auto;padding:0 10px;font-size:11px;font-weight:700" onclick="quickSell(\'' + esc(code) + '\')">&#x1F4B8; ' + (lang === 'uz' ? 'Sotish' : 'Sell') + '</button>';
     return '<div class="good-card">' +
       '<div class="good-card-main">' +
         '<div class="good-icon ' + g.type + '">' + (g.type === 'liquid' ? '💧' : '📦') + '</div>' +
@@ -1640,10 +1688,57 @@ async function sellFreeService() {
 // ═══════════════════════════════════════════════
 function setPeriod(p) {
   activePeriod = p;
+  customDateFrom = null;
+  customDateTo = null;
   ['day','week','month','year','all'].forEach(function(x) {
     document.getElementById('pb-' + x).classList.toggle('active', x === p);
   });
+  document.getElementById('pb-custom').className = 'period-btn';
+  document.getElementById('dateFilterWrap').classList.remove('open');
+  document.getElementById('activeDateBadge').style.display = 'none';
   renderAnalytics();
+}
+
+function toggleDateFilter() {
+  var wrap = document.getElementById('dateFilterWrap');
+  wrap.classList.toggle('open');
+  // set today as default if empty
+  if (!document.getElementById('dateFrom').value) {
+    var today = new Date().toISOString().split('T')[0];
+    document.getElementById('dateFrom').value = today;
+    document.getElementById('dateTo').value = today;
+  }
+}
+
+function applyDateFilter() {
+  var from = document.getElementById('dateFrom').value;
+  var to = document.getElementById('dateTo').value;
+  if (!from || !to) { showToast(lang === 'uz' ? 'Sanani kiriting!' : 'Enter dates!', 'error'); return; }
+  if (from > to) { showToast(lang === 'uz' ? 'Boshlanish sanasi kichik bolishi kerak!' : 'Start date must be before end date!', 'error'); return; }
+  var fromDate = new Date(from); fromDate.setHours(0,0,0,0);
+  var toDate = new Date(to); toDate.setHours(23,59,59,999);
+  customDateFrom = fromDate.getTime();
+  customDateTo = toDate.getTime();
+  activePeriod = 'custom';
+  ['day','week','month','year','all'].forEach(function(x) {
+    document.getElementById('pb-' + x).classList.remove('active');
+  });
+  document.getElementById('pb-custom').className = 'period-btn custom-active';
+  document.getElementById('dateFilterWrap').classList.remove('open');
+  var badge = document.getElementById('activeDateBadge');
+  var fromStr = new Date(customDateFrom).toLocaleDateString();
+  var toStr = new Date(customDateTo).toLocaleDateString();
+  badge.textContent = (lang === 'uz' ? 'Sana: ' : 'Date: ') + (from === to ? fromStr : fromStr + ' — ' + toStr);
+  badge.style.display = 'block';
+  renderAnalytics();
+}
+
+function clearDateFilter() {
+  customDateFrom = null; customDateTo = null;
+  document.getElementById('dateFilterWrap').classList.remove('open');
+  document.getElementById('activeDateBadge').style.display = 'none';
+  document.getElementById('pb-custom').className = 'period-btn';
+  setPeriod('day');
 }
 
 function setAnalyticsView(v) {
@@ -1655,6 +1750,7 @@ function setAnalyticsView(v) {
 }
 
 function periodStart(p) {
+  if (p === 'custom') return customDateFrom || 0;
   var now = new Date();
   if (p === 'all') return 0;
   if (p === 'day') { var d = new Date(now); d.setHours(0,0,0,0); return d.getTime(); }
@@ -1664,12 +1760,18 @@ function periodStart(p) {
   return 0;
 }
 
+function periodEnd(p) {
+  if (p === 'custom' && customDateTo) return customDateTo;
+  return Infinity;
+}
+
 function renderAnalytics() {
   var lk = { day:'dayLabel', week:'weekLabel', month:'monthLabel', year:'yearLabel', all:'allLabel' };
   var start = periodStart(activePeriod);
 
-  var filteredSales = (analyticsView === 'services') ? [] : sales.filter(function(s) { return s.ts >= start; });
-  var filteredSvcSales = (analyticsView === 'products') ? [] : serviceSales.filter(function(s) { return s.ts >= start; });
+  var end = periodEnd(activePeriod);
+  var filteredSales = (analyticsView === 'services') ? [] : sales.filter(function(s) { return s.ts >= start && s.ts <= end; });
+  var filteredSvcSales = (analyticsView === 'products') ? [] : serviceSales.filter(function(s) { return s.ts >= start && s.ts <= end; });
 
   var totalRev = filteredSales.reduce(function(a,s) { return a+s.revenue; }, 0)
                + filteredSvcSales.reduce(function(a,s) { return a+s.price; }, 0);
