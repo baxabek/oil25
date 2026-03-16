@@ -6,7 +6,7 @@
 <title>Tovar Boshqaruvi</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap');
@@ -134,8 +134,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .price-value.cost{color:var(--danger)}.price-value.sell{color:var(--accent)}
 .margin-pos{color:var(--accent)}.margin-neg{color:var(--danger)}
 .low-badge{font-size:9px;background:var(--danger-dim);color:var(--danger);border:1px solid rgba(255,84,112,.25);padding:1px 5px;border-radius:20px;margin-left:4px;vertical-align:middle}
-.seller-sell-btn{padding:8px 16px;border-radius:9px;border:1px solid var(--danger);background:var(--danger-dim);color:var(--danger);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap}
-.seller-sell-btn:active{transform:scale(.95);background:var(--danger)}
 
 /* FORMS */
 .form-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px}
@@ -295,43 +293,42 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 /* ERROR SCREEN */
 #errorScreen{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9998;padding:32px;text-align:center;gap:12px}
 
-/* BARCODE SCANNER */
-.scan-btn{display:flex;align-items:center;gap:6px;padding:10px 14px;border-radius:10px;border:1px solid var(--accent);background:var(--accent-dim);color:var(--accent);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;margin-bottom:10px;width:100%}
-.scan-btn:active{transform:scale(.97)}
-.scan-btn .scan-icon{font-size:18px}
-#scannerOverlay{position:fixed;inset:0;background:#000;z-index:1000;display:none;flex-direction:column}
-#scannerOverlay.open{display:flex}
-#scannerVideo{width:100%;flex:1;object-fit:cover}
-.scanner-ui{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
-.scanner-frame{width:260px;height:160px;border:3px solid var(--accent);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.55)}
-.scanner-line{position:absolute;width:240px;height:2px;background:var(--accent);opacity:.8;animation:scanLine 2s linear infinite}
-@keyframes scanLine{0%{transform:translateY(-70px)}100%{transform:translateY(70px)}}
-.scanner-hint{margin-top:20px;font-size:13px;color:#fff;background:rgba(0,0,0,.6);padding:8px 18px;border-radius:20px;text-align:center;pointer-events:all}
-.scanner-close{position:absolute;top:20px;right:16px;width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(0,0,0,.5);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;pointer-events:all}
-.scanner-close:active{transform:scale(.9)}
-.scanner-status{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);font-size:13px;color:#fff;background:rgba(0,0,0,.7);padding:8px 20px;border-radius:20px;white-space:nowrap}
-
-/* BARCODE LINK MODAL */
-.barcode-modal-content{padding:4px 0}
-.barcode-found-num{font-family:'Space Mono',monospace;font-size:14px;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(255,200,77,.3);border-radius:9px;padding:10px 14px;margin-bottom:14px;text-align:center;letter-spacing:1px}
-.barcode-choice-btns{display:flex;flex-direction:column;gap:8px}
-.barcode-choice-btn{padding:13px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;text-align:left;transition:all .15s}
-.barcode-choice-btn:active{transform:scale(.98)}
-.barcode-choice-btn.link{border-color:var(--blue);background:var(--blue-dim);color:var(--blue)}
-.barcode-choice-btn.new{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
-.barcode-choice-btn.sell{border-color:var(--danger);background:var(--danger-dim);color:var(--danger)}
+/* SELLER SELL BUTTON */
+.seller-sell-btn{padding:8px 16px;border-radius:9px;border:1px solid var(--danger);background:var(--danger-dim);color:var(--danger);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap}
+.seller-sell-btn:active{transform:scale(.95)}
 
 /* DATE FILTER */
-.date-filter-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:none;animation:slideIn .2s ease}
+.date-filter-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:none}
 .date-filter-wrap.open{display:block}
 .date-filter-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-.date-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);font-family:'Space Mono',monospace;font-size:12px;outline:none;-webkit-appearance:none;appearance:none}
+.date-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);font-family:'Space Mono',monospace;font-size:12px;outline:none;-webkit-appearance:none}
 .date-input:focus{border-color:var(--gold)}
 .date-filter-label{font-size:11px;color:var(--muted2);width:32px;flex-shrink:0;font-family:'Space Mono',monospace}
 .date-apply-btn{padding:9px 14px;border-radius:9px;border:none;background:var(--gold);color:#1a1000;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
 .date-clear-btn{padding:9px 12px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--muted2);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer}
 .period-btn.custom-active{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
 .active-date-badge{font-size:10px;color:var(--purple);font-family:'Space Mono',monospace;margin-bottom:10px;padding:5px 12px;background:var(--purple-dim);border:1px solid rgba(180,139,250,.3);border-radius:8px;text-align:center}
+
+/* BARCODE SCANNER */
+.scan-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:11px 14px;border-radius:10px;border:1px solid var(--accent);background:var(--accent-dim);color:var(--accent);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;width:100%;margin-bottom:10px}
+.scan-btn:active{transform:scale(.97)}
+#scannerOverlay{position:fixed;inset:0;background:#000;z-index:2000;display:none;flex-direction:column;align-items:center;justify-content:center}
+#scannerOverlay.open{display:flex}
+#scannerVideo{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.scanner-ui{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:10}
+.scanner-frame{width:280px;height:170px;border:3px solid var(--accent);border-radius:14px;box-shadow:0 0 0 9999px rgba(0,0,0,0.6);position:relative}
+.scanner-line{position:absolute;left:10px;right:10px;height:2px;background:var(--accent);opacity:.9;top:50%;animation:scanLine 1.5s ease-in-out infinite}
+@keyframes scanLine{0%,100%{top:10%}50%{top:88%}}
+.scanner-hint{margin-top:24px;font-size:14px;color:#fff;background:rgba(0,0,0,.65);padding:10px 20px;border-radius:20px;text-align:center;pointer-events:all;font-family:'DM Sans',sans-serif}
+.scanner-close{position:absolute;top:24px;right:20px;width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.5);background:rgba(0,0,0,.6);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:20}
+.scanner-retry-btn{position:absolute;bottom:100px;padding:12px 28px;border-radius:24px;border:2px solid var(--accent);background:rgba(0,229,160,.15);color:var(--accent);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:none;z-index:20}
+
+/* BARCODE MODALS */
+.barcode-found-num{font-family:'Space Mono',monospace;font-size:13px;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(255,200,77,.3);border-radius:9px;padding:10px 14px;margin-bottom:14px;text-align:center;word-break:break-all}
+.bc-choice-btn{width:100%;padding:13px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;text-align:left;margin-bottom:8px;display:flex;align-items:center;gap:10px;transition:all .15s}
+.bc-choice-btn:active{transform:scale(.98)}
+.bc-choice-btn.link{border-color:var(--blue);background:var(--blue-dim);color:var(--blue)}
+.bc-choice-btn.new{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
 </style>
 </head>
 <body>
@@ -414,22 +411,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
     <!-- INVENTORY -->
     <div class="panel active" id="panel-inventory">
+      <div id="managerScanWrap" style="display:none">
+        <button class="scan-btn" onclick="openScanner('inventory')">&#x1F4F7; <span class="t" data-uz="Barkod Skanerlash" data-en="Scan Barcode">Barkod Skanerlash</span></button>
+      </div>
+      <div id="sellerScanWrap" style="display:none">
+        <button class="scan-btn" style="border-color:var(--danger);background:var(--danger-dim);color:var(--danger)" onclick="openScanner('sell')">&#x1F4F7; <span class="t" data-uz="Barkod Skanerlash — Sotish" data-en="Scan to Sell">Barkod Skanerlash — Sotish</span></button>
+      </div>
       <div class="stat-strip">
         <div class="stat-chip"><div class="stat-chip-label t" data-uz="Tovarlar" data-en="Goods">Tovarlar</div><div class="stat-chip-val c-accent" id="s-total">0</div></div>
         <div class="stat-chip"><div class="stat-chip-label">&#x1F4A7; <span class="t" data-uz="Suyuq" data-en="Liquid">Suyuq</span></div><div class="stat-chip-val c-blue" id="s-liquid">0 L</div></div>
         <div class="stat-chip"><div class="stat-chip-label">&#x1F4E6; <span class="t" data-uz="Qattiq" data-en="Solid">Qattiq</span></div><div class="stat-chip-val c-purple" id="s-solid">0</div></div>
-      </div>
-      <div id="managerScanWrap" style="display:none">
-        <button class="scan-btn" onclick="openScanner('inventory')">
-          <span class="scan-icon">&#x1F4F7;</span>
-          <span class="t" data-uz="Barkod Skanerlash" data-en="Scan Barcode">Barkod Skanerlash</span>
-        </button>
-      </div>
-      <div id="sellerScanWrap" style="display:none">
-        <button class="scan-btn" style="background:var(--danger-dim);border-color:var(--danger);color:var(--danger)" onclick="openScanner('sell')">
-          <span class="scan-icon">&#x1F4F7;</span>
-          <span class="t" data-uz="Barkod Skanerlash — Sotish" data-en="Scan Barcode — Sell">Barkod Skanerlash — Sotish</span>
-        </button>
       </div>
       <div class="search-wrap">
         <span class="search-icon">&#x1F50D;</span>
@@ -442,14 +433,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="panel" id="panel-add">
       <div class="form-card">
         <div class="form-section-title t" data-uz="Tovar Qoshish" data-en="Register Good">Tovar Qoshish</div>
-        <button class="scan-btn" onclick="openScanner('add')" style="margin-bottom:14px">
-          <span class="scan-icon">&#x1F4F7;</span>
-          <span class="t" data-uz="Barkod Skanerlash (kod avtomatik tolinadi)" data-en="Scan Barcode (auto-fills code)">Barkod Skanerlash (kod avtomatik tolinadi)</span>
-        </button>
+        <button class="scan-btn" onclick="openScanner('add')">&#x1F4F7; <span class="t" data-uz="Barkod Skanerlash (avtomatik tolinadi)" data-en="Scan Barcode (auto-fills)">Barkod Skanerlash (avtomatik tolinadi)</span></button>
         <div class="form-group">
           <label class="form-label t" data-uz="Kodi *" data-en="Code *">Kodi *</label>
           <input class="form-input" id="addCode" type="text" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-          <div id="addBarcodeLinked" style="display:none;font-size:11px;color:var(--accent);font-family:'Space Mono',monospace;margin-top:4px"></div>
+          <div id="addBarcodeLinked" style="display:none;font-size:11px;color:var(--accent);font-family:Space Mono,monospace;margin-top:4px"></div>
         </div>
         <div class="form-group">
           <label class="form-label t" data-uz="Nomi / Tavsifi" data-en="Name / Description">Nomi / Tavsifi</label>
@@ -498,11 +486,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div id="sellProductPanel">
         <div class="form-card">
           <div class="form-section-title t" data-uz="Sotish" data-en="Sell / Extract Stock">Sotish</div>
-          <button class="scan-btn" onclick="openScanner('sell')">
-            <span class="scan-icon">&#x1F4F7;</span>
-            <span class="t" data-uz="Barkod Skanerlash" data-en="Scan Barcode">Barkod Skanerlash</span>
-          </button>
-          <div class="form-group" style="margin-bottom:0">
+          <button class="scan-btn" onclick="openScanner('sell')">&#x1F4F7; <span class="t" data-uz="Barkod Skanerlash" data-en="Scan Barcode">Barkod Skanerlash</span></button>
+        <div class="form-group" style="margin-bottom:0">
             <label class="form-label t" data-uz="Tovar Kodi" data-en="Good Code">Tovar Kodi</label>
             <input class="form-input" id="sellCode" type="text" oninput="onSellCodeInput()" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
           </div>
@@ -626,18 +611,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <button class="period-btn" onclick="setPeriod('month')" id="pb-month">-</button>
         <button class="period-btn" onclick="setPeriod('year')" id="pb-year">-</button>
         <button class="period-btn" onclick="setPeriod('all')" id="pb-all">-</button>
-        <button class="period-btn" onclick="toggleDateFilter()" id="pb-custom" title="Custom date">&#x1F4C5;</button>
+        <button class="period-btn" onclick="toggleDateFilter()" id="pb-custom">&#x1F4C5;</button>
       </div>
       <div id="activeDateBadge" class="active-date-badge" style="display:none"></div>
       <div class="date-filter-wrap" id="dateFilterWrap">
-        <div class="date-filter-row">
-          <div class="date-filter-label">Dan:</div>
-          <input type="date" class="date-input" id="dateFrom">
-        </div>
-        <div class="date-filter-row">
-          <div class="date-filter-label">Ga:</div>
-          <input type="date" class="date-input" id="dateTo">
-        </div>
+        <div class="date-filter-row"><div class="date-filter-label">Dan:</div><input type="date" class="date-input" id="dateFrom"></div>
+        <div class="date-filter-row"><div class="date-filter-label">Ga:</div><input type="date" class="date-input" id="dateTo"></div>
         <div style="display:flex;gap:8px;margin-top:4px">
           <button class="date-clear-btn" onclick="clearDateFilter()">&#x2715; Bekor</button>
           <button class="date-apply-btn" onclick="applyDateFilter()">&#x2713; Qollash</button>
@@ -866,13 +845,9 @@ var pinInput = '';
 var pinRole = 'manager';
 var editModeActive = false;
 var deleteTarget = null;
-var pinAttempts = 0;
-var pinLockedUntil = 0;
-var MAX_PIN_ATTEMPTS = 5;
-var LOCKOUT_DURATION_MS = 5 * 60 * 1000;   // 5 minutes lockout
-var SESSION_TIMEOUT_MS = 20 * 60 * 1000;   // 20 minutes session timeout
-var sessionTimer = null;
-var lockoutTimer = null;
+var pinAttempts = 0; var pinLockedUntil = 0; var MAX_PIN_ATTEMPTS = 5;
+var LOCKOUT_MS = 5*60*1000; var SESSION_MS = 20*60*1000;
+var sessionTimer = null; var lockoutTimer = null;
 var quickAddTarget = null;
 var deleteTxTarget = null;
 var undoTxTarget = null;
@@ -889,7 +864,7 @@ var activeSellTab = 'product';
 var T = {
   uz: {
     enterPin: 'Kirish uchun rolni tanlang',
-    wrongPin: 'Notogri PIN! Qayta urinib koring.',
+    wrongPin: 'Notogri PIN! Qayta urinib ko\'ring.',
     manager: 'Manager', seller: 'Sotuvchi',
     day: 'Bugun', week: 'Hafta', month: 'Oy', year: 'Yil', all: 'Hammasi',
     dayLabel: 'Bugungi', weekLabel: 'Bu Haftagi', monthLabel: 'Bu Oydagi', yearLabel: 'Bu Yilgi', allLabel: 'Umumiy',
@@ -1128,7 +1103,7 @@ async function dbDeleteGood(code) {
 
 async function dbSaveSale(sale) {
   setSync('syncing');
-  var res = await db.from('sales').insert({ code: sale.code, qty: sale.qty, revenue: sale.revenue, profit: sale.profit, ts: sale.ts, note: sale.note || null }).select('id').single();
+  var res = await db.from('sales').insert({ code: sale.code, qty: sale.qty, revenue: sale.revenue, profit: sale.profit, ts: sale.ts, actual_price: sale.actualPrice || null, note: sale.note || null }).select('id').single();
   if (res.error) { setSync('error'); throw res.error; }
   setSync('ok');
   return res.data.id;
@@ -1247,81 +1222,50 @@ function updatePinDots() {
 }
 
 function checkPin() {
-  // Check if locked out
   var now = Date.now();
   if (pinLockedUntil > now) {
-    var secsLeft = Math.ceil((pinLockedUntil - now) / 1000);
-    document.getElementById('pinError').textContent = (lang === 'uz' ? 'Bloklangan! ' + secsLeft + ' soniya kuting.' : 'Locked! Wait ' + secsLeft + 's.');
-    pinInput = ''; updatePinDots();
-    return;
+    var s = Math.ceil((pinLockedUntil - now)/1000);
+    document.getElementById('pinError').textContent = (lang==='uz'?'Bloklangan! '+s+' soniya':'Locked! '+s+'s left');
+    pinInput=''; updatePinDots(); return;
   }
-
-  var correct = (pinRole === 'manager' && pinInput === MANAGER_PIN) ||
-                (pinRole === 'seller'  && pinInput === SELLER_PIN);
-
+  var correct = (pinRole==='manager'&&pinInput===MANAGER_PIN)||(pinRole==='seller'&&pinInput===SELLER_PIN);
   if (correct) {
-    pinAttempts = 0;
-    pinLockedUntil = 0;
-    document.getElementById('pinError').textContent = '';
-    currentRole = pinRole;
-    document.getElementById('pinScreen').style.display = 'none';
-    launchApp();
-    startSessionTimer();
+    pinAttempts=0; pinLockedUntil=0;
+    currentRole=pinRole;
+    document.getElementById('pinScreen').style.display='none';
+    launchApp(); startSessionTimer();
   } else {
     pinAttempts++;
-    for (var i = 0; i < 4; i++) document.getElementById('pd' + i).className = 'pin-dot error';
-
-    if (pinAttempts >= MAX_PIN_ATTEMPTS) {
-      pinLockedUntil = Date.now() + LOCKOUT_DURATION_MS;
-      pinAttempts = 0;
-      document.getElementById('pinError').textContent = (lang === 'uz' ? '5 ta xato! 5 daqiqa bloklandi.' : '🔒 5 wrong attempts! Locked for 5 minutes.');
-      // Start countdown display
-      if (lockoutTimer) clearInterval(lockoutTimer);
-      lockoutTimer = setInterval(function() {
-        var remaining = pinLockedUntil - Date.now();
-        if (remaining <= 0) {
-          clearInterval(lockoutTimer);
-          document.getElementById('pinError').textContent = '';
-        } else {
-          var s = Math.ceil(remaining / 1000);
-          document.getElementById('pinError').textContent = (lang === 'uz' ? 'Bloklangan! ' + s + ' soniya.' : '🔒 Locked! ' + s + 's remaining.');
-        }
-      }, 1000);
+    for (var i=0;i<4;i++) document.getElementById('pd'+i).className='pin-dot error';
+    if (pinAttempts>=MAX_PIN_ATTEMPTS) {
+      pinLockedUntil=Date.now()+LOCKOUT_MS; pinAttempts=0;
+      document.getElementById('pinError').textContent=(lang==='uz'?'5 ta xato! 5 daqiqa bloklandi.':'5 wrong! Locked 5 min.');
+      if(lockoutTimer)clearInterval(lockoutTimer);
+      lockoutTimer=setInterval(function(){
+        var r=pinLockedUntil-Date.now();
+        if(r<=0){clearInterval(lockoutTimer);document.getElementById('pinError').textContent='';}
+        else{document.getElementById('pinError').textContent=(lang==='uz'?'Bloklangan! '+Math.ceil(r/1000)+' soniya':'Locked! '+Math.ceil(r/1000)+'s');}
+      },1000);
     } else {
-      var attemptsLeft = MAX_PIN_ATTEMPTS - pinAttempts;
-      document.getElementById('pinError').textContent = (lang === 'uz' ? 'Notogri PIN! ' + attemptsLeft + ' ta urinish qoldi.' : 'Wrong PIN! ' + attemptsLeft + ' attempts left.');
+      var left=MAX_PIN_ATTEMPTS-pinAttempts;
+      document.getElementById('pinError').textContent=(lang==='uz'?'Xato PIN! '+left+' urinish qoldi.':'Wrong PIN! '+left+' left.');
     }
-    setTimeout(function() { pinInput = ''; updatePinDots(); }, 800);
+    setTimeout(function(){pinInput='';updatePinDots();},800);
   }
 }
-
-function startSessionTimer() {
-  if (sessionTimer) clearTimeout(sessionTimer);
-  sessionTimer = setTimeout(function() {
-    if (currentRole) {
-      lockApp();
-      // Show timeout message briefly after lock
-      setTimeout(function() {
-        document.getElementById('pinError').textContent = (lang === 'uz' ? '20 daqiqa faolsizlik - qayta kiring.' : '⏱ 20 min inactivity — please log in again.');
-      }, 100);
-    }
-  }, SESSION_TIMEOUT_MS);
+function startSessionTimer(){
+  if(sessionTimer)clearTimeout(sessionTimer);
+  sessionTimer=setTimeout(function(){if(currentRole){lockApp();setTimeout(function(){document.getElementById('pinError').textContent=(lang==='uz'?'20 daqiqa faolsizlik - qayta kiring.':'20 min inactivity - please log in.');},100);}},SESSION_MS);
 }
-
-function resetSessionTimer() {
-  if (currentRole) startSessionTimer();
-}
+function resetSessionTimer(){if(currentRole)startSessionTimer();}
 
 function lockApp() {
-  currentRole = null;
-  editModeActive = false;
-  pinInput = '';
+  currentRole = null; editModeActive = false; pinInput = '';
   updatePinDots();
-  if (sessionTimer) clearTimeout(sessionTimer);
-  sessionTimer = null;
-  document.getElementById('pinError').textContent = '';
-  document.getElementById('appShell').style.display = 'none';
-  document.getElementById('pinScreen').style.display = 'flex';
+  if(sessionTimer)clearTimeout(sessionTimer); sessionTimer=null;
+  document.getElementById('pinError').textContent='';
+  document.getElementById('appShell').style.display='none';
+  document.getElementById('pinScreen').style.display='flex';
   selectRole('manager');
 }
 
@@ -1330,13 +1274,16 @@ function launchApp() {
   badge.className = 'role-badge ' + currentRole;
   badge.textContent = currentRole === 'manager' ? t('manager') : t('seller');
 
-  // Role-based tab visibility
   var isManager = currentRole === 'manager';
-  document.getElementById('tab-inventory').style.display = '';  // both see inventory
+  document.getElementById('tab-inventory').style.display = '';
   document.getElementById('tab-add').style.display = isManager ? '' : 'none';
-  document.getElementById('tab-sell').style.display = isManager ? '' : 'none';  // seller uses card buttons instead
+  document.getElementById('tab-sell').style.display = isManager ? '' : 'none';
   document.getElementById('tab-services').style.display = isManager ? '' : 'none';
   document.getElementById('tab-analytics').style.display = isManager ? '' : 'none';
+  var msw = document.getElementById('managerScanWrap');
+  if (msw) msw.style.display = isManager ? '' : 'none';
+  var ssw = document.getElementById('sellerScanWrap');
+  if (ssw) ssw.style.display = isManager ? 'none' : '';
 
   document.getElementById('appShell').style.display = 'block';
   applyTranslations();
@@ -1345,16 +1292,9 @@ function launchApp() {
   setType('solid');
 
   switchTab('inventory');
-  // Show scan button for manager in inventory
-  var msw = document.getElementById('managerScanWrap');
-  if (msw) msw.style.display = isManager ? '' : 'none';
-  var ssw = document.getElementById('sellerScanWrap');
-  if (ssw) ssw.style.display = isManager ? 'none' : '';
 }
-
-// Reset session timer on any user interaction
-document.addEventListener('touchstart', resetSessionTimer, { passive: true });
-document.addEventListener('click', resetSessionTimer, { passive: true });
+document.addEventListener('touchstart',resetSessionTimer,{passive:true});
+document.addEventListener('click',resetSessionTimer,{passive:true});
 
 // ═══════════════════════════════════════════════
 //  TABS
@@ -1484,20 +1424,11 @@ async function addGood() {
       if (costPrice !== null) goods[code].costPrice = costPrice;
       if (sellPrice !== null) goods[code].sellPrice = sellPrice;
     } else {
-      // Attach scanned barcode if one was scanned in add mode
-      var addedBarcode = null;
-      var barcodeHint = document.getElementById('addBarcodeLinked');
-      if (barcodeHint && barcodeHint.style.display !== 'none' && scannedBarcode) {
-        addedBarcode = scannedBarcode;
-      }
-      goods[code] = { type: selectedType, qty: qty, name: name, costPrice: costPrice, sellPrice: sellPrice, barcode: addedBarcode };
+      goods[code] = { type: selectedType, qty: qty, name: name, costPrice: costPrice, sellPrice: sellPrice };
     }
     await dbSaveGood(code);
     ['addCode','addName','addQty','addCostPrice','addSellPrice'].forEach(function(id) { document.getElementById(id).value = ''; });
     document.getElementById('marginPreview').textContent = '';
-    var bh = document.getElementById('addBarcodeLinked');
-    if (bh) { bh.style.display = 'none'; bh.textContent = ''; }
-    scannedBarcode = null;
     showToast(code.toUpperCase() + ' ' + t('saved'), 'success');
     switchTab('inventory');
   } catch(e) { showToast(t('saveFail'), 'error'); }
@@ -1577,8 +1508,8 @@ async function sellGood() {
   var revenue = qty * actualPrice;
   var profit = revenue - qty * (g.costPrice || 0);
 
-  var saleNote = document.getElementById('sellNote') ? document.getElementById('sellNote').value.trim() : '';
-  var sale = { code: code, qty: qty, revenue: revenue, profit: profit, ts: Date.now(), note: saleNote };
+  var saleNote = document.getElementById('sellNote')?document.getElementById('sellNote').value.trim():'';
+  var sale = { code: code, qty: qty, revenue: revenue, profit: profit, ts: Date.now(), actualPrice: actualPrice, note: saleNote };
   var prevQty = g.qty;
   g.qty = parseFloat((g.qty - qty).toFixed(4));
   try {
@@ -1590,14 +1521,7 @@ async function sellGood() {
     document.getElementById('sellPriceOverride').value = g.sellPrice != null ? g.sellPrice : '';
     document.getElementById('sellOverrideHint').style.display = 'none';
     document.getElementById('sellPriceOverride').className = 'form-input price-input';
-    if (document.getElementById('sellNote')) document.getElementById('sellNote').value = '';
     onSellCodeInput();
-    if (currentRole === 'seller') {
-      setTimeout(function() {
-        document.getElementById('tab-sell').style.display = 'none';
-        switchTab('inventory');
-      }, 1200);
-    }
   } catch(e) {
     g.qty = prevQty;
     showToast(t('saleFail'), 'error');
@@ -1605,22 +1529,14 @@ async function sellGood() {
 }
 
 function quickSell(code) {
-  switchTab('sell');
-  setSellTab('product');
-  document.getElementById('sellCode').value = code;
-  onSellCodeInput();
+  switchTab('sell'); setSellTab('product');
+  document.getElementById('sellCode').value = code; onSellCodeInput();
 }
-
 function sellerSellCard(code) {
-  document.getElementById('tab-sell').style.display = '';
-  switchTab('sell');
-  if (typeof setSellTab === 'function') setSellTab('product');
-  var codeEl = document.getElementById('sellCode');
-  if (codeEl) { codeEl.value = code; onSellCodeInput(); }
-  setTimeout(function() {
-    var el = document.getElementById('sellResult');
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 150);
+  document.getElementById('tab-sell').style.display='';
+  switchTab('sell'); setSellTab('product');
+  document.getElementById('sellCode').value=code; onSellCodeInput();
+  setTimeout(function(){var el=document.getElementById('sellResult');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},150);
 }
 
 // ═══════════════════════════════════════════════
@@ -1819,20 +1735,49 @@ async function sellFreeService() {
 //  ANALYTICS
 // ═══════════════════════════════════════════════
 function setPeriod(p) {
-  activePeriod = p;
-  customDateFrom = null;
-  customDateTo = null;
+  activePeriod = p; customDateFrom = null; customDateTo = null;
   ['day','week','month','year','all'].forEach(function(x) {
     document.getElementById('pb-' + x).classList.toggle('active', x === p);
   });
-  var pbCustom = document.getElementById('pb-custom');
-  if (pbCustom) pbCustom.className = 'period-btn';
-  var wrap = document.getElementById('dateFilterWrap');
-  if (wrap) wrap.classList.remove('open');
-  var badge = document.getElementById('activeDateBadge');
-  if (badge) badge.style.display = 'none';
+  var c = document.getElementById('pb-custom'); if (c) c.className = 'period-btn';
+  var w = document.getElementById('dateFilterWrap'); if (w) w.classList.remove('open');
+  var b = document.getElementById('activeDateBadge'); if (b) b.style.display = 'none';
   renderAnalytics();
 }
+function toggleDateFilter() {
+  var w = document.getElementById('dateFilterWrap'); w.classList.toggle('open');
+  if (!document.getElementById('dateFrom').value) {
+    var t = new Date().toISOString().split('T')[0];
+    document.getElementById('dateFrom').value = t;
+    document.getElementById('dateTo').value = t;
+  }
+}
+function applyDateFilter() {
+  var from = document.getElementById('dateFrom').value;
+  var to = document.getElementById('dateTo').value;
+  if (!from || !to) { showToast(lang === 'uz' ? 'Sanani kiriting!' : 'Enter dates!', 'error'); return; }
+  if (from > to) { showToast(lang === 'uz' ? 'Boshlanish kichik bolishi kerak' : 'Start must be before end', 'error'); return; }
+  var fd = new Date(from); fd.setHours(0,0,0,0);
+  var td = new Date(to); td.setHours(23,59,59,999);
+  customDateFrom = fd.getTime(); customDateTo = td.getTime(); activePeriod = 'custom';
+  ['day','week','month','year','all'].forEach(function(x){ document.getElementById('pb-' + x).classList.remove('active'); });
+  document.getElementById('pb-custom').className = 'period-btn custom-active';
+  document.getElementById('dateFilterWrap').classList.remove('open');
+  var badge = document.getElementById('activeDateBadge');
+  var fs = new Date(customDateFrom).toLocaleDateString();
+  var ts = new Date(customDateTo).toLocaleDateString();
+  badge.textContent = (lang === 'uz' ? 'Sana: ' : 'Date: ') + (from === to ? fs : fs + ' - ' + ts);
+  badge.style.display = 'block';
+  renderAnalytics();
+}
+function clearDateFilter() {
+  customDateFrom = null; customDateTo = null;
+  document.getElementById('dateFilterWrap').classList.remove('open');
+  document.getElementById('activeDateBadge').style.display = 'none';
+  document.getElementById('pb-custom').className = 'period-btn';
+  setPeriod('day');
+}
+function periodEnd(p) { return (p === 'custom' && customDateTo) ? customDateTo : Infinity; }
 
 function setAnalyticsView(v) {
   analyticsView = v;
@@ -2402,393 +2347,173 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-
-// ═══════════════════════════════════════════════
-//  DATE FILTER
-// ═══════════════════════════════════════════════
-function toggleDateFilter() {
-  var wrap = document.getElementById('dateFilterWrap');
-  wrap.classList.toggle('open');
-  if (!document.getElementById('dateFrom').value) {
-    var today = new Date().toISOString().split('T')[0];
-    document.getElementById('dateFrom').value = today;
-    document.getElementById('dateTo').value = today;
-  }
-}
-
-function applyDateFilter() {
-  var from = document.getElementById('dateFrom').value;
-  var to = document.getElementById('dateTo').value;
-  if (!from || !to) { showToast(lang === 'uz' ? 'Sanani kiriting!' : 'Enter dates!', 'error'); return; }
-  if (from > to) { showToast(lang === 'uz' ? 'Boshlanish sanasi kichik bolishi kerak!' : 'Start must be before end!', 'error'); return; }
-  var fromDate = new Date(from); fromDate.setHours(0,0,0,0);
-  var toDate = new Date(to); toDate.setHours(23,59,59,999);
-  customDateFrom = fromDate.getTime();
-  customDateTo = toDate.getTime();
-  activePeriod = 'custom';
-  ['day','week','month','year','all'].forEach(function(x) {
-    document.getElementById('pb-' + x).classList.remove('active');
-  });
-  document.getElementById('pb-custom').className = 'period-btn custom-active';
-  document.getElementById('dateFilterWrap').classList.remove('open');
-  var badge = document.getElementById('activeDateBadge');
-  var fs = new Date(customDateFrom).toLocaleDateString();
-  var ts = new Date(customDateTo).toLocaleDateString();
-  badge.textContent = (lang === 'uz' ? 'Sana: ' : 'Date: ') + (from === to ? fs : fs + ' - ' + ts);
-  badge.style.display = 'block';
-  renderAnalytics();
-}
-
-function clearDateFilter() {
-  customDateFrom = null;
-  customDateTo = null;
-  document.getElementById('dateFilterWrap').classList.remove('open');
-  document.getElementById('activeDateBadge').style.display = 'none';
-  document.getElementById('pb-custom').className = 'period-btn';
-  setPeriod('day');
-}
-
-function periodEnd(p) {
-  if (p === 'custom' && customDateTo) return customDateTo;
-  return Infinity;
-}
-
-// ═══════════════════════════════════════════════
-//  BARCODE SCANNER
-// ═══════════════════════════════════════════════
-var scannerMode = 'sell';
-var scannerActive = false;
-var codeReader = null;
-var scannedBarcode = null;
-var bcNewType = 'solid';
-
-function openScanner(mode) {
-  scannerMode = mode;
-  // Always reset state before opening
-  stopCamera();
-  scannerActive = true;
+// BARCODE SCANNER
+var scannerMode='sell',scannerActive=false,scannedBarcode=null,bcNewType='solid',lastBcTime=0,lastBcCode='';
+function openScanner(mode){
+  scannerMode=mode; stopCamera(); scannerActive=true;
   document.getElementById('scannerOverlay').classList.add('open');
-  document.getElementById('scannerStatus').style.display = 'none';
-  var hint = document.getElementById('scannerHint');
-  if (mode === 'add') {
-    hint.textContent = lang === 'uz' ? "Yangi tovar barkodini skanerlang" : "Scan the new product barcode";
-  } else {
-    hint.textContent = lang === 'uz' ? "Barkodni ramkaga togrilang" : "Align barcode with frame";
-  }
-  // Small delay to ensure previous session is fully stopped
-  setTimeout(startCamera, 150);
+  var btn=document.getElementById('scannerRetryBtn'); if(btn)btn.style.display='none';
+  document.getElementById('scannerHint').textContent=mode==='add'?(lang==='uz'?'Yangi tovar barkodini skanerlang':'Scan new product barcode'):(lang==='uz'?'Barkodni kameraga togrilang':'Point camera at barcode');
+  setTimeout(startCamera,400);
 }
-
-function closeScanner() {
-  scannerActive = false;
+function closeScanner(){
+  scannerActive=false;
   document.getElementById('scannerOverlay').classList.remove('open');
   stopCamera();
 }
-
-function reopenScanner() {
-  // Used to re-open scanner after a failed scan without page reload
-  scannerActive = true;
-  startCamera();
+function reopenScanner(){
+  scannerActive=true;
+  var btn=document.getElementById('scannerRetryBtn'); if(btn)btn.style.display='none';
+  stopCamera(); setTimeout(startCamera,300);
 }
-
-function startCamera() {
-  if (!window.ZXing) {
-    showToast(lang === 'uz' ? 'Skaner yuklanmadi' : 'Scanner not loaded', 'error');
+function startCamera(){
+  if(!window.Quagga){showToast(lang==='uz'?'Skaner yuklanmadi':'Scanner not loaded','error');return;}
+  try{
+    Quagga.init({
+      inputStream:{name:'Live',type:'LiveStream',target:document.getElementById('scannerVideo'),constraints:{facingMode:'environment',width:1280,height:720}},
+      frequency:10,
+      decoder:{readers:['ean_reader','ean_8_reader','code_128_reader','code_39_reader','upc_reader','upc_e_reader','codabar_reader']},
+      locate:true,locator:{patchSize:'medium',halfSample:true}
+    },function(err){
+      if(err){console.error(err);showToast(lang==='uz'?'Kamera ochilmadi':'Camera failed','error');var b=document.getElementById('scannerRetryBtn');if(b)b.style.display='block';return;}
+      if(!scannerActive){stopCamera();return;}
+      Quagga.start();
+    });
+    Quagga.onDetected(function(result){
+      if(!scannerActive)return;
+      var code=result.codeResult.code,now=Date.now();
+      if(code===lastBcCode&&now-lastBcTime<2000)return;
+      lastBcCode=code; lastBcTime=now;
+      if(navigator.vibrate)navigator.vibrate(100);
+      stopCamera(); closeScanner(); handleScannedBarcode(code);
+    });
+  }catch(e){showToast('Error: '+e.message,'error');var b=document.getElementById('scannerRetryBtn');if(b)b.style.display='block';}
+}
+function stopCamera(){
+  try{Quagga.offDetected();Quagga.stop();}catch(e){}
+  var v=document.getElementById('scannerVideo');
+  if(v&&v.srcObject){try{v.srcObject.getTracks().forEach(function(t){t.stop()});}catch(e){}v.srcObject=null;}
+}
+function handleScannedBarcode(barcode){
+  scannedBarcode=barcode;
+  if(scannerMode==='add'){
+    var ex=Object.keys(goods).find(function(c){return goods[c].barcode===barcode;});
+    if(ex){showToast((lang==='uz'?'Bu barkod allaqachon ':'Barcode belongs to ')+ex.toUpperCase(),'warn');}
+    else{var h=document.getElementById('addBarcodeLinked');if(h){h.textContent=(lang==='uz'?'Barkod: ':'Barcode: ')+barcode;h.style.display='block';}showToast(lang==='uz'?'Barkod saqlandi! Kodni kiriting.':'Barcode saved! Enter code.','success');}
     return;
   }
-  // Stop any existing session first
-  stopCamera();
-
-  try {
-    // Configure hints for faster, multi-orientation scanning
-    var hints = new Map();
-    var formats = [
-      ZXing.BarcodeFormat.EAN_13,
-      ZXing.BarcodeFormat.EAN_8,
-      ZXing.BarcodeFormat.CODE_128,
-      ZXing.BarcodeFormat.CODE_39,
-      ZXing.BarcodeFormat.QR_CODE,
-      ZXing.BarcodeFormat.DATA_MATRIX,
-      ZXing.BarcodeFormat.UPC_A,
-      ZXing.BarcodeFormat.UPC_E,
-      ZXing.BarcodeFormat.ITF,
-      ZXing.BarcodeFormat.CODABAR
-    ];
-    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
-    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);  // scan all orientations
-
-    codeReader = new ZXing.BrowserMultiFormatReader(hints, {
-      delayBetweenScanAttempts: 100  // scan every 100ms = very fast
-    });
-
-    // Get rear camera specifically (better for barcodes)
-    var videoConstraints = {
-      facingMode: { ideal: 'environment' },  // rear camera
-      width: { ideal: 1280 },
-      height: { ideal: 720 }
-    };
-
-    navigator.mediaDevices.getUserMedia({ video: videoConstraints }).then(function(stream) {
-      if (!scannerActive) { stream.getTracks().forEach(function(t){t.stop();}); return; }
-      var video = document.getElementById('scannerVideo');
-      video.srcObject = stream;
-      video.play();
-
-      // Start decoding from the video element directly
-      codeReader.decodeFromVideoElement('scannerVideo', function(result, err) {
-        if (!scannerActive) return;
-        if (result) {
-          var barcode = result.getText();
-          // Vibrate to give feedback
-          if (navigator.vibrate) navigator.vibrate(100);
-          stopCamera();
-          closeScanner();
-          handleScannedBarcode(barcode);
-        }
-        // Ignore errors - they fire every frame when no barcode visible
-      });
-    }).catch(function(err) {
-      // Fallback: try without camera constraints
-      codeReader.decodeFromVideoDevice(null, 'scannerVideo', function(result, err2) {
-        if (!scannerActive) return;
-        if (result) {
-          var barcode = result.getText();
-          if (navigator.vibrate) navigator.vibrate(100);
-          stopCamera();
-          closeScanner();
-          handleScannedBarcode(barcode);
-        }
-      });
-    });
-
-  } catch(e) {
-    showToast(lang === 'uz' ? 'Kamera ochilmadi: ' + e.message : 'Camera failed: ' + e.message, 'error');
-    closeScanner();
-  }
-}
-
-function stopCamera() {
-  scannerActive = false;
-  if (codeReader) {
-    try { codeReader.reset(); } catch(e) {}
-    codeReader = null;
-  }
-  var video = document.getElementById('scannerVideo');
-  if (video && video.srcObject) {
-    try {
-      video.srcObject.getTracks().forEach(function(t) { t.stop(); });
-    } catch(e) {}
-    video.srcObject = null;
-  }
-}
-
-function handleScannedBarcode(barcode) {
-  scannedBarcode = barcode;
-
-  // ADD MODE: just fill the barcode into the add form
-  if (scannerMode === 'add') {
-    // Check if this barcode already belongs to a product
-    var existingCode = null;
-    Object.keys(goods).forEach(function(code) {
-      if (goods[code].barcode === barcode) existingCode = code;
-    });
-    if (existingCode) {
-      showToast((lang === 'uz' ? 'Bu barkod allaqachon ' : 'This barcode belongs to ') + existingCode.toUpperCase(), 'warn');
-    } else {
-      // Store barcode and show it under the code field
-      scannedBarcode = barcode;
-      var hint = document.getElementById('addBarcodeLinked');
-      if (hint) {
-        hint.textContent = (lang === 'uz' ? 'Barkod: ' : 'Barcode: ') + barcode;
-        hint.style.display = 'block';
-      }
-      showToast(lang === 'uz' ? 'Barkod saqlandi! Endi tovar kodini kiriting.' : 'Barcode saved! Now enter product code.', 'success');
+  var found=Object.keys(goods).find(function(c){return goods[c].barcode===barcode;});
+  if(found){
+    if(currentRole==='seller'){
+      document.getElementById('tab-sell').style.display='';
+      switchTab('sell');setSellTab('product');
+      document.getElementById('sellCode').value=found;onSellCodeInput();
+      showToast(found.toUpperCase()+' '+(lang==='uz'?'topildi':'found'),'success');
+    }else{
+      var name=goods[found].name||found.toUpperCase();
+      if(confirm(lang==='uz'?name+' - OK=Sotish, Bekor=Ombor':name+' - OK=Sell, Cancel=Restock')){
+        document.getElementById('tab-sell').style.display='';switchTab('sell');setSellTab('product');document.getElementById('sellCode').value=found;onSellCodeInput();
+      }else{openQuickAdd(found);}
     }
-    return;
-  }
-
-  var foundCode = null;
-  Object.keys(goods).forEach(function(code) {
-    if (goods[code].barcode === barcode) foundCode = code;
-  });
-
-  if (foundCode) {
-    if (currentRole === 'seller') {
-      document.getElementById('tab-sell').style.display = '';
-      switchTab('sell');
-      if (typeof setSellTab === 'function') setSellTab('product');
-      document.getElementById('sellCode').value = foundCode;
-      onSellCodeInput();
-      showToast(foundCode.toUpperCase() + ' ' + (lang === 'uz' ? 'topildi' : 'found'), 'success');
-    } else {
-      showManagerBarcodeOptions(foundCode);
-    }
-  } else {
-    if (currentRole === 'seller') {
-      showToast(lang === 'uz' ? 'Tovar topilmadi. Managerni chaqiring.' : 'Product not found. Ask manager.', 'error');
-    } else {
-      document.getElementById('barcodeFoundNum').textContent = barcode;
-      document.getElementById('barcodeUnknownModal').classList.add('open');
-    }
+  }else{
+    if(currentRole==='seller'){showToast(lang==='uz'?'Tovar topilmadi. Managerni chaqiring.':'Product not found. Ask manager.','error');}
+    else{document.getElementById('barcodeFoundNum').textContent=barcode;document.getElementById('barcodeUnknownModal').classList.add('open');}
   }
 }
-
-function showManagerBarcodeOptions(code) {
-  var g = goods[code];
-  var name = g.name || code.toUpperCase();
-  var msg = lang === 'uz' ? (name + ' - nima qilmoqchisiz? OK=Sotish, Bekor=Ombor') : (name + ' - what to do? OK=Sell, Cancel=Restock');
-  var choice = confirm(msg);
-  if (choice) {
-    document.getElementById('tab-sell').style.display = '';
-    switchTab('sell');
-    if (typeof setSellTab === 'function') setSellTab('product');
-    document.getElementById('sellCode').value = code;
-    onSellCodeInput();
-  } else {
-    openQuickAdd(code);
-  }
-}
-
-function openLinkBarcode() {
+function openLinkBarcode(){
   closeModal('barcodeUnknownModal');
-  document.getElementById('barcodeLinkNum').textContent = scannedBarcode;
-  document.getElementById('barcodeLinkCodeInput').value = '';
-  document.getElementById('barcodeLinkPreview').textContent = '';
+  document.getElementById('barcodeLinkNum').textContent=scannedBarcode;
+  document.getElementById('barcodeLinkCodeInput').value='';
+  document.getElementById('barcodeLinkPreview').textContent='';
   document.getElementById('barcodeLinkModal').classList.add('open');
-  document.getElementById('barcodeLinkCodeInput').oninput = function() {
-    var code = this.value.trim().toLowerCase();
-    var prev = document.getElementById('barcodeLinkPreview');
-    if (goods[code]) {
-      prev.textContent = (lang === 'uz' ? 'Topildi: ' : 'Found: ') + (goods[code].name || code.toUpperCase());
-      prev.style.color = 'var(--accent)';
-    } else if (code) {
-      prev.textContent = lang === 'uz' ? 'Tovar topilmadi' : 'Product not found';
-      prev.style.color = 'var(--danger)';
-    } else {
-      prev.textContent = '';
-    }
+  document.getElementById('barcodeLinkCodeInput').oninput=function(){
+    var c=this.value.trim().toLowerCase(),p=document.getElementById('barcodeLinkPreview');
+    if(goods[c]){p.textContent=(lang==='uz'?'Topildi: ':'Found: ')+(goods[c].name||c.toUpperCase());p.style.color='var(--accent)';}
+    else if(c){p.textContent=lang==='uz'?'Tovar topilmadi':'Not found';p.style.color='var(--danger)';}
+    else{p.textContent='';}
   };
 }
-
-async function confirmLinkBarcode() {
-  var code = document.getElementById('barcodeLinkCodeInput').value.trim().toLowerCase();
-  if (!code || !goods[code]) { showToast(lang === 'uz' ? 'Tovar topilmadi' : 'Product not found', 'error'); return; }
-  goods[code].barcode = scannedBarcode;
-  try {
-    await dbSaveGood(code);
-    closeModal('barcodeLinkModal');
-    showToast(code.toUpperCase() + (lang === 'uz' ? ' barkodga boglandi' : ' linked to barcode'), 'success');
-    renderInventory();
-  } catch(e) {
-    goods[code].barcode = null;
-    showToast(lang === 'uz' ? 'Saqlash muvaffaqiyatsiz' : 'Save failed', 'error');
-  }
+async function confirmLinkBarcode(){
+  var code=document.getElementById('barcodeLinkCodeInput').value.trim().toLowerCase();
+  if(!code||!goods[code]){showToast(lang==='uz'?'Tovar topilmadi':'Not found','error');return;}
+  goods[code].barcode=scannedBarcode;
+  try{await dbSaveGood(code);closeModal('barcodeLinkModal');showToast(code.toUpperCase()+(lang==='uz'?' barkodga boglandi':' linked!'),'success');renderInventory();}
+  catch(e){goods[code].barcode=null;showToast(t('saveFail'),'error');}
 }
-
-function openNewProductFromBarcode() {
+function openNewProductFromBarcode(){
   closeModal('barcodeUnknownModal');
-  document.getElementById('barcodeNewNum').textContent = scannedBarcode;
-  document.getElementById('barcodeNewCode').value = '';
-  document.getElementById('barcodeNewName').value = '';
-  document.getElementById('barcodeNewQty').value = '';
-  document.getElementById('barcodeNewCost').value = '';
-  document.getElementById('barcodeNewSell').value = '';
-  setBcNewType('solid');
-  document.getElementById('barcodeNewModal').classList.add('open');
+  document.getElementById('barcodeNewNum').textContent=scannedBarcode;
+  ['barcodeNewCode','barcodeNewName','barcodeNewQty','barcodeNewCost','barcodeNewSell'].forEach(function(id){document.getElementById(id).value='';});
+  setBcNewType('solid');document.getElementById('barcodeNewModal').classList.add('open');
 }
-
-function setBcNewType(type) {
-  bcNewType = type;
-  document.getElementById('bcNewSolidBtn').className = 'type-btn' + (type === 'solid' ? ' active-solid' : '');
-  document.getElementById('bcNewLiquidBtn').className = 'type-btn' + (type === 'liquid' ? ' active-liquid' : '');
-  document.getElementById('barcodeNewUnit').textContent = type === 'liquid' ? 'L' : (lang === 'uz' ? 'dona' : 'units');
+function setBcNewType(type){
+  bcNewType=type;
+  document.getElementById('bcNewSolidBtn').className='type-btn'+(type==='solid'?' active-solid':'');
+  document.getElementById('bcNewLiquidBtn').className='type-btn'+(type==='liquid'?' active-liquid':'');
+  document.getElementById('barcodeNewUnit').textContent=type==='liquid'?'L':(lang==='uz'?'dona':'units');
 }
-
-async function confirmNewProductFromBarcode() {
-  var code = document.getElementById('barcodeNewCode').value.trim().toLowerCase();
-  var name = document.getElementById('barcodeNewName').value.trim();
-  var qty = parseFloat(document.getElementById('barcodeNewQty').value) || 0;
-  var cpVal = document.getElementById('barcodeNewCost').value;
-  var spVal = document.getElementById('barcodeNewSell').value;
-  var costPrice = cpVal !== '' ? parseFloat(cpVal) : null;
-  var sellPrice = spVal !== '' ? parseFloat(spVal) : null;
-  if (!code) { showToast(lang === 'uz' ? 'Kodni kiriting!' : 'Enter code!', 'error'); return; }
-  if (!/^[a-z0-9]+$/.test(code)) { showToast(lang === 'uz' ? 'Faqat harf va raqamlar' : 'Letters & numbers only', 'error'); return; }
-  if (goods[code]) { showToast(lang === 'uz' ? 'Bu kod allaqachon mavjud!' : 'Code already exists!', 'error'); return; }
-  goods[code] = { type: bcNewType, qty: qty, name: name, costPrice: costPrice, sellPrice: sellPrice, barcode: scannedBarcode };
-  try {
-    await dbSaveGood(code);
-    closeModal('barcodeNewModal');
-    showToast(code.toUpperCase() + ' ' + (lang === 'uz' ? 'saqlandi' : 'saved'), 'success');
-    renderInventory();
-  } catch(e) {
-    delete goods[code];
-    showToast(lang === 'uz' ? 'Saqlash muvaffaqiyatsiz' : 'Save failed', 'error');
-  }
+async function confirmNewProductFromBarcode(){
+  var code=document.getElementById('barcodeNewCode').value.trim().toLowerCase();
+  var name=document.getElementById('barcodeNewName').value.trim();
+  var qty=parseFloat(document.getElementById('barcodeNewQty').value)||0;
+  var cp=document.getElementById('barcodeNewCost').value,sp=document.getElementById('barcodeNewSell').value;
+  if(!code){showToast(t('enterCode'),'error');return;}
+  if(!/^[a-z0-9]+$/.test(code)){showToast(t('codeFormat'),'error');return;}
+  if(goods[code]){showToast(lang==='uz'?'Bu kod mavjud!':'Code exists!','error');return;}
+  goods[code]={type:bcNewType,qty:qty,name:name,costPrice:cp!==''?parseFloat(cp):null,sellPrice:sp!==''?parseFloat(sp):null,barcode:scannedBarcode};
+  try{await dbSaveGood(code);closeModal('barcodeNewModal');showToast(code.toUpperCase()+' '+(lang==='uz'?'saqlandi':'saved'),'success');renderInventory();scannedBarcode=null;}
+  catch(e){delete goods[code];showToast(t('saveFail'),'error');}
 }
 </script>
 
-<!-- BARCODE SCANNER OVERLAY -->
+<!-- SCANNER OVERLAY -->
 <div id="scannerOverlay">
-  <video id="scannerVideo" autoplay playsinline muted></video>
+  <video id="scannerVideo" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0"></video>
   <div class="scanner-ui">
-    <div class="scanner-frame">
-      <div class="scanner-line"></div>
-    </div>
-    <div class="scanner-hint" id="scannerHint">Barkodni ramkaga to'g'rilang</div>
+    <div class="scanner-frame"><div class="scanner-line"></div></div>
+    <div class="scanner-hint" id="scannerHint">Barkodni kameraga togrilang</div>
   </div>
   <button class="scanner-close" onclick="closeScanner()">&#x2715;</button>
-  <button class="scanner-retry" onclick="reopenScanner()" id="scannerRetryBtn" style="position:absolute;bottom:100px;left:50%;transform:translateX(-50%);padding:10px 24px;border-radius:20px;border:2px solid var(--accent);background:rgba(0,229,160,0.15);color:var(--accent);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:none">&#x1F504; Qayta</button>
-  <div class="scanner-status" id="scannerStatus" style="display:none"></div>
+  <button class="scanner-retry-btn" id="scannerRetryBtn" onclick="reopenScanner()">&#x1F504; Qayta</button>
 </div>
 
-<!-- BARCODE FOUND - UNKNOWN (Manager: link or new) -->
+<!-- BARCODE UNKNOWN MODAL -->
 <div class="modal-overlay" id="barcodeUnknownModal" onclick="closeModal('barcodeUnknownModal')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="barcodeUnknownTitle">Barkod Topilmadi</div>
-    <div class="modal-sub" id="barcodeUnknownSub">Bu barkod hali bog'lanmagan</div>
-    <div class="barcode-modal-content">
-      <div class="barcode-found-num" id="barcodeFoundNum"></div>
-      <div class="barcode-choice-btns">
-        <button class="barcode-choice-btn link" onclick="openLinkBarcode()">
-          &#x1F517; <span id="linkBtnText">Mavjud tovar bilan bog'lash</span>
-        </button>
-        <button class="barcode-choice-btn new" onclick="openNewProductFromBarcode()">
-          &#x2795; <span id="newBtnText">Yangi tovar sifatida qo'shish</span>
-        </button>
-        <button class="barcode-choice-btn" onclick="closeModal('barcodeUnknownModal')" style="color:var(--muted2)">
-          &#x2715; <span id="cancelBcBtn">Bekor qilish</span>
-        </button>
-      </div>
-    </div>
+    <div class="modal-title" id="bcUnknownTitle">Barkod Topilmadi</div>
+    <div class="modal-sub">Bu barkod hali hech qaysi tovarga boglanmagan</div>
+    <div class="barcode-found-num" id="barcodeFoundNum"></div>
+    <button class="bc-choice-btn link" onclick="openLinkBarcode()">&#x1F517; <span id="bcLinkText">Mavjud tovar bilan boglash</span></button>
+    <button class="bc-choice-btn new" onclick="openNewProductFromBarcode()">&#x2795; <span id="bcNewText">Yangi tovar sifatida qoshish</span></button>
+    <button class="bc-choice-btn" onclick="closeModal('barcodeUnknownModal')" style="color:var(--muted2)">&#x2715; Bekor qilish</button>
   </div>
 </div>
 
-<!-- LINK BARCODE TO EXISTING PRODUCT -->
+<!-- BARCODE LINK MODAL -->
 <div class="modal-overlay" id="barcodeLinkModal" onclick="closeModal('barcodeLinkModal')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="barcodeLinkTitle">Tovar bilan Bog'lash</div>
-    <div class="modal-sub" id="barcodeLinkSub">Qaysi tovar kodiga bog'lamoqchisiz?</div>
+    <div class="modal-title">Tovar bilan Boglash</div>
+    <div class="modal-sub">Qaysi tovar kodiga boglamoqchisiz?</div>
     <div class="barcode-found-num" id="barcodeLinkNum"></div>
     <div class="form-group">
-      <label class="form-label" id="barcodeLinkCodeLabel">Tovar kodi</label>
+      <label class="form-label">Tovar kodi</label>
       <input class="form-input" id="barcodeLinkCodeInput" type="text" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
-      <div id="barcodeLinkPreview" style="margin-top:8px;font-size:12px;color:var(--muted2)"></div>
+      <div id="barcodeLinkPreview" style="margin-top:6px;font-size:12px;color:var(--muted2)"></div>
     </div>
     <div class="modal-actions">
       <button class="btn-outline" onclick="closeModal('barcodeLinkModal')">Bekor</button>
-      <button class="btn btn-add" onclick="confirmLinkBarcode()">Bog'lash</button>
+      <button class="btn btn-add" onclick="confirmLinkBarcode()">Boglash</button>
     </div>
   </div>
 </div>
 
-<!-- NEW PRODUCT FROM BARCODE -->
+<!-- BARCODE NEW PRODUCT MODAL -->
 <div class="modal-overlay" id="barcodeNewModal" onclick="closeModal('barcodeNewModal')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="barcodeNewTitle">Yangi Tovar Qo'shish</div>
+    <div class="modal-title">Yangi Tovar Qoshish</div>
     <div class="barcode-found-num" id="barcodeNewNum"></div>
     <div class="form-group">
       <label class="form-label">Kodi *</label>
