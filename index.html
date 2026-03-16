@@ -331,6 +331,59 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .bc-choice-btn:active{transform:scale(.98)}
 .bc-choice-btn.link{border-color:var(--blue);background:var(--blue-dim);color:var(--blue)}
 .bc-choice-btn.new{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+
+/* DEBT TRACKER */
+.debt-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.debt-sum-chip{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center}
+.debt-sum-label{font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.debt-sum-val{font-family:'Space Mono',monospace;font-size:13px;font-weight:700}
+.debt-filters{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none}
+.debt-filters::-webkit-scrollbar{display:none}
+.debt-filter-btn{flex-shrink:0;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted2);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.debt-filter-btn.active{background:var(--danger-dim);border-color:var(--danger);color:var(--danger)}
+.debt-filter-btn.active-paid{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.debt-filter-btn.active-all{background:var(--surface2);border-color:var(--border);color:var(--text)}
+.debt-list{display:flex;flex-direction:column;gap:8px}
+.debt-card{background:var(--surface);border:1px solid var(--border);border-radius:13px;overflow:hidden;animation:slideIn .2s ease;cursor:pointer;transition:border-color .2s}
+.debt-card:active{transform:scale(.99)}
+.debt-card.overdue{border-color:rgba(255,84,112,.4)}
+.debt-card.paid{border-color:rgba(0,229,160,.25);opacity:.75}
+.debt-card-top{display:flex;align-items:center;gap:10px;padding:12px 12px 10px}
+.debt-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;flex-shrink:0}
+.debt-avatar.overdue{background:var(--danger-dim);color:var(--danger)}
+.debt-avatar.active{background:var(--gold-dim);color:var(--gold)}
+.debt-avatar.paid{background:var(--accent-dim);color:var(--accent)}
+.debt-info{flex:1;min-width:0}
+.debt-name{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.debt-meta{font-size:11px;color:var(--muted2);margin-top:2px}
+.debt-right{text-align:right;flex-shrink:0}
+.debt-amount{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--danger)}
+.debt-amount.paid{color:var(--accent)}
+.debt-due{font-size:10px;color:var(--muted);margin-top:2px}
+.debt-due.overdue{color:var(--danger)}
+.debt-progress{padding:0 12px 10px}
+.debt-bar-wrap{height:5px;background:var(--surface2);border-radius:3px;margin-bottom:5px}
+.debt-bar-fill{height:5px;border-radius:3px;transition:width .4s ease}
+.debt-bar-fill.active{background:var(--gold)}
+.debt-bar-fill.overdue{background:var(--danger)}
+.debt-bar-fill.paid{background:var(--accent)}
+.debt-bar-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+.debt-last-pay{font-size:10px;color:var(--muted2);padding:0 12px 8px;font-family:'Space Mono',monospace}
+.debt-actions{display:flex;gap:6px;padding:0 12px 12px}
+.debt-pay-btn{flex:1;padding:8px;border-radius:9px;border:1px solid rgba(0,229,160,.5);background:var(--accent-dim);color:var(--accent);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.debt-pay-btn:active{transform:scale(.97)}
+.debt-extend-btn{padding:8px 12px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer}
+.debt-section-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;padding:4px 2px;margin-top:4px;font-family:'Space Mono',monospace}
+.debt-add-btn{width:100%;padding:13px;border-radius:12px;border:1px solid var(--danger);background:var(--danger-dim);color:var(--danger);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:14px;transition:all .15s}
+.debt-add-btn:active{transform:scale(.98)}
+.pay-history-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.pay-history-item:last-child{border-bottom:none}
+.pay-history-amount{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--accent)}
+.pay-history-amount.extend{color:var(--gold)}
+.pay-history-meta{font-size:11px;color:var(--muted2);margin-top:1px}
+.customer-suggest{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.customer-pill{padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.customer-pill:active{border-color:var(--accent);color:var(--accent)}
 </style>
 </head>
 <body>
@@ -400,6 +453,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <button class="tab" id="tab-add" onclick="switchTab('add')">&#x2795; <span class="t" data-uz="Qoshish" data-en="Add">Qoshish</span></button>
       <button class="tab" id="tab-sell" onclick="switchTab('sell')">&#x1F4B8; <span class="t" data-uz="Sotish" data-en="Sell">Sotish</span></button>
       <button class="tab" id="tab-services" onclick="switchTab('services')">&#x2699;&#xFE0F; <span class="t" data-uz="Xizmatlar" data-en="Services">Xizmatlar</span></button>
+      <button class="tab" id="tab-debts" onclick="switchTab('debts')">&#x1F4B3; <span class="t" data-uz="Qarzlar" data-en="Debts">Qarzlar</span></button>
       <button class="tab" id="tab-analytics" onclick="switchTab('analytics')">&#x1F4CA; <span class="t" data-uz="Tahlil" data-en="Analytics">Tahlil</span></button>
     </div>
   </div>
@@ -603,6 +657,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="section-title">&#x2699;&#xFE0F; <span class="t" data-uz="Xizmatlar Royxati" data-en="Services List">Xizmatlar Royxati</span></div>
       </div>
       <div id="servicesList" class="svc-list"></div>
+    </div>
+
+    <!-- DEBTS -->
+    <div class="panel" id="panel-debts">
+      <button class="debt-add-btn" onclick="openAddDebt()">&#x2795; <span class="t" data-uz="Yangi Qarz Qoshish" data-en="Add New Debt">Yangi Qarz Qoshish</span></button>
+      <div class="debt-summary">
+        <div class="debt-sum-chip"><div class="debt-sum-label t" data-uz="Jami Qarz" data-en="Total Owed">Jami Qarz</div><div class="debt-sum-val c-danger" id="ds-total">0</div></div>
+        <div class="debt-sum-chip"><div class="debt-sum-label t" data-uz="Muddati O'tgan" data-en="Overdue">Muddati O'tgan</div><div class="debt-sum-val c-danger" id="ds-overdue">0</div></div>
+        <div class="debt-sum-chip"><div class="debt-sum-label t" data-uz="Bu Oy To'landi" data-en="Paid This Month">Bu Oy To'landi</div><div class="debt-sum-val c-accent" id="ds-paid">0</div></div>
+      </div>
+      <div class="debt-filters">
+        <button class="debt-filter-btn active-all active" id="dfAll" onclick="setDebtFilter('all')"><span class="t" data-uz="Hammasi" data-en="All">Hammasi</span></button>
+        <button class="debt-filter-btn" id="dfOverdue" onclick="setDebtFilter('overdue')"><span class="t" data-uz="Muddati O'tgan" data-en="Overdue">Muddati O'tgan</span></button>
+        <button class="debt-filter-btn" id="dfActive" onclick="setDebtFilter('active')"><span class="t" data-uz="Faol" data-en="Active">Faol</span></button>
+        <button class="debt-filter-btn" id="dfPaid" onclick="setDebtFilter('paid')"><span class="t" data-uz="To'langan" data-en="Paid">To'langan</span></button>
+      </div>
+      <div class="debt-list" id="debtList"></div>
     </div>
 
     <!-- ANALYTICS -->
@@ -866,6 +937,15 @@ function debouncedSearch() {
 }
 var analyticsCache = { period: null, view: null, salesLen: -1, svcLen: -1 };
 
+// DEBT STATE
+var debts = [];
+var debtPayments = {};  // debt_id -> [payments]
+var activeDebtFilter = 'all';
+var payTargetDebtId = null;
+var extendTargetDebtId = null;
+var _txPageData = [];
+var _txPageOffset = 0;
+
 // ═══════════════════════════════════════════════
 //  TRANSLATIONS
 // ═══════════════════════════════════════════════
@@ -1070,12 +1150,14 @@ function startSyncMonitor() {
 }
 
 async function dbLoad() {
-  var cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000; // 90 days
-  var [g, s, sv, ss] = await Promise.all([
+  var cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000;
+  var [g, s, sv, ss, db_debts, db_dpay] = await Promise.all([
     db.from('goods').select('*'),
     db.from('sales').select('*').gte('ts', cutoff).order('ts', { ascending: false }),
     db.from('services').select('*').order('created_at', { ascending: true }),
-    db.from('service_sales').select('*').gte('ts', cutoff).order('ts', { ascending: false })
+    db.from('service_sales').select('*').gte('ts', cutoff).order('ts', { ascending: false }),
+    db.from('debts').select('*').order('created_at', { ascending: false }),
+    db.from('debt_payments').select('*').order('paid_at', { ascending: true })
   ]);
   if (g.error) throw g.error;
   if (s.error) throw s.error;
@@ -1094,6 +1176,14 @@ async function dbLoad() {
   });
   serviceSales = (ss.data || []).map(function(r) {
     return { id: r.id, serviceId: r.service_id, serviceName: r.service_name, price: Number(r.price), note: r.note || '', ts: Number(r.ts) };
+  });
+  debts = (db_debts.data || []).map(function(r) {
+    return { id: r.id, customerName: r.customer_name, amount: Number(r.amount), paidAmount: Number(r.paid_amount || 0), dueDate: r.due_date, note: r.note || '', status: r.status || 'active', createdAt: r.created_at };
+  });
+  debtPayments = {};
+  (db_dpay.data || []).forEach(function(r) {
+    if (!debtPayments[r.debt_id]) debtPayments[r.debt_id] = [];
+    debtPayments[r.debt_id].push({ id: r.id, amount: Number(r.amount), note: r.note || '', paidAt: r.paid_at });
   });
 }
 
@@ -1189,7 +1279,8 @@ function saveCache() {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({
       ts: Date.now(), goods: goods, sales: sales,
-      services: services, serviceSales: serviceSales
+      services: services, serviceSales: serviceSales,
+      debts: debts, debtPayments: debtPayments
     }));
   } catch(e) {}
 }
@@ -1204,6 +1295,8 @@ function loadCache() {
     sales = c.sales || [];
     services = c.services || {};
     serviceSales = c.serviceSales || [];
+    debts = c.debts || [];
+    debtPayments = c.debtPayments || {};
     return true;
   } catch(e) { return false; }
 }
@@ -1230,7 +1323,7 @@ try { window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.ready(
     dbLoad().then(function() {
       saveCache();
       lastSyncTime = Date.now(); updateSyncBar();
-      if (currentRole) { renderInventory(); renderAnalytics(); renderServices(); }
+      if (currentRole) { renderInventory(); renderAnalytics(); renderServices(); renderDebts(); }
     }).catch(function() { /* keep cached data, sync bar will show warning */ });
   } else {
     // No cache — must wait for DB
@@ -1341,6 +1434,7 @@ function launchApp() {
   document.getElementById('tab-add').style.display = isManager ? '' : 'none';
   document.getElementById('tab-sell').style.display = isManager ? '' : 'none';
   document.getElementById('tab-services').style.display = isManager ? '' : 'none';
+  document.getElementById('tab-debts').style.display = '';
   document.getElementById('tab-analytics').style.display = isManager ? '' : 'none';
   var msw = document.getElementById('managerScanWrap');
   if (msw) msw.style.display = isManager ? '' : 'none';
@@ -1362,7 +1456,7 @@ document.addEventListener('click',resetSessionTimer,{passive:true});
 //  TABS
 // ═══════════════════════════════════════════════
 function switchTab(tab) {
-  var allTabs = ['inventory', 'add', 'sell', 'services', 'analytics'];
+  var allTabs = ['inventory', 'add', 'sell', 'services', 'debts', 'analytics'];
   allTabs.forEach(function(name) {
     var tabEl = document.getElementById('tab-' + name);
     var panelEl = document.getElementById('panel-' + name);
@@ -1372,6 +1466,7 @@ function switchTab(tab) {
   if (tab === 'inventory') renderInventory();
   if (tab === 'services') renderServices();
   if (tab === 'sell') { renderSvcSellList(); }
+  if (tab === 'debts') renderDebts();
   if (tab === 'analytics') { exitEditMode(); renderAnalytics(); }
 }
 
@@ -1993,13 +2088,17 @@ function renderAnalytics() {
   }).join('');
 
   if (rest > 0) {
-    txContainer.innerHTML += '<button onclick="loadMoreTx(' + JSON.stringify(allTx).replace(/</g,'\\u003c') + ',' + PAGE + ')" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">' +
-      (lang==='uz' ? '+ Yana ' + rest + ' ta ko\'rish' : '+ Load ' + rest + ' more') + '</button>';
+    _txPageData = allTx;
+    _txPageOffset = PAGE;
+    txContainer.innerHTML += '<button onclick="loadMoreTx()" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">' +
+      (lang==='uz' ? '+ Yana ' + rest + " ta ko'rish" : '+ Load ' + rest + ' more') + '</button>';
   }
 }
 
-function loadMoreTx(allTx, from) {
+function loadMoreTx() {
   var PAGE = 50;
+  var allTx = _txPageData;
+  var from = _txPageOffset;
   var txContainer = document.getElementById('txHistory');
   var btn = txContainer.querySelector('button');
   if (btn) btn.remove();
@@ -2030,13 +2129,295 @@ function loadMoreTx(allTx, from) {
     }
   }).join('');
   if (rest > 0) {
-    txContainer.innerHTML += '<button onclick="loadMoreTx(' + JSON.stringify(allTx).replace(/</g,'\\u003c') + ',' + (from+PAGE) + ')" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">' +
-      (lang==='uz' ? '+ Yana ' + rest + ' ta ko\'rish' : '+ Load ' + rest + ' more') + '</button>';
+    _txPageOffset = from + PAGE;
+    txContainer.innerHTML += '<button onclick="loadMoreTx()" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">' +
+      (lang==='uz' ? '+ Yana ' + rest + " ta ko'rish" : '+ Load ' + rest + ' more') + '</button>';
   }
 }
 
 // ═══════════════════════════════════════════════
-//  REVENUE CHART
+//  DEBT TRACKER
+// ═══════════════════════════════════════════════
+
+function autoUpdateDebtStatuses() {
+  var today = new Date(); today.setHours(0,0,0,0);
+  debts.forEach(function(d) {
+    var prevStatus = d.status;
+    if (d.paidAmount >= d.amount && d.status !== 'paid') {
+      d.status = 'paid';
+    } else if (d.status !== 'paid' && d.dueDate) {
+      var due = new Date(d.dueDate); due.setHours(0,0,0,0);
+      if (due < today && d.status === 'active') {
+        d.status = 'overdue';
+      }
+    }
+    if (d.status !== prevStatus) {
+      db.from('debts').update({ status: d.status }).eq('id', d.id);
+      saveCache();
+    }
+  });
+}
+
+function setDebtFilter(f) {
+  activeDebtFilter = f;
+  document.querySelectorAll('.debt-filter-btn').forEach(function(b) {
+    b.className = 'debt-filter-btn';
+  });
+  var map = { all: 'dfAll', overdue: 'dfOverdue', active: 'dfActive', paid: 'dfPaid' };
+  var classMap = { all: 'active-all active', overdue: 'active active', active: 'active active', paid: 'active-paid active' };
+  var el = document.getElementById(map[f]);
+  if (el) el.className = 'debt-filter-btn ' + classMap[f];
+  renderDebts();
+}
+
+function renderDebts() {
+  autoUpdateDebtStatuses();
+  var today = new Date(); today.setHours(0,0,0,0);
+
+  // Stats
+  var totalOwed = 0, totalOverdue = 0, paidThisMonth = 0;
+  var now = new Date(); var mStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  debts.forEach(function(d) {
+    var rem = d.amount - d.paidAmount;
+    if (d.status !== 'paid') { totalOwed += rem; }
+    if (d.status === 'overdue') totalOverdue += rem;
+  });
+  // paid this month from debt_payments
+  Object.values(debtPayments).forEach(function(pays) {
+    pays.forEach(function(p) {
+      if (p.amount > 0 && new Date(p.paidAt).getTime() >= mStart) paidThisMonth += p.amount;
+    });
+  });
+  document.getElementById('ds-total').textContent = fmt(totalOwed);
+  document.getElementById('ds-overdue').textContent = fmt(totalOverdue);
+  document.getElementById('ds-paid').textContent = fmt(paidThisMonth);
+
+  // Filter
+  var filtered = debts.filter(function(d) {
+    if (activeDebtFilter === 'all') return d.status !== 'paid';
+    return d.status === activeDebtFilter;
+  });
+
+  // Sort: overdue first, then by due date
+  filtered.sort(function(a, b) {
+    var order = { overdue: 0, active: 1, paid: 2 };
+    if (order[a.status] !== order[b.status]) return order[a.status] - order[b.status];
+    if (a.dueDate && b.dueDate) return new Date(a.dueDate) - new Date(b.dueDate);
+    return 0;
+  });
+
+  var list = document.getElementById('debtList');
+  var isManager = currentRole === 'manager';
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-state"><div class="emoji">&#x1F4B3;</div><p>' + (lang === 'uz' ? 'Qarz yoq' : 'No debts') + '</p></div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(function(d) {
+    var rem = Math.max(0, d.amount - d.paidAmount);
+    var pct = d.amount > 0 ? Math.min(100, Math.round((d.paidAmount / d.amount) * 100)) : 0;
+    var pays = debtPayments[d.id] || [];
+    // last real payment (amount > 0)
+    var lastPay = null;
+    for (var i = pays.length - 1; i >= 0; i--) {
+      if (pays[i].amount > 0) { lastPay = pays[i]; break; }
+    }
+    var initials = d.customerName.split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
+    var dueStr = '';
+    if (d.dueDate && d.status !== 'paid') {
+      var due = new Date(d.dueDate);
+      var daysLeft = Math.round((due - today) / 86400000);
+      if (d.status === 'overdue') dueStr = lang === 'uz' ? (Math.abs(daysLeft) + ' kun kech') : (Math.abs(daysLeft) + 'd overdue');
+      else if (daysLeft === 0) dueStr = lang === 'uz' ? 'Bugun muddat' : 'Due today';
+      else if (daysLeft > 0) dueStr = lang === 'uz' ? (daysLeft + ' kun qoldi') : (daysLeft + 'd left');
+    }
+    var lastPayStr = lastPay ? (lang === 'uz' ? 'Oxirgi: ' : 'Last: ') + fmt(lastPay.amount) + ' — ' + new Date(lastPay.paidAt).toLocaleDateString() : '';
+
+    return '<div class="debt-card ' + d.status + '" onclick="openPayHistory(\'' + d.id + '\')">' +
+      '<div class="debt-card-top">' +
+        '<div class="debt-avatar ' + d.status + '">' + initials + '</div>' +
+        '<div class="debt-info">' +
+          '<div class="debt-name">' + esc(d.customerName) + '</div>' +
+          '<div class="debt-meta">' + esc(d.note || '') + '</div>' +
+        '</div>' +
+        '<div class="debt-right">' +
+          '<div class="debt-amount ' + (d.status === 'paid' ? 'paid' : '') + '">' + fmt(d.status === 'paid' ? d.amount : rem) + '</div>' +
+          '<div class="debt-due ' + (d.status === 'overdue' ? 'overdue' : '') + '">' + esc(dueStr) + '</div>' +
+        '</div>' +
+      '</div>' +
+      (d.status !== 'paid' ? (
+        '<div class="debt-progress">' +
+          '<div class="debt-bar-wrap"><div class="debt-bar-fill ' + d.status + '" style="width:' + pct + '%"></div></div>' +
+          '<div class="debt-bar-labels"><span>' + pct + '% ' + (lang === 'uz' ? "to'langan" : 'paid') + '</span><span>' + fmt(d.paidAmount) + ' / ' + fmt(d.amount) + '</span></div>' +
+        '</div>' +
+        (lastPayStr ? '<div class="debt-last-pay">' + lastPayStr + '</div>' : '') +
+        '<div class="debt-actions" onclick="event.stopPropagation()">' +
+          '<button class="debt-pay-btn" onclick="openAddPayment(\'' + d.id + '\')">' + (lang === 'uz' ? "+ To'lov kiritish" : '+ Log Payment') + '</button>' +
+          (isManager ? '<button class="debt-extend-btn" onclick="openExtendDebt(\'' + d.id + '\')">' + (lang === 'uz' ? "&#x1F4C5; Muddatni uzaytirish" : '&#x1F4C5; Extend') + '</button>' : '') +
+        '</div>'
+      ) : '<div style="padding:8px 12px 10px;font-size:11px;color:var(--accent)">&#x2713; ' + (lang === 'uz' ? "To'liq to'landi" : 'Fully paid') + '</div>') +
+    '</div>';
+  }).join('');
+}
+
+function openAddDebt() {
+  document.getElementById('debtCustomer').value = '';
+  document.getElementById('debtAmount').value = '';
+  document.getElementById('debtNote').value = '';
+  var tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 7);
+  document.getElementById('debtDueDate').value = tomorrow.toISOString().split('T')[0];
+  // show known customer suggestions
+  var names = [...new Set(debts.map(function(d){ return d.customerName; }))].slice(0,5);
+  var sugg = document.getElementById('customerSuggestions');
+  sugg.innerHTML = names.map(function(n) {
+    return '<button class="customer-pill" onclick="document.getElementById(\'debtCustomer\').value=\'' + esc(n) + '\'">' + esc(n) + '</button>';
+  }).join('');
+  document.getElementById('addDebtModal').classList.add('open');
+}
+
+async function saveNewDebt() {
+  var name = document.getElementById('debtCustomer').value.trim();
+  var amt = parseFloat(document.getElementById('debtAmount').value);
+  var due = document.getElementById('debtDueDate').value;
+  var note = document.getElementById('debtNote').value.trim();
+  if (!name) { showToast(lang === 'uz' ? 'Mijoz ismini kiriting!' : 'Enter customer name!', 'error'); return; }
+  if (!amt || amt <= 0) { showToast(lang === 'uz' ? 'Summani kiriting!' : 'Enter amount!', 'error'); return; }
+  var newDebt = { customerName: name, amount: amt, paidAmount: 0, dueDate: due || null, note: note, status: 'active', createdAt: new Date().toISOString(), id: 'tmp_' + Date.now() };
+  debts.unshift(newDebt);
+  closeModal('addDebtModal');
+  renderDebts();
+  saveCache();
+  try {
+    var res = await db.from('debts').insert({ customer_name: name, amount: amt, due_date: due || null, note: note || null, status: 'active' }).select('id').single();
+    if (res.error) throw res.error;
+    newDebt.id = res.data.id;
+    saveCache();
+    showToast(lang === 'uz' ? 'Qarz saqlandi' : 'Debt saved', 'success');
+  } catch(e) {
+    debts = debts.filter(function(d){ return d.id !== newDebt.id; });
+    renderDebts(); saveCache();
+    showToast(lang === 'uz' ? 'Saqlash muvaffaqiyatsiz' : 'Save failed', 'error');
+  }
+}
+
+function openAddPayment(debtId) {
+  payTargetDebtId = debtId;
+  var d = debts.find(function(x){ return x.id === debtId; });
+  if (!d) return;
+  document.getElementById('payModalName').textContent = d.customerName;
+  document.getElementById('payModalNote').textContent = d.note || '—';
+  document.getElementById('payModalRemaining').textContent = fmt(d.amount - d.paidAmount);
+  document.getElementById('payAmount').value = '';
+  document.getElementById('payNote').value = '';
+  document.getElementById('addPaymentModal').classList.add('open');
+}
+
+async function savePayment() {
+  var amt = parseFloat(document.getElementById('payAmount').value);
+  var note = document.getElementById('payNote').value.trim();
+  if (!amt || amt <= 0) { showToast(lang === 'uz' ? 'Miqdorni kiriting!' : 'Enter amount!', 'error'); return; }
+  var d = debts.find(function(x){ return x.id === payTargetDebtId; });
+  if (!d) return;
+  var maxPay = parseFloat((d.amount - d.paidAmount).toFixed(2));
+  if (amt > maxPay + 0.01) { amt = maxPay; } // clamp silently to remaining
+
+  // Optimistic update
+  d.paidAmount = parseFloat((d.paidAmount + amt).toFixed(2));
+  if (d.paidAmount >= d.amount) d.status = 'paid';
+  var pay = { id: 'tmp_' + Date.now(), amount: amt, note: note, paidAt: new Date().toISOString() };
+  if (!debtPayments[d.id]) debtPayments[d.id] = [];
+  debtPayments[d.id].push(pay);
+  closeModal('addPaymentModal');
+  renderDebts(); saveCache();
+  showToast(fmt(amt) + (lang === 'uz' ? " to'lov saqlandi" : ' payment saved'), 'success');
+
+  try {
+    var [r1, r2] = await Promise.all([
+      db.from('debts').update({ paid_amount: d.paidAmount, status: d.status }).eq('id', d.id),
+      db.from('debt_payments').insert({ debt_id: d.id, amount: amt, note: note || null }).select('id').single()
+    ]);
+    if (r1.error) throw r1.error;
+    if (r2.error) throw r2.error;
+    pay.id = r2.data.id;
+    saveCache();
+  } catch(e) {
+    d.paidAmount = parseFloat((d.paidAmount - amt).toFixed(2));
+    if (d.status === 'paid') d.status = d.dueDate && new Date(d.dueDate) < new Date() ? 'overdue' : 'active';
+    debtPayments[d.id] = debtPayments[d.id].filter(function(p){ return p.id !== pay.id; });
+    renderDebts(); saveCache();
+    showToast(lang === 'uz' ? 'Saqlash muvaffaqiyatsiz' : 'Save failed', 'error');
+  }
+}
+
+function openExtendDebt(debtId) {
+  extendTargetDebtId = debtId;
+  var d = debts.find(function(x){ return x.id === debtId; });
+  if (!d) return;
+  document.getElementById('extendModalSub').textContent = d.customerName + (d.dueDate ? (' — ' + (lang === 'uz' ? 'Joriy muddat: ' : 'Current due: ') + d.dueDate) : '');
+  var nxt = new Date(); nxt.setDate(nxt.getDate() + 7);
+  document.getElementById('extendDueDate').value = d.dueDate || nxt.toISOString().split('T')[0];
+  document.getElementById('extendDebtModal').classList.add('open');
+}
+
+async function saveExtend() {
+  if (currentRole !== 'manager') { showToast(lang === 'uz' ? 'Faqat manager!' : 'Manager only!', 'error'); return; }
+  var newDate = document.getElementById('extendDueDate').value;
+  if (!newDate) { showToast(lang === 'uz' ? 'Sanani tanlang!' : 'Pick a date!', 'error'); return; }
+  var d = debts.find(function(x){ return x.id === extendTargetDebtId; });
+  if (!d) return;
+  var oldDate = d.dueDate;
+  var logNote = (lang === 'uz' ? 'Muddat uzaytirildi: ' : 'Due extended: ') + (oldDate || '?') + ' → ' + newDate;
+  d.dueDate = newDate;
+  d.status = 'active';
+  if (!debtPayments[d.id]) debtPayments[d.id] = [];
+  debtPayments[d.id].push({ id: 'tmp_ext_' + Date.now(), amount: 0, note: logNote, paidAt: new Date().toISOString() });
+  closeModal('extendDebtModal');
+  renderDebts(); saveCache();
+  showToast(lang === 'uz' ? 'Muddat yangilandi' : 'Due date updated', 'success');
+  try {
+    await Promise.all([
+      db.from('debts').update({ due_date: newDate, status: 'active' }).eq('id', d.id),
+      db.from('debt_payments').insert({ debt_id: d.id, amount: 0, note: logNote })
+    ]);
+    saveCache();
+  } catch(e) {
+    d.dueDate = oldDate;
+    renderDebts(); saveCache();
+    showToast(lang === 'uz' ? 'Saqlash muvaffaqiyatsiz' : 'Save failed', 'error');
+  }
+}
+
+function openPayHistory(debtId) {
+  var d = debts.find(function(x){ return x.id === debtId; });
+  if (!d) return;
+  document.getElementById('payHistoryTitle').textContent = d.customerName.toUpperCase();
+  var rem = Math.max(0, d.amount - d.paidAmount);
+  document.getElementById('payHistorySub').textContent =
+    (lang === 'uz' ? "Jami: " : "Total: ") + fmt(d.amount) +
+    " · " + (lang === 'uz' ? "To'landi: " : "Paid: ") + fmt(d.paidAmount) +
+    (d.status !== 'paid' ? (" · " + (lang === 'uz' ? "Qoldi: " : "Remaining: ") + fmt(rem)) : " ✓");
+  var pays = debtPayments[d.id] || [];
+  var html = '';
+  if (!pays.length) {
+    html = '<div class="no-data">' + (lang === 'uz' ? "To'lovlar yoq" : 'No payments yet') + '</div>';
+  } else {
+    // show newest first
+    var sorted = pays.slice().reverse();
+    html = sorted.map(function(p) {
+      var isExtend = p.amount === 0;
+      return '<div class="pay-history-item">' +
+        '<div>' +
+          '<div class="pay-history-amount ' + (isExtend ? 'extend' : '') + '">' + (isExtend ? '📅' : ('+' + fmt(p.amount))) + '</div>' +
+          '<div class="pay-history-meta">' + esc(p.note || '—') + '</div>' +
+        '</div>' +
+        '<div style="text-align:right;font-size:11px;color:var(--muted2)">' + new Date(p.paidAt).toLocaleDateString() + '</div>' +
+      '</div>';
+    }).join('');
+  }
+  document.getElementById('payHistoryList').innerHTML = html;
+  document.getElementById('payHistoryModal').classList.add('open');
+}
 // ═══════════════════════════════════════════════
 var revenueChartInstance = null;
 
@@ -2729,5 +3110,94 @@ async function confirmNewProductFromBarcode(){
     </div>
   </div>
 </div>
+<!-- ADD DEBT MODAL -->
+<div class="modal-overlay" id="addDebtModal" onclick="closeModal('addDebtModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title t" data-uz="YANGI QARZ" data-en="NEW DEBT">YANGI QARZ</div>
+    <div class="form-group" style="margin-top:10px">
+      <label class="form-label t" data-uz="Mijoz ismi *" data-en="Customer name *">Mijoz ismi *</label>
+      <input class="form-input no-upper" id="debtCustomer" type="text" autocomplete="off" placeholder="Akbar Karimov">
+      <div class="customer-suggest" id="customerSuggestions"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label t" data-uz="Jami summa (so'm) *" data-en="Total amount *">Jami summa (so'm) *</label>
+      <input class="form-input price-input" id="debtAmount" type="number" min="0" inputmode="decimal" placeholder="240000">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label t" data-uz="To'lov muddati" data-en="Due date">To'lov muddati</label>
+        <input class="form-input date-input" id="debtDueDate" type="date" style="text-transform:none">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label t" data-uz="Izoh (mahsulotlar va h.k.)" data-en="Note (products etc.)">Izoh</label>
+      <input class="form-input no-upper" id="debtNote" type="text" placeholder="cs103 × 3">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeModal('addDebtModal')" style="border-radius:12px">Bekor</button>
+      <button style="flex:1;background:var(--danger);border:none;color:#1a0005;padding:13px;border-radius:12px;font-size:14px;font-family:DM Sans,sans-serif;font-weight:700;cursor:pointer" onclick="saveNewDebt()">&#x2795; Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PAYMENT MODAL -->
+<div class="modal-overlay" id="addPaymentModal" onclick="closeModal('addPaymentModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">TO'LOV KIRITISH</div>
+    <div style="background:var(--surface2);border-radius:10px;padding:10px 12px;margin:10px 0 14px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-family:Space Mono,monospace;font-size:12px;color:var(--text);font-weight:700" id="payModalName">—</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:2px" id="payModalNote">—</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:10px;color:var(--muted)">Qolgan qarz</div>
+        <div style="font-family:Space Mono,monospace;font-size:14px;font-weight:700;color:var(--danger)" id="payModalRemaining">—</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">To'lov miqdori (so'm) *</label>
+      <input class="form-input price-input" id="payAmount" type="number" min="0" inputmode="decimal" placeholder="60000">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Izoh (ixtiyoriy)</label>
+      <input class="form-input no-upper" id="payNote" type="text" placeholder="Naqd pul, karta...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeModal('addPaymentModal')" style="border-radius:12px">Bekor</button>
+      <button style="flex:1;background:var(--accent);border:none;color:#05100a;padding:13px;border-radius:12px;font-size:14px;font-family:DM Sans,sans-serif;font-weight:700;cursor:pointer" onclick="savePayment()">&#x2713; To'lovni Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXTEND DUE DATE MODAL (manager only) -->
+<div class="modal-overlay" id="extendDebtModal" onclick="closeModal('extendDebtModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">MUDDATNI UZAYTIRISH</div>
+    <div style="font-size:12px;color:var(--muted2);margin:8px 0 14px" id="extendModalSub">Yangi to'lov muddatini tanlang</div>
+    <div class="form-group">
+      <label class="form-label">Yangi muddat *</label>
+      <input class="form-input date-input" id="extendDueDate" type="date" style="text-transform:none">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeModal('extendDebtModal')" style="border-radius:12px">Bekor</button>
+      <button style="flex:1;background:var(--gold);border:none;color:#1a1000;padding:13px;border-radius:12px;font-size:14px;font-family:DM Sans,sans-serif;font-weight:700;cursor:pointer" onclick="saveExtend()">&#x1F4C5; Muddatni Yangilash</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT HISTORY MODAL -->
+<div class="modal-overlay" id="payHistoryModal" onclick="closeModal('payHistoryModal')">
+  <div class="modal" style="max-height:80vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="payHistoryTitle">TO'LOVLAR TARIXI</div>
+    <div style="font-family:Space Mono,monospace;font-size:11px;color:var(--muted2);margin:4px 0 14px" id="payHistorySub"></div>
+    <div id="payHistoryList"></div>
+    <button class="btn-outline" onclick="closeModal('payHistoryModal')" style="border-radius:12px;width:100%;margin-top:10px">Yopish</button>
+  </div>
+</div>
+
 </body>
 </html>
