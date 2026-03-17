@@ -384,6 +384,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .customer-suggest{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .customer-pill{padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
 .customer-pill:active{border-color:var(--accent);color:var(--accent)}
+.tx-price-inline{font-family:'Space Mono',monospace;font-size:10px;margin-top:2px;letter-spacing:.2px}
 </style>
 </head>
 <body>
@@ -641,6 +642,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
     <!-- SERVICES (Manager) -->
     <div class="panel" id="panel-services">
+      <div id="svcAddWrap">
       <div class="form-card">
         <div class="form-section-title">&#x2699;&#xFE0F; <span class="t" data-uz="Xizmat Qoshish" data-en="Add Service">Xizmat Qoshish</span></div>
         <div class="form-group">
@@ -653,6 +655,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         </div>
       </div>
       <button class="btn btn-teal" id="addSvcBtn" onclick="addService()" style="margin-bottom:14px">&#x2795; <span class="t" data-uz="Xizmatni Saqlash" data-en="Save Service">Xizmatni Saqlash</span></button>
+      </div>
       <div class="section-header">
         <div class="section-title">&#x2699;&#xFE0F; <span class="t" data-uz="Xizmatlar Royxati" data-en="Services List">Xizmatlar Royxati</span></div>
       </div>
@@ -1168,14 +1171,14 @@ async function dbLoad() {
     goods[r.id] = { type: r.type, qty: Number(r.qty), name: r.name || '', costPrice: r.cost_price != null ? Number(r.cost_price) : null, sellPrice: r.sell_price != null ? Number(r.sell_price) : null, barcode: r.barcode || null };
   });
   sales = (s.data || []).map(function(r) {
-    return { id: r.id, code: r.code, qty: Number(r.qty), revenue: Number(r.revenue), profit: Number(r.profit), ts: Number(r.ts), note: r.note||'', actualPrice: r.actual_price!=null?Number(r.actual_price):null };
+    return { id: r.id, code: r.code, qty: Number(r.qty), revenue: Number(r.revenue), profit: Number(r.profit), ts: Number(r.ts), note: r.note||'', actualPrice: r.actual_price!=null?Number(r.actual_price):null, soldBy: r.sold_by||'manager' };
   });
   services = {};
   (sv.data || []).forEach(function(r) {
     services[r.id] = { name: r.name, defaultPrice: r.default_price != null ? Number(r.default_price) : null };
   });
   serviceSales = (ss.data || []).map(function(r) {
-    return { id: r.id, serviceId: r.service_id, serviceName: r.service_name, price: Number(r.price), note: r.note || '', ts: Number(r.ts) };
+    return { id: r.id, serviceId: r.service_id, serviceName: r.service_name, price: Number(r.price), note: r.note || '', ts: Number(r.ts), soldBy: r.sold_by||'manager' };
   });
   debts = (db_debts.data || []).map(function(r) {
     return { id: r.id, customerName: r.customer_name, amount: Number(r.amount), paidAmount: Number(r.paid_amount || 0), dueDate: r.due_date, note: r.note || '', status: r.status || 'active', createdAt: r.created_at };
@@ -1204,7 +1207,7 @@ async function dbDeleteGood(code) {
 
 async function dbSaveSale(sale) {
   setSync('syncing');
-  var res = await db.from('sales').insert({ code: sale.code, qty: sale.qty, revenue: sale.revenue, profit: sale.profit, ts: sale.ts, actual_price: sale.actualPrice || null, note: sale.note || null }).select('id').single();
+  var res = await db.from('sales').insert({ code: sale.code, qty: sale.qty, revenue: sale.revenue, profit: sale.profit, ts: sale.ts, actual_price: sale.actualPrice || null, note: sale.note || null, sold_by: sale.soldBy || 'manager' }).select('id').single();
   if (res.error) { setSync('error'); throw res.error; }
   setSync('ok'); saveCache();
   return res.data.id;
@@ -1249,7 +1252,7 @@ async function dbDeleteService(id) {
 
 async function dbSaveServiceSale(ss) {
   setSync('syncing');
-  var res = await db.from('service_sales').insert({ service_id: ss.serviceId, service_name: ss.serviceName, price: ss.price, note: ss.note || null, ts: ss.ts }).select('id').single();
+  var res = await db.from('service_sales').insert({ service_id: ss.serviceId, service_name: ss.serviceName, price: ss.price, note: ss.note || null, ts: ss.ts, sold_by: ss.soldBy || 'manager' }).select('id').single();
   if (res.error) { setSync('error'); throw res.error; }
   setSync('ok'); saveCache();
   return res.data.id;
@@ -1432,7 +1435,7 @@ function launchApp() {
   var isManager = currentRole === 'manager';
   document.getElementById('tab-inventory').style.display = '';
   document.getElementById('tab-add').style.display = isManager ? '' : 'none';
-  document.getElementById('tab-sell').style.display = isManager ? '' : 'none';
+  document.getElementById('tab-sell').style.display = '';
   document.getElementById('tab-services').style.display = ''; // both roles
   document.getElementById('tab-debts').style.display = '';
   document.getElementById('tab-analytics').style.display = isManager ? '' : 'none';
@@ -1440,6 +1443,8 @@ function launchApp() {
   if (msw) msw.style.display = isManager ? '' : 'none';
   var ssw = document.getElementById('sellerScanWrap');
   if (ssw) ssw.style.display = isManager ? 'none' : '';
+  var saw = document.getElementById('svcAddWrap');
+  if (saw) saw.style.display = isManager ? '' : 'none';
   var cw=document.getElementById('spp-cost-wrap'),pw=document.getElementById('spp-profit-wrap');
   if(cw)cw.style.display=isManager?'':'none';
   if(pw)pw.style.display=isManager?'':'none';
@@ -1540,7 +1545,7 @@ function renderInventory() {
         '<button class="icon-btn" style="color:var(--blue)" onclick="openEditGood(\'' + esc(code) + '\')">✏</button>' +
         '<button class="icon-btn" style="color:var(--danger)" onclick="quickSell(\'' + esc(code) + '\')">−</button>' +
         '<button class="icon-btn" onclick="openDeleteGood(\'' + esc(code) + '\')">🗑</button>'
-      : '<button class="seller-sell-btn" onclick="sellerSellCard(\'' + esc(code) + '\')">&#x1F4B8; ' + (lang === 'uz' ? 'Sotish' : 'Sell') + '</button>';
+      : '<button class="seller-sell-btn" onclick="quickSell(\'' + esc(code) + '\')">&#x1F4B8; ' + (lang === 'uz' ? 'Sotish' : 'Sell') + '</button>';
     return '<div class="good-card">' +
       '<div class="good-card-main">' +
         '<div class="good-icon ' + g.type + '">' + (g.type === 'liquid' ? '💧' : '📦') + '</div>' +
@@ -1667,7 +1672,7 @@ async function sellGood() {
   var revenue = qty * actualPrice;
   var profit = revenue - qty * (g.costPrice || 0);
   var saleNote = document.getElementById('sellNote') ? document.getElementById('sellNote').value.trim() : '';
-  var sale = { code: code, qty: qty, revenue: revenue, profit: profit, ts: Date.now(), actualPrice: actualPrice, note: saleNote, id: 'tmp_' + Date.now() };
+  var sale = { code: code, qty: qty, revenue: revenue, profit: profit, ts: Date.now(), actualPrice: actualPrice, note: saleNote, soldBy: currentRole, id: 'tmp_' + Date.now() };
 
   // ⚡ Optimistic update — instant UI response
   var prevQty = g.qty;
@@ -1700,12 +1705,7 @@ function quickSell(code) {
   switchTab('sell'); setSellTab('product');
   document.getElementById('sellCode').value = code; onSellCodeInput();
 }
-function sellerSellCard(code) {
-  document.getElementById('tab-sell').style.display='none';
-  switchTab('sell'); setSellTab('product');
-  document.getElementById('sellCode').value=code; onSellCodeInput();
-  setTimeout(function(){var el=document.getElementById('sellResult');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},150);
-}
+
 
 // ═══════════════════════════════════════════════
 //  SERVICES (Manager CRUD)
@@ -1868,7 +1868,7 @@ async function sellService() {
   var note = document.getElementById('sellSvcNote').value.trim();
   var btn = document.getElementById('sellSvcBtn');
   btn.disabled = true;
-  var ss = { serviceId: id, serviceName: s.name, price: price, note: note, ts: Date.now() };
+  var ss = { serviceId: id, serviceName: s.name, price: price, note: note, ts: Date.now(), soldBy: currentRole };
   try {
     var newId = await dbSaveServiceSale(ss);
     ss.id = newId;
@@ -1889,7 +1889,7 @@ async function sellFreeService() {
   if (price == null || isNaN(price) || price <= 0) { showToast(t('enterSvcPrice'), 'error'); return; }
   var btn = document.getElementById('freeSvcBtn');
   btn.disabled = true;
-  var ss = { serviceId: null, serviceName: name, price: price, note: note, ts: Date.now() };
+  var ss = { serviceId: null, serviceName: name, price: price, note: note, ts: Date.now(), soldBy: currentRole };
   try {
     var newId = await dbSaveServiceSale(ss);
     ss.id = newId;
@@ -2064,12 +2064,24 @@ function renderAnalytics() {
       var s = tx.data;
       var g = goods[s.code];
       var unit = g ? (g.type === 'liquid' ? 'L' : 'd') : '';
-      return '<div class="tx-row ' + (editModeActive ? 'edit-mode' : '') + '">' +
+      var isMgr = currentRole === 'manager';
+      var setPrice = g ? g.sellPrice : null;
+      var priceInline = '';
+      if (isMgr) {
+        if (s.actualPrice != null && setPrice != null && Math.abs(s.actualPrice - setPrice) > 0.001) {
+          priceInline = '<div class="tx-price-inline"><span style="text-decoration:line-through;color:var(--muted)">' + fmt(setPrice) + '</span> → <span style="color:var(--gold)">' + fmt(s.actualPrice) + '</span></div>';
+        } else {
+          var dp = s.actualPrice != null ? s.actualPrice : setPrice;
+          priceInline = dp != null ? '<div class="tx-price-inline" style="color:var(--muted2)">' + fmt(dp) + '</div>' : '';
+        }
+      }
+      var tapAttr = isMgr ? ' onclick="openTxDetail(\'prod\',\'' + s.id + '\')" style="cursor:pointer"' : '';
+      return '<div class="tx-row ' + (editModeActive ? 'edit-mode' : '') + '"' + tapAttr + '>' +
         '<div class="tx-actions">' +
-          '<button class="tx-btn tx-undo-btn" onclick="openUndoTx(\'' + s.id + '\')" title="Undo">↩️</button>' +
-          '<button class="tx-btn tx-del-btn" onclick="openDeleteTx(\'' + s.id + '\')" title="Delete">🗑</button>' +
+          '<button class="tx-btn tx-undo-btn" onclick="event.stopPropagation();openUndoTx(\'' + s.id + '\')" title="Undo">↩️</button>' +
+          '<button class="tx-btn tx-del-btn" onclick="event.stopPropagation();openDeleteTx(\'' + s.id + '\')" title="Delete">🗑</button>' +
         '</div>' +
-        '<div class="tx-info"><div class="tx-code">' + esc(s.code) + '<span class="tx-type-badge prod">PRD</span></div><div class="tx-time">' + ts + '</div></div>' +
+        '<div class="tx-info"><div class="tx-code">' + esc(s.code) + '<span class="tx-type-badge prod">PRD</span></div><div class="tx-time">' + ts + '</div>' + priceInline + '</div>' +
         '<div class="tx-right">' +
           '<div class="tx-revenue">' + fmt(s.revenue) + '</div>' +
           '<div class="tx-profit" style="color:' + (s.profit>=0?'var(--accent)':'var(--danger)') + '">' + (s.profit>=0?'+':'') + fmt(s.profit) + '</div>' +
@@ -2078,9 +2090,11 @@ function renderAnalytics() {
       '</div>';
     } else {
       var ss = tx.data;
-      return '<div class="tx-row tx-svc ' + (editModeActive ? 'edit-mode' : '') + '">' +
+      var isMgr = currentRole === 'manager';
+      var tapAttr = isMgr ? ' onclick="openTxDetail(\'svc\',\'' + ss.id + '\')" style="cursor:pointer"' : '';
+      return '<div class="tx-row tx-svc ' + (editModeActive ? 'edit-mode' : '') + '"' + tapAttr + '>' +
         '<div class="tx-actions">' +
-          '<button class="tx-btn tx-del-btn" onclick="openDeleteSvcTx(\'' + ss.id + '\')" title="Delete">🗑</button>' +
+          '<button class="tx-btn tx-del-btn" onclick="event.stopPropagation();openDeleteSvcTx(\'' + ss.id + '\')" title="Delete">🗑</button>' +
         '</div>' +
         '<div class="tx-info"><div class="tx-code">' + esc(ss.serviceName) + '<span class="tx-type-badge svc">SVC</span></div>' +
         '<div class="tx-time">' + ts + (ss.note ? ' · ' + esc(ss.note) : '') + '</div></div>' +
@@ -2116,17 +2130,31 @@ function loadMoreTx() {
       var s = tx.data;
       var g = goods[s.code];
       var unit = g ? (g.type === 'liquid' ? 'L' : 'd') : '';
-      return '<div class="tx-row ' + (editModeActive ? 'edit-mode' : '') + '">' +
-        '<div class="tx-actions"><button class="tx-btn tx-undo-btn" onclick="openUndoTx(\'' + s.id + '\')" title="Undo">↩️</button>' +
-        '<button class="tx-btn tx-del-btn" onclick="openDeleteTx(\'' + s.id + '\')" title="Delete">🗑</button></div>' +
-        '<div class="tx-info"><div class="tx-code">' + esc(s.code) + '<span class="tx-type-badge prod">PRD</span></div><div class="tx-time">' + ts + '</div></div>' +
+      var isMgr = currentRole === 'manager';
+      var setPrice = g ? g.sellPrice : null;
+      var priceInline = '';
+      if (isMgr) {
+        if (s.actualPrice != null && setPrice != null && Math.abs(s.actualPrice - setPrice) > 0.001) {
+          priceInline = '<div class="tx-price-inline"><span style="text-decoration:line-through;color:var(--muted)">' + fmt(setPrice) + '</span> → <span style="color:var(--gold)">' + fmt(s.actualPrice) + '</span></div>';
+        } else {
+          var dp = s.actualPrice != null ? s.actualPrice : setPrice;
+          priceInline = dp != null ? '<div class="tx-price-inline" style="color:var(--muted2)">' + fmt(dp) + '</div>' : '';
+        }
+      }
+      var tapAttr = isMgr ? ' onclick="openTxDetail(\'prod\',\'' + s.id + '\')" style="cursor:pointer"' : '';
+      return '<div class="tx-row ' + (editModeActive ? 'edit-mode' : '') + '"' + tapAttr + '>' +
+        '<div class="tx-actions"><button class="tx-btn tx-undo-btn" onclick="event.stopPropagation();openUndoTx(\'' + s.id + '\')" title="Undo">↩️</button>' +
+        '<button class="tx-btn tx-del-btn" onclick="event.stopPropagation();openDeleteTx(\'' + s.id + '\')" title="Delete">🗑</button></div>' +
+        '<div class="tx-info"><div class="tx-code">' + esc(s.code) + '<span class="tx-type-badge prod">PRD</span></div><div class="tx-time">' + ts + '</div>' + priceInline + '</div>' +
         '<div class="tx-right"><div class="tx-revenue">' + fmt(s.revenue) + '</div>' +
         '<div class="tx-profit" style="color:' + (s.profit>=0?'var(--accent)':'var(--danger)') + '">' + (s.profit>=0?'+':'') + fmt(s.profit) + '</div>' +
         '<div class="tx-qty">' + (s.qty%1===0?s.qty:s.qty.toFixed(2)) + ' ' + unit + '</div></div></div>';
     } else {
       var ss = tx.data;
-      return '<div class="tx-row tx-svc ' + (editModeActive ? 'edit-mode' : '') + '">' +
-        '<div class="tx-actions"><button class="tx-btn tx-del-btn" onclick="openDeleteSvcTx(\'' + ss.id + '\')" title="Delete">🗑</button></div>' +
+      var isMgr = currentRole === 'manager';
+      var tapAttr = isMgr ? ' onclick="openTxDetail(\'svc\',\'' + ss.id + '\')" style="cursor:pointer"' : '';
+      return '<div class="tx-row tx-svc ' + (editModeActive ? 'edit-mode' : '') + '"' + tapAttr + '>' +
+        '<div class="tx-actions"><button class="tx-btn tx-del-btn" onclick="event.stopPropagation();openDeleteSvcTx(\'' + ss.id + '\')" title="Delete">🗑</button></div>' +
         '<div class="tx-info"><div class="tx-code">' + esc(ss.serviceName) + '<span class="tx-type-badge svc">SVC</span></div>' +
         '<div class="tx-time">' + ts + (ss.note ? ' · ' + esc(ss.note) : '') + '</div></div>' +
         '<div class="tx-right"><div class="tx-revenue svc">' + fmt(ss.price) + '</div>' +
@@ -2424,7 +2452,93 @@ function openPayHistory(debtId) {
   document.getElementById('payHistoryModal').classList.add('open');
 }
 // ═══════════════════════════════════════════════
-var revenueChartInstance = null;
+//  TX DETAIL MODAL
+// ═══════════════════════════════════════════════
+function openTxDetail(kind, id) {
+  if (currentRole !== 'manager') return;
+  var data, title;
+  if (kind === 'prod') {
+    data = sales.find(function(s){ return s.id === id; });
+    if (!data) return;
+    var g = goods[data.code];
+    title = data.code.toUpperCase();
+    var d = new Date(data.ts);
+    var ts = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    var soldByLabel = data.soldBy === 'seller' ? (lang==='uz'?'Sotuvchi':'Seller') : (lang==='uz'?'Manager':'Manager');
+    var soldByColor = data.soldBy === 'seller' ? 'var(--blue)' : 'var(--gold)';
+    var setPrice = g ? g.sellPrice : null;
+    var priceRow = '';
+    if (data.actualPrice != null && setPrice != null && Math.abs(data.actualPrice - setPrice) > 0.001) {
+      priceRow = '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">' +
+        '<span style="font-size:12px;color:var(--muted2)">' + (lang==='uz'?'Narx':'Price') + '</span>' +
+        '<span style="font-family:Space Mono,monospace;font-size:12px">' +
+          '<span style="color:var(--muted2);text-decoration:line-through">' + fmt(setPrice) + '</span>' +
+          ' → <span style="color:var(--gold)">' + fmt(data.actualPrice) + '</span>' +
+        '</span></div>';
+    } else {
+      var displayPrice = data.actualPrice != null ? data.actualPrice : setPrice;
+      priceRow = '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">' +
+        '<span style="font-size:12px;color:var(--muted2)">' + (lang==='uz'?'Narx':'Price') + '</span>' +
+        '<span style="font-family:Space Mono,monospace;font-size:12px;color:var(--accent)">' + (displayPrice != null ? fmt(displayPrice) : '—') + '</span>' +
+      '</div>';
+    }
+    document.getElementById('txDetailBody').innerHTML =
+      '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">' +
+        '<span style="font-size:12px;color:var(--muted2)">' + (lang==='uz'?'Sana':'Date') + '</span>' +
+        '<span style="font-family:Space Mono,monospace;font-size:12px;color:var(--text)">' + ts + '</span>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">' +
+        '<span style="font-size:12px;color:var(--muted2)">' + (lang==='uz'?'Kim sotdi':'Sold by') + '</span>' +
+        '<span style="font-family:Space Mono,monospace;font-size:12px;font-weight:700;color:' + soldByColor + '">' + soldByLabel + '</span>' +
+      '</div>' +
+      priceRow +
+      '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">' +
+        '<span style="font-size:12px;color:var(--muted2)">' + (lang==='uz'?'Miqdor':'Qty') + '</span>' +
+        '<span style="font-family:Space Mono,monospace;font-size:12px;color:var(--text)">' + (data.qty%1===0?data.qty:data.qty.toFixed(2)) + ' ' + (g ? (g.type==='liquid'?'L':'dona') : '') + '</span>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">' +
+        '<span style="font-size:12px;color:var(--muted2)">' + (lang==='uz'?'Tushum':'Revenue') + '</span>' +
+        '<span style="font-family:Space Mono,monospace;font-size:12px;color:var(--accent)">' + fmt(data.revenue) + '</span>' +
+      '</div>' +
+      (data.note ? '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">' +
+        '<span style="font-size:12px;color:var(--muted2)">' + (lang==='uz'?'Izoh':'Note') + '</span>' +
+        '<span style="font-size:12px;color:var(--text);text-align:right;max-width:60%">' + esc(data.note) + '</span>' +
+      '</div>' : '');
+  } else {
+    data = serviceSales.find(function(s){ return s.id === id; });
+    if (!data) return;
+    title = data.serviceName.toUpperCase();
+    var d = new Date(data.ts);
+    var ts = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    var soldByLabel = data.soldBy === 'seller' ? (lang==='uz'?'Sotuvchi':'Seller') : (lang==='uz'?'Manager':'Manager');
+    var soldByColor = data.soldBy === 'seller' ? 'var(--blue)' : 'var(--gold)';
+    document.getElementById('txDetailBody').innerHTML =
+      '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">' +
+        '<span style="font-size:12px;color:var(--muted2)">' + (lang==='uz'?'Sana':'Date') + '</span>' +
+        '<span style="font-family:Space Mono,monospace;font-size:12px;color:var(--text)">' + ts + '</span>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">' +
+        '<span style="font-size:12px;color:var(--muted2)">' + (lang==='uz'?'Kim sotdi':'Sold by') + '</span>' +
+        '<span style="font-family:Space Mono,monospace;font-size:12px;font-weight:700;color:' + soldByColor + '">' + soldByLabel + '</span>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">' +
+        '<span style="font-size:12px;color:var(--muted2)">' + (lang==='uz'?'Narx':'Price') + '</span>' +
+        '<span style="font-family:Space Mono,monospace;font-size:12px;color:var(--teal)">' + fmt(data.price) + '</span>' +
+      '</div>' +
+      (data.note ? '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">' +
+        '<span style="font-size:12px;color:var(--muted2)">' + (lang==='uz'?'Izoh':'Note') + '</span>' +
+        '<span style="font-size:12px;color:var(--text);text-align:right;max-width:60%">' + esc(data.note) + '</span>' +
+      '</div>' : '');
+  }
+  document.getElementById('txDetailTitle').textContent = title;
+  document.getElementById('txDetailModal').classList.add('open');
+}
+
+function closeTxDetail() {
+  document.getElementById('txDetailModal').classList.remove('open');
+}
+
+
 
 function renderRevenueChart(filteredSales, filteredSvcSales) {
   var canvas = document.getElementById('revenueChart');
@@ -3181,6 +3295,16 @@ async function confirmNewProductFromBarcode(){
     <div style="font-family:Space Mono,monospace;font-size:11px;color:var(--muted2);margin:4px 0 14px" id="payHistorySub"></div>
     <div id="payHistoryList"></div>
     <button class="btn-outline" onclick="closeModal('payHistoryModal')" style="border-radius:12px;width:100%;margin-top:10px">Yopish</button>
+  </div>
+</div>
+
+<!-- TX DETAIL MODAL -->
+<div class="modal-overlay" id="txDetailModal" onclick="closeTxDetail()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="txDetailTitle">SOTUV MA'LUMOTI</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px" id="txDetailBody"></div>
+    <button class="btn-outline" onclick="closeTxDetail()" style="border-radius:12px;width:100%;margin-top:14px">Yopish</button>
   </div>
 </div>
 
