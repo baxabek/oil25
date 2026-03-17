@@ -1166,10 +1166,11 @@ async function dbLoad() {
   if (s.error) throw s.error;
   if (sv.error) throw sv.error;
   if (ss.error) throw ss.error;
-  goods = {};
+  var newGoods = {};
   (g.data || []).forEach(function(r) {
-    goods[r.id] = { type: r.type, qty: Number(r.qty), name: r.name || '', costPrice: r.cost_price != null ? Number(r.cost_price) : null, sellPrice: r.sell_price != null ? Number(r.sell_price) : null, barcode: r.barcode || null };
+    newGoods[r.id] = { type: r.type, qty: Number(r.qty), name: r.name || '', costPrice: r.cost_price != null ? Number(r.cost_price) : null, sellPrice: r.sell_price != null ? Number(r.sell_price) : null, barcode: r.barcode || null };
   });
+  goods = newGoods;
   sales = (s.data || []).map(function(r) {
     return { id: r.id, code: r.code, qty: Number(r.qty), revenue: Number(r.revenue), profit: Number(r.profit), ts: Number(r.ts), note: r.note||'', actualPrice: r.actual_price!=null?Number(r.actual_price):null, soldBy: r.sold_by||'manager' };
   });
@@ -1326,6 +1327,7 @@ try { window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.ready(
     dbLoad().then(function() {
       saveCache();
       lastSyncTime = Date.now(); updateSyncBar();
+      analyticsCache.key = null;
       if (currentRole) { renderInventory(); renderAnalytics(); renderServices(); renderDebts(); }
     }).catch(function() { /* keep cached data, sync bar will show warning */ });
   } else {
@@ -1691,6 +1693,10 @@ async function sellGood() {
   try {
     var results = await Promise.all([dbSaveGood(code), dbSaveSale(sale)]);
     sale.id = results[1]; // replace tmp id with real uuid
+    analyticsCache.key = null; // force analytics re-render with real id
+    if (currentRole && document.getElementById('panel-analytics').classList.contains('active')) {
+      renderAnalytics();
+    }
   } catch(e) {
     // Roll back on failure
     g.qty = prevQty;
@@ -1876,6 +1882,9 @@ async function sellService() {
     analyticsCache.key = null;
     showToast(s.name + ' ' + t('svcSaleRecorded'), 'success');
     closeSvcSell();
+    if (currentRole && document.getElementById('panel-analytics').classList.contains('active')) {
+      renderAnalytics();
+    }
   } catch(e) { showToast(t('svcSaleFail'), 'error'); }
   finally { btn.disabled = false; }
 }
@@ -1899,6 +1908,9 @@ async function sellFreeService() {
     document.getElementById('freeSvcName').value = '';
     document.getElementById('freeSvcPrice').value = '';
     document.getElementById('freeSvcNote').value = '';
+    if (currentRole && document.getElementById('panel-analytics').classList.contains('active')) {
+      renderAnalytics();
+    }
   } catch(e) { showToast(t('svcSaleFail'), 'error'); }
   finally { btn.disabled = false; }
 }
