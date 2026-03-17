@@ -560,10 +560,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             </div>
           </div>
           <div class="sell-price-preview">
-            <div class="spp-item"><div class="spp-label t" data-uz="Tannarx" data-en="Cost/u">Tannarx</div><div class="spp-val c-danger" id="spp-cost">&#x2014;</div></div>
+            <div class="spp-item" id="spp-cost-wrap"><div class="spp-label t" data-uz="Tannarx" data-en="Cost/u">Tannarx</div><div class="spp-val c-danger" id="spp-cost">&#x2014;</div></div>
             <div class="spp-item"><div class="spp-label t" data-uz="Narx" data-en="Set Price">Narx</div><div class="spp-val c-accent" id="spp-sell">&#x2014;</div></div>
             <div class="spp-item"><div class="spp-label t" data-uz="Tushum" data-en="Revenue">Tushum</div><div class="spp-val c-gold" id="spp-rev">&#x2014;</div></div>
-            <div class="spp-item"><div class="spp-label t" data-uz="Foyda" data-en="Profit">Foyda</div><div class="spp-val" id="spp-profit">&#x2014;</div></div>
+            <div class="spp-item" id="spp-profit-wrap"><div class="spp-label t" data-uz="Foyda" data-en="Profit">Foyda</div><div class="spp-val" id="spp-profit">&#x2014;</div></div>
           </div>
           <div class="form-group">
             <label class="form-label t" data-uz="Sotish miqdori" data-en="Quantity">Sotish miqdori</label>
@@ -1168,7 +1168,7 @@ async function dbLoad() {
     goods[r.id] = { type: r.type, qty: Number(r.qty), name: r.name || '', costPrice: r.cost_price != null ? Number(r.cost_price) : null, sellPrice: r.sell_price != null ? Number(r.sell_price) : null, barcode: r.barcode || null };
   });
   sales = (s.data || []).map(function(r) {
-    return { id: r.id, code: r.code, qty: Number(r.qty), revenue: Number(r.revenue), profit: Number(r.profit), ts: Number(r.ts) };
+    return { id: r.id, code: r.code, qty: Number(r.qty), revenue: Number(r.revenue), profit: Number(r.profit), ts: Number(r.ts), note: r.note || '', actualPrice: r.actual_price != null ? Number(r.actual_price) : null };
   });
   services = {};
   (sv.data || []).forEach(function(r) {
@@ -1433,13 +1433,18 @@ function launchApp() {
   document.getElementById('tab-inventory').style.display = '';
   document.getElementById('tab-add').style.display = isManager ? '' : 'none';
   document.getElementById('tab-sell').style.display = isManager ? '' : 'none';
-  document.getElementById('tab-services').style.display = isManager ? '' : 'none';
+  document.getElementById('tab-services').style.display = ''; // both roles
   document.getElementById('tab-debts').style.display = '';
   document.getElementById('tab-analytics').style.display = isManager ? '' : 'none';
   var msw = document.getElementById('managerScanWrap');
   if (msw) msw.style.display = isManager ? '' : 'none';
   var ssw = document.getElementById('sellerScanWrap');
   if (ssw) ssw.style.display = isManager ? 'none' : '';
+  // Hide cost price and profit from seller in sell panel
+  var cw = document.getElementById('spp-cost-wrap');
+  var pw = document.getElementById('spp-profit-wrap');
+  if (cw) cw.style.display = isManager ? '' : 'none';
+  if (pw) pw.style.display = isManager ? '' : 'none';
 
   document.getElementById('appShell').style.display = 'block';
   applyTranslations();
@@ -2866,21 +2871,25 @@ function esc(s) {
 // BARCODE SCANNER
 var scannerMode='sell',scannerActive=false,scannedBarcode=null,bcNewType='solid',lastBcTime=0,lastBcCode='';
 function openScanner(mode){
-  scannerMode=mode; scannerActive=true;
+  scannerMode=mode;
+  try{Quagga.offDetected();}catch(e){}
+  try{Quagga.stop();}catch(e){}
+  var vp=document.getElementById('scannerViewport');
+  if(vp)vp.innerHTML='';
+  scannerActive=true;
   document.getElementById('scannerOverlay').classList.add('open');
   var btn=document.getElementById('scannerRetryBtn'); if(btn)btn.style.display='none';
   document.getElementById('scannerHint').textContent=mode==='add'?(lang==='uz'?'Yangi tovar barkodini skanerlang':'Scan new product barcode'):(lang==='uz'?'Barkodni kameraga togrilang':'Point camera at barcode');
-  // Small delay then start — no stopCamera so browser keeps permission
-  setTimeout(startCamera,200);
+  setTimeout(startCamera,300);
 }
 function closeScanner(){
   scannerActive=false;
   document.getElementById('scannerOverlay').classList.remove('open');
-  // Stop Quagga processing but don't kill camera stream
-  // This way next open won't ask for permission again
   try{Quagga.offDetected();}catch(e){}
-  try{Quagga.pause();}catch(e){}
   try{Quagga.stop();}catch(e){}
+  // clear viewport to release any held canvases
+  var vp=document.getElementById('scannerViewport');
+  if(vp) vp.innerHTML='';
 }
 function reopenScanner(){
   scannerActive=true;
@@ -2890,63 +2899,69 @@ function reopenScanner(){
 function startCamera(){
   if(!window.Quagga){showToast(lang==='uz'?'Skaner yuklanmadi':'Scanner not loaded','error');return;}
   try{
-    // Remove any leftover Quagga canvas/video from previous session
-    var vp=document.getElementById('scannerViewport');
-    if(vp) vp.innerHTML='';
-
     Quagga.init({
       inputStream:{
         name:'Live',
         type:'LiveStream',
         target:document.getElementById('scannerViewport'),
-        constraints:{
-          facingMode:'environment',
-          width:{ideal:1280},
-          height:{ideal:720}
-        },
-        // KEY FIX: willReadFrequently improves canvas performance
-        willReadFrequently:true
+        constraints:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}
       },
-      frequency:10,
-      decoder:{readers:['ean_reader','ean_8_reader','code_128_reader','code_39_reader','upc_reader','upc_e_reader','codabar_reader']},
+      frequency:15,
+      decoder:{
+        readers:['ean_reader','ean_8_reader','code_128_reader','code_39_reader',
+                 'upc_reader','upc_e_reader','codabar_reader','i2of5_reader'],
+        debug:{drawBoundingBox:false,showFrequency:false,drawScanline:false,showPattern:false}
+      },
       locate:true,
       locator:{patchSize:'medium',halfSample:true},
       numOfWorkers:0
     },function(err){
       if(err){
-        console.error('Quagga init error:',err);
+        console.error('Quagga:',err);
         showToast(lang==='uz'?'Kamera ochilmadi':'Camera failed','error');
         var b=document.getElementById('scannerRetryBtn');if(b)b.style.display='block';
         return;
       }
-      if(!scannerActive){stopCamera();return;}
+      if(!scannerActive){
+        try{Quagga.stop();}catch(e){}
+        return;
+      }
       Quagga.start();
     });
 
     Quagga.onDetected(function(result){
       if(!scannerActive)return;
-      var code=result.codeResult.code,now=Date.now();
-      if(code===lastBcCode&&now-lastBcTime<2000)return;
+      // Require confidence — at least 4 of 6 decoders agree
+      var code=result.codeResult.code;
+      var decodedCount=result.codeResult.decodedCodes
+        .filter(function(c){return c.error!==undefined&&c.error<0.25;}).length;
+      if(decodedCount<2&&result.codeResult.format==='unknown')return;
+      var now=Date.now();
+      if(code===lastBcCode&&now-lastBcTime<2500)return;
       lastBcCode=code; lastBcTime=now;
-      if(navigator.vibrate)navigator.vibrate(100);
-      stopCamera(); closeScanner(); handleScannedBarcode(code);
+      if(navigator.vibrate)navigator.vibrate([80,40,80]);
+      scannerActive=false;
+      try{Quagga.offDetected();}catch(e){}
+      try{Quagga.stop();}catch(e){}
+      document.getElementById('scannerOverlay').classList.remove('open');
+      var vp=document.getElementById('scannerViewport');if(vp)vp.innerHTML='';
+      handleScannedBarcode(code);
     });
 
   }catch(e){
-    console.error('Scanner exception:',e);
+    console.error('Scanner:',e);
     showToast('Error: '+e.message,'error');
     var b=document.getElementById('scannerRetryBtn');if(b)b.style.display='block';
   }
 }
 function stopCamera(){
+  scannerActive=false;
   try{Quagga.offDetected();}catch(e){}
   try{Quagga.stop();}catch(e){}
-  // Also stop any raw video tracks in the viewport
   var vp=document.getElementById('scannerViewport');
   if(vp){
-    var videos=vp.querySelectorAll('video');
-    videos.forEach(function(v){
-      if(v.srcObject){try{v.srcObject.getTracks().forEach(function(t){t.stop()});}catch(e){}v.srcObject=null;}
+    vp.querySelectorAll('video').forEach(function(v){
+      if(v.srcObject){try{v.srcObject.getTracks().forEach(function(t){t.stop();});}catch(e){}v.srcObject=null;}
     });
   }
 }
@@ -2961,14 +2976,15 @@ function handleScannedBarcode(barcode){
   var found=Object.keys(goods).find(function(c){return goods[c].barcode===barcode;});
   if(found){
     if(currentRole==='seller'){
-      document.getElementById('tab-sell').style.display='';
+      var stEl=document.getElementById('tab-sell');
+      if(stEl)stEl.style.display='';
       switchTab('sell');setSellTab('product');
       document.getElementById('sellCode').value=found;onSellCodeInput();
       showToast(found.toUpperCase()+' '+(lang==='uz'?'topildi':'found'),'success');
     }else{
       var name=goods[found].name||found.toUpperCase();
       if(confirm(lang==='uz'?name+' - OK=Sotish, Bekor=Ombor':name+' - OK=Sell, Cancel=Restock')){
-        document.getElementById('tab-sell').style.display='';switchTab('sell');setSellTab('product');document.getElementById('sellCode').value=found;onSellCodeInput();
+        switchTab('sell');setSellTab('product');document.getElementById('sellCode').value=found;onSellCodeInput();
       }else{openQuickAdd(found);}
     }
   }else{
