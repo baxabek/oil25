@@ -1168,7 +1168,7 @@ async function dbLoad() {
     goods[r.id] = { type: r.type, qty: Number(r.qty), name: r.name || '', costPrice: r.cost_price != null ? Number(r.cost_price) : null, sellPrice: r.sell_price != null ? Number(r.sell_price) : null, barcode: r.barcode || null };
   });
   sales = (s.data || []).map(function(r) {
-    return { id: r.id, code: r.code, qty: Number(r.qty), revenue: Number(r.revenue), profit: Number(r.profit), ts: Number(r.ts), note: r.note || '', actualPrice: r.actual_price != null ? Number(r.actual_price) : null };
+    return { id: r.id, code: r.code, qty: Number(r.qty), revenue: Number(r.revenue), profit: Number(r.profit), ts: Number(r.ts), note: r.note||'', actualPrice: r.actual_price!=null?Number(r.actual_price):null };
   });
   services = {};
   (sv.data || []).forEach(function(r) {
@@ -1440,11 +1440,9 @@ function launchApp() {
   if (msw) msw.style.display = isManager ? '' : 'none';
   var ssw = document.getElementById('sellerScanWrap');
   if (ssw) ssw.style.display = isManager ? 'none' : '';
-  // Hide cost price and profit from seller in sell panel
-  var cw = document.getElementById('spp-cost-wrap');
-  var pw = document.getElementById('spp-profit-wrap');
-  if (cw) cw.style.display = isManager ? '' : 'none';
-  if (pw) pw.style.display = isManager ? '' : 'none';
+  var cw=document.getElementById('spp-cost-wrap'),pw=document.getElementById('spp-profit-wrap');
+  if(cw)cw.style.display=isManager?'':'none';
+  if(pw)pw.style.display=isManager?'':'none';
 
   document.getElementById('appShell').style.display = 'block';
   applyTranslations();
@@ -1740,6 +1738,7 @@ function renderServices() {
   }
   list.innerHTML = ids.map(function(id) {
     var s = services[id];
+    var isMgr = currentRole === 'manager';
     return '<div class="svc-card">' +
       '<div class="svc-icon">⚙️</div>' +
       '<div class="svc-info">' +
@@ -1747,8 +1746,9 @@ function renderServices() {
         '<div class="svc-price">' + (s.defaultPrice != null ? fmt(s.defaultPrice) : '—') + '</div>' +
       '</div>' +
       '<div class="svc-actions">' +
-        '<button class="icon-btn" style="color:var(--blue)" onclick="openEditService(\'' + esc(id) + '\')">✏</button>' +
-        '<button class="icon-btn" style="color:var(--danger)" onclick="openDeleteService(\'' + esc(id) + '\')">🗑</button>' +
+        '<button class="svc-sell-btn" onclick="openSvcSell(\'' + esc(id) + '\')">&#x2699;&#xFE0F; ' + (lang==='uz'?'Qayd':'Sell') + '</button>' +
+        (isMgr ? '<button class="icon-btn" style="color:var(--blue)" onclick="openEditService(\'' + esc(id) + '\')">✏</button>' : '') +
+        (isMgr ? '<button class="icon-btn" style="color:var(--danger)" onclick="openDeleteService(\'' + esc(id) + '\')">🗑</button>' : '') +
       '</div>' +
     '</div>';
   }).join('');
@@ -2874,22 +2874,23 @@ function openScanner(mode){
   scannerMode=mode;
   try{Quagga.offDetected();}catch(e){}
   try{Quagga.stop();}catch(e){}
-  var vp=document.getElementById('scannerViewport');
-  if(vp)vp.innerHTML='';
+  var vp=document.getElementById('scannerViewport');if(vp)vp.innerHTML='';
   scannerActive=true;
   document.getElementById('scannerOverlay').classList.add('open');
-  var btn=document.getElementById('scannerRetryBtn'); if(btn)btn.style.display='none';
-  document.getElementById('scannerHint').textContent=mode==='add'?(lang==='uz'?'Yangi tovar barkodini skanerlang':'Scan new product barcode'):(lang==='uz'?'Barkodni kameraga togrilang':'Point camera at barcode');
+  var btn=document.getElementById('scannerRetryBtn');if(btn)btn.style.display='none';
+  document.getElementById('scannerHint').textContent=mode==='add'
+    ?(lang==='uz'?'Yangi tovar barkodini skanerlang':'Scan new product barcode')
+    :(lang==='uz'?'Barkodni kameraga togrilang':'Point camera at barcode');
   setTimeout(startCamera,300);
 }
 function closeScanner(){
   scannerActive=false;
   document.getElementById('scannerOverlay').classList.remove('open');
+  // Stop Quagga processing but don't kill camera stream
+  // This way next open won't ask for permission again
   try{Quagga.offDetected();}catch(e){}
+  try{Quagga.pause();}catch(e){}
   try{Quagga.stop();}catch(e){}
-  // clear viewport to release any held canvases
-  var vp=document.getElementById('scannerViewport');
-  if(vp) vp.innerHTML='';
 }
 function reopenScanner(){
   scannerActive=true;
@@ -2900,45 +2901,23 @@ function startCamera(){
   if(!window.Quagga){showToast(lang==='uz'?'Skaner yuklanmadi':'Scanner not loaded','error');return;}
   try{
     Quagga.init({
-      inputStream:{
-        name:'Live',
-        type:'LiveStream',
-        target:document.getElementById('scannerViewport'),
-        constraints:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}
-      },
+      inputStream:{name:'Live',type:'LiveStream',target:document.getElementById('scannerViewport'),
+        constraints:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}},
       frequency:15,
-      decoder:{
-        readers:['ean_reader','ean_8_reader','code_128_reader','code_39_reader',
-                 'upc_reader','upc_e_reader','codabar_reader','i2of5_reader'],
-        debug:{drawBoundingBox:false,showFrequency:false,drawScanline:false,showPattern:false}
-      },
-      locate:true,
-      locator:{patchSize:'medium',halfSample:true},
-      numOfWorkers:0
+      decoder:{readers:['ean_reader','ean_8_reader','code_128_reader','code_39_reader',
+        'upc_reader','upc_e_reader','codabar_reader'],
+        debug:{drawBoundingBox:false,showFrequency:false,drawScanline:false,showPattern:false}},
+      locate:true,locator:{patchSize:'medium',halfSample:true},numOfWorkers:0
     },function(err){
-      if(err){
-        console.error('Quagga:',err);
-        showToast(lang==='uz'?'Kamera ochilmadi':'Camera failed','error');
-        var b=document.getElementById('scannerRetryBtn');if(b)b.style.display='block';
-        return;
-      }
-      if(!scannerActive){
-        try{Quagga.stop();}catch(e){}
-        return;
-      }
+      if(err){console.error('Quagga:',err);showToast(lang==='uz'?'Kamera ochilmadi':'Camera failed','error');var b=document.getElementById('scannerRetryBtn');if(b)b.style.display='block';return;}
+      if(!scannerActive){try{Quagga.stop();}catch(e){}return;}
       Quagga.start();
     });
-
     Quagga.onDetected(function(result){
       if(!scannerActive)return;
-      // Require confidence — at least 4 of 6 decoders agree
-      var code=result.codeResult.code;
-      var decodedCount=result.codeResult.decodedCodes
-        .filter(function(c){return c.error!==undefined&&c.error<0.25;}).length;
-      if(decodedCount<2&&result.codeResult.format==='unknown')return;
-      var now=Date.now();
+      var code=result.codeResult.code,now=Date.now();
       if(code===lastBcCode&&now-lastBcTime<2500)return;
-      lastBcCode=code; lastBcTime=now;
+      lastBcCode=code;lastBcTime=now;
       if(navigator.vibrate)navigator.vibrate([80,40,80]);
       scannerActive=false;
       try{Quagga.offDetected();}catch(e){}
@@ -2947,23 +2926,14 @@ function startCamera(){
       var vp=document.getElementById('scannerViewport');if(vp)vp.innerHTML='';
       handleScannedBarcode(code);
     });
-
-  }catch(e){
-    console.error('Scanner:',e);
-    showToast('Error: '+e.message,'error');
-    var b=document.getElementById('scannerRetryBtn');if(b)b.style.display='block';
-  }
+  }catch(e){console.error('Scanner:',e);showToast('Error: '+e.message,'error');var b=document.getElementById('scannerRetryBtn');if(b)b.style.display='block';}
 }
 function stopCamera(){
   scannerActive=false;
   try{Quagga.offDetected();}catch(e){}
   try{Quagga.stop();}catch(e){}
   var vp=document.getElementById('scannerViewport');
-  if(vp){
-    vp.querySelectorAll('video').forEach(function(v){
-      if(v.srcObject){try{v.srcObject.getTracks().forEach(function(t){t.stop();});}catch(e){}v.srcObject=null;}
-    });
-  }
+  if(vp){vp.querySelectorAll('video').forEach(function(v){if(v.srcObject){try{v.srcObject.getTracks().forEach(function(t){t.stop();});}catch(e){}v.srcObject=null;}});}
 }
 function handleScannedBarcode(barcode){
   scannedBarcode=barcode;
@@ -2976,15 +2946,14 @@ function handleScannedBarcode(barcode){
   var found=Object.keys(goods).find(function(c){return goods[c].barcode===barcode;});
   if(found){
     if(currentRole==='seller'){
-      var stEl=document.getElementById('tab-sell');
-      if(stEl)stEl.style.display='';
+      var _st=document.getElementById('tab-sell');if(_st)_st.style.display='';
       switchTab('sell');setSellTab('product');
       document.getElementById('sellCode').value=found;onSellCodeInput();
       showToast(found.toUpperCase()+' '+(lang==='uz'?'topildi':'found'),'success');
     }else{
       var name=goods[found].name||found.toUpperCase();
       if(confirm(lang==='uz'?name+' - OK=Sotish, Bekor=Ombor':name+' - OK=Sell, Cancel=Restock')){
-        switchTab('sell');setSellTab('product');document.getElementById('sellCode').value=found;onSellCodeInput();
+        document.getElementById('tab-sell').style.display='';switchTab('sell');setSellTab('product');document.getElementById('sellCode').value=found;onSellCodeInput();
       }else{openQuickAdd(found);}
     }
   }else{
@@ -3128,7 +3097,7 @@ async function confirmNewProductFromBarcode(){
 </div>
 <!-- ADD DEBT MODAL -->
 <div class="modal-overlay" id="addDebtModal" onclick="closeModal('addDebtModal')">
-  <div class="modal">
+  <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <div class="modal-title t" data-uz="YANGI QARZ" data-en="NEW DEBT">YANGI QARZ</div>
     <div class="form-group" style="margin-top:10px">
@@ -3159,7 +3128,7 @@ async function confirmNewProductFromBarcode(){
 
 <!-- ADD PAYMENT MODAL -->
 <div class="modal-overlay" id="addPaymentModal" onclick="closeModal('addPaymentModal')">
-  <div class="modal">
+  <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <div class="modal-title">TO'LOV KIRITISH</div>
     <div style="background:var(--surface2);border-radius:10px;padding:10px 12px;margin:10px 0 14px;display:flex;justify-content:space-between;align-items:center">
@@ -3189,7 +3158,7 @@ async function confirmNewProductFromBarcode(){
 
 <!-- EXTEND DUE DATE MODAL (manager only) -->
 <div class="modal-overlay" id="extendDebtModal" onclick="closeModal('extendDebtModal')">
-  <div class="modal">
+  <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <div class="modal-title">MUDDATNI UZAYTIRISH</div>
     <div style="font-size:12px;color:var(--muted2);margin:8px 0 14px" id="extendModalSub">Yangi to'lov muddatini tanlang</div>
