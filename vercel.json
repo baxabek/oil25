@@ -1,30 +1,9 @@
 {
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+  "version": 2,
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ]
 }
-```
-
-**5.** Click **Commit changes** → **Commit changes**
-
-**6.** Wait 30 seconds → open **025oil.vercel.app** — it should load your app now
-
-✅ Done. Tell me when working.
-
----
-
-## STEP 2 — Environment Variables (15 minutes)
-
-**What this does:** Right now your Supabase URL and key are in your HTML file — visible to everyone. We move them to Vercel's secure vault. The browser never sees them again.
-
-**But wait** — here is the honest part I need to explain first:
-
-Moving environment variables properly requires your app to have a **backend function**. You cannot just remove the key from HTML without replacing it with something. So Steps 2 and 3 are connected — we do them together.
-
-Here is what we will build:
-```
-BEFORE:
-Browser → Supabase directly (key visible in HTML)
-
-AFTER:
-Browser → Vercel API function → Supabase (key hidden on server)
