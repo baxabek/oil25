@@ -447,6 +447,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <span class="sync-dot" id="syncDot"></span>
         <div class="item-pill"><b id="totalCount">0</b> <span class="t" data-uz="tovar" data-en="items">tovar</span></div>
         <button class="lock-btn" onclick="lockApp()" title="Lock">&#x1F512;</button>
+        <button class="lock-btn" onclick="openChangePinModal()" id="changePinBtn" title="Change PIN" style="display:none">&#x2699;&#xFE0F;</button>
       </div>
     </div>
     <div class="tabs" id="tabBar">
@@ -893,8 +894,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 // ═══════════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════════
-var MANAGER_PIN = '1950';
-var SELLER_PIN  = '2290';
+var MANAGER_PIN_HASH = '3f5f3806e425deac33023e9764d08ac98397e6f1bc8599743cbb15a9cfdf8929';
+var SELLER_PIN_HASH  = '808c9cfebd38d4d93da5bb3b32be7e39cbb403672c5ce39b83bffe7d5660b114';
+
+// ═══════════════════════════════════════════════
+//  SHA256 — used for PIN hashing
+// ═══════════════════════════════════════════════
+async function sha256(message) {
+  var msgBuffer = new TextEncoder().encode(message);
+  var hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  var hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+}
 
 // ═══════════════════════════════════════════════
 //  SUPABASE
@@ -1172,7 +1183,7 @@ async function dbLoad() {
   });
   goods = newGoods;
   sales = (s.data || []).map(function(r) {
-    return { id: r.id, code: r.code, qty: Number(r.qty), revenue: Number(r.revenue), profit: Number(r.profit), ts: Number(r.ts), note: r.note||'', actualPrice: r.actual_price!=null?Number(r.actual_price):null, setPrice: r.set_price!=null?Number(r.set_price):null, soldBy: r.sold_by||'manager' };
+    return { id: r.id, code: r.code, qty: Number(r.qty), revenue: Number(r.revenue), profit: Number(r.profit), ts: Number(r.ts), note: r.note||'', actualPrice: r.actual_price!=null?Number(r.actual_price):null, soldBy: r.sold_by||'manager' };
   });
   services = {};
   (sv.data || []).forEach(function(r) {
@@ -1208,7 +1219,7 @@ async function dbDeleteGood(code) {
 
 async function dbSaveSale(sale) {
   setSync('syncing');
-  var res = await db.from('sales').insert({ code: sale.code, qty: sale.qty, revenue: sale.revenue, profit: sale.profit, ts: sale.ts, actual_price: sale.actualPrice || null, set_price: sale.setPrice || null, note: sale.note || null, sold_by: sale.soldBy || 'manager' }).select('id').single();
+  var res = await db.from('sales').insert({ code: sale.code, qty: sale.qty, revenue: sale.revenue, profit: sale.profit, ts: sale.ts, actual_price: sale.actualPrice || null, note: sale.note || null, sold_by: sale.soldBy || 'manager' }).select('id').single();
   if (res.error) { setSync('error'); throw res.error; }
   setSync('ok'); saveCache();
   return res.data.id;
@@ -1388,30 +1399,34 @@ function checkPin() {
     document.getElementById('pinError').textContent = (lang==='uz'?'Bloklangan! '+s+' soniya':'Locked! '+s+'s left');
     pinInput=''; updatePinDots(); return;
   }
-  var correct = (pinRole==='manager'&&pinInput===MANAGER_PIN)||(pinRole==='seller'&&pinInput===SELLER_PIN);
-  if (correct) {
-    pinAttempts=0; pinLockedUntil=0;
-    currentRole=pinRole;
-    document.getElementById('pinScreen').style.display='none';
-    launchApp(); startSessionTimer();
-  } else {
-    pinAttempts++;
-    for (var i=0;i<4;i++) document.getElementById('pd'+i).className='pin-dot error';
-    if (pinAttempts>=MAX_PIN_ATTEMPTS) {
-      pinLockedUntil=Date.now()+LOCKOUT_MS; pinAttempts=0;
-      document.getElementById('pinError').textContent=(lang==='uz'?'5 ta xato! 5 daqiqa bloklandi.':'5 wrong! Locked 5 min.');
-      if(lockoutTimer)clearInterval(lockoutTimer);
-      lockoutTimer=setInterval(function(){
-        var r=pinLockedUntil-Date.now();
-        if(r<=0){clearInterval(lockoutTimer);document.getElementById('pinError').textContent='';}
-        else{document.getElementById('pinError').textContent=(lang==='uz'?'Bloklangan! '+Math.ceil(r/1000)+' soniya':'Locked! '+Math.ceil(r/1000)+'s');}
-      },1000);
+  // Hash the entered PIN then compare
+  sha256(pinInput).then(function(hash) {
+    var correct = (pinRole==='manager' && hash===MANAGER_PIN_HASH) ||
+                  (pinRole==='seller'  && hash===SELLER_PIN_HASH);
+    if (correct) {
+      pinAttempts=0; pinLockedUntil=0;
+      currentRole=pinRole;
+      document.getElementById('pinScreen').style.display='none';
+      launchApp(); startSessionTimer();
     } else {
-      var left=MAX_PIN_ATTEMPTS-pinAttempts;
-      document.getElementById('pinError').textContent=(lang==='uz'?'Xato PIN! '+left+' urinish qoldi.':'Wrong PIN! '+left+' left.');
+      pinAttempts++;
+      for (var i=0;i<4;i++) document.getElementById('pd'+i).className='pin-dot error';
+      if (pinAttempts>=MAX_PIN_ATTEMPTS) {
+        pinLockedUntil=Date.now()+LOCKOUT_MS; pinAttempts=0;
+        document.getElementById('pinError').textContent=(lang==='uz'?'5 ta xato! 5 daqiqa bloklandi.':'5 wrong! Locked 5 min.');
+        if(lockoutTimer)clearInterval(lockoutTimer);
+        lockoutTimer=setInterval(function(){
+          var r=pinLockedUntil-Date.now();
+          if(r<=0){clearInterval(lockoutTimer);document.getElementById('pinError').textContent='';}
+          else{document.getElementById('pinError').textContent=(lang==='uz'?'Bloklangan! '+Math.ceil(r/1000)+' soniya':'Locked! '+Math.ceil(r/1000)+'s');}
+        },1000);
+      } else {
+        var left=MAX_PIN_ATTEMPTS-pinAttempts;
+        document.getElementById('pinError').textContent=(lang==='uz'?'Xato PIN! '+left+' urinish qoldi.':'Wrong PIN! '+left+' left.');
+      }
+      setTimeout(function(){pinInput='';updatePinDots();},800);
     }
-    setTimeout(function(){pinInput='';updatePinDots();},800);
-  }
+  });
 }
 function startSessionTimer(){
   if(sessionTimer)clearTimeout(sessionTimer);
@@ -1443,6 +1458,8 @@ function launchApp() {
   document.getElementById('tab-analytics').style.display = isManager ? '' : 'none';
   var msw = document.getElementById('managerScanWrap');
   if (msw) msw.style.display = isManager ? '' : 'none';
+  var cpb = document.getElementById('changePinBtn');
+  if (cpb) cpb.style.display = isManager ? '' : 'none';
   var ssw = document.getElementById('sellerScanWrap');
   if (ssw) ssw.style.display = isManager ? 'none' : '';
   var saw = document.getElementById('svcAddWrap');
@@ -1674,7 +1691,7 @@ async function sellGood() {
   var revenue = qty * actualPrice;
   var profit = revenue - qty * (g.costPrice || 0);
   var saleNote = document.getElementById('sellNote') ? document.getElementById('sellNote').value.trim() : '';
-  var sale = { code: code, qty: qty, revenue: revenue, profit: profit, ts: Date.now(), actualPrice: actualPrice, setPrice: g.sellPrice || null, note: saleNote, soldBy: currentRole, id: 'tmp_' + Date.now() };
+  var sale = { code: code, qty: qty, revenue: revenue, profit: profit, ts: Date.now(), actualPrice: actualPrice, note: saleNote, soldBy: currentRole, id: 'tmp_' + Date.now() };
 
   // ⚡ Optimistic update — instant UI response
   var prevQty = g.qty;
@@ -2052,8 +2069,8 @@ function renderAnalytics() {
     '</div>';
   }).join('') : '<div class="no-data">' + t('noSales') + '</div>';
 
-  // Revenue chart — wrapped so any crash never blocks tx cards below
-  try { renderRevenueChart(filteredSales, filteredSvcSales); } catch(e) { console.warn('Chart error:', e); }
+  // Revenue chart
+  renderRevenueChart(filteredSales, filteredSvcSales);
 
   // Transaction history (combined, sorted by ts)
   var txContainer = document.getElementById('txHistory');
@@ -2077,7 +2094,7 @@ function renderAnalytics() {
       var g = goods[s.code];
       var unit = g ? (g.type === 'liquid' ? 'L' : 'd') : '';
       var isMgr = currentRole === 'manager';
-      var setPrice = s.setPrice != null ? s.setPrice : (g ? g.sellPrice : null);
+      var setPrice = g ? g.sellPrice : null;
       var priceInline = '';
       if (isMgr) {
         if (s.actualPrice != null && setPrice != null && Math.abs(s.actualPrice - setPrice) > 0.001) {
@@ -2143,7 +2160,7 @@ function loadMoreTx() {
       var g = goods[s.code];
       var unit = g ? (g.type === 'liquid' ? 'L' : 'd') : '';
       var isMgr = currentRole === 'manager';
-      var setPrice = s.setPrice != null ? s.setPrice : (g ? g.sellPrice : null);
+      var setPrice = g ? g.sellPrice : null;
       var priceInline = '';
       if (isMgr) {
         if (s.actualPrice != null && setPrice != null && Math.abs(s.actualPrice - setPrice) > 0.001) {
@@ -2478,7 +2495,7 @@ function openTxDetail(kind, id) {
     var ts = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
     var soldByLabel = data.soldBy === 'seller' ? (lang==='uz'?'Sotuvchi':'Seller') : (lang==='uz'?'Manager':'Manager');
     var soldByColor = data.soldBy === 'seller' ? 'var(--blue)' : 'var(--gold)';
-    var setPrice = data.setPrice != null ? data.setPrice : (g ? g.sellPrice : null);
+    var setPrice = g ? g.sellPrice : null;
     var priceRow = '';
     if (data.actualPrice != null && setPrice != null && Math.abs(data.actualPrice - setPrice) > 0.001) {
       priceRow = '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">' +
@@ -2994,6 +3011,101 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
+
+// ═══════════════════════════════════════════════
+//  CHANGE PIN
+// ═══════════════════════════════════════════════
+var cpTargetRole = 'manager'; // which PIN we're changing
+
+function openChangePinModal() {
+  if (currentRole !== 'manager') return;
+  document.getElementById('cpCurrentPin').value = '';
+  document.getElementById('cpNewPin').value = '';
+  document.getElementById('cpConfirmPin').value = '';
+  document.getElementById('cpCurrentError').textContent = '';
+  document.getElementById('cpMatchError').textContent = '';
+  setCpRole('manager');
+  document.getElementById('changePinModal').classList.add('open');
+}
+
+function setCpRole(role) {
+  cpTargetRole = role;
+  var mBtn = document.getElementById('cpRoleManager');
+  var sBtn = document.getElementById('cpRoleSeller');
+  var lbl = document.getElementById('cpNewLabel');
+  mBtn.style.borderColor = role === 'manager' ? 'var(--gold)' : 'var(--border)';
+  mBtn.style.background = role === 'manager' ? 'var(--gold-dim)' : 'var(--surface2)';
+  mBtn.style.color = role === 'manager' ? 'var(--gold)' : 'var(--muted2)';
+  sBtn.style.borderColor = role === 'seller' ? 'var(--blue)' : 'var(--border)';
+  sBtn.style.background = role === 'seller' ? 'var(--blue-dim)' : 'var(--surface2)';
+  sBtn.style.color = role === 'seller' ? 'var(--blue)' : 'var(--muted2)';
+  lbl.textContent = role === 'manager'
+    ? (lang === 'uz' ? 'Manager uchun yangi PIN (4-6 raqam) *' : 'New Manager PIN (4-6 digits) *')
+    : (lang === 'uz' ? 'Seller uchun yangi PIN (4-6 raqam) *' : 'New Seller PIN (4-6 digits) *');
+}
+
+async function saveChangedPin() {
+  var currentPin = document.getElementById('cpCurrentPin').value.trim();
+  var newPin = document.getElementById('cpNewPin').value.trim();
+  var confirmPin = document.getElementById('cpConfirmPin').value.trim();
+
+  document.getElementById('cpCurrentError').textContent = '';
+  document.getElementById('cpMatchError').textContent = '';
+
+  // Validate
+  if (!currentPin) { document.getElementById('cpCurrentError').textContent = lang === 'uz' ? 'Joriy PIN kiriting!' : 'Enter current PIN!'; return; }
+  if (!newPin || newPin.length < 4) { document.getElementById('cpMatchError').textContent = lang === 'uz' ? 'Yangi PIN kamida 4 raqam!' : 'New PIN must be 4+ digits!'; return; }
+  if (!/^\d+$/.test(newPin)) { document.getElementById('cpMatchError').textContent = lang === 'uz' ? 'Faqat raqamlar!' : 'Digits only!'; return; }
+  if (newPin !== confirmPin) { document.getElementById('cpMatchError').textContent = lang === 'uz' ? 'PIN lar mos kelmaydi!' : 'PINs do not match!'; return; }
+
+  // Verify current manager PIN
+  var currentHash = await sha256(currentPin);
+  if (currentHash !== MANAGER_PIN_HASH) {
+    document.getElementById('cpCurrentError').textContent = lang === 'uz' ? 'Joriy Manager PIN notogri!' : 'Current Manager PIN is wrong!';
+    return;
+  }
+
+  // Hash the new PIN
+  var newHash = await sha256(newPin);
+
+  // Update in memory
+  if (cpTargetRole === 'manager') {
+    MANAGER_PIN_HASH = newHash;
+  } else {
+    SELLER_PIN_HASH = newHash;
+  }
+
+  // Save to localStorage so it persists across sessions
+  try {
+    var pinStore = JSON.parse(localStorage.getItem('pin_hashes') || '{}');
+    pinStore[cpTargetRole] = newHash;
+    localStorage.setItem('pin_hashes', JSON.stringify(pinStore));
+  } catch(e) {}
+
+  closeModal('changePinModal');
+  var roleLabel = cpTargetRole === 'manager' ? (lang === 'uz' ? 'Manager' : 'Manager') : (lang === 'uz' ? 'Seller' : 'Seller');
+  showToast(roleLabel + ' PIN ' + (lang === 'uz' ? 'yangilandi!' : 'updated!'), 'success');
+
+  // Show the new hash values — manager needs to copy these to the file
+  setTimeout(function() {
+    var msg = (lang === 'uz'
+      ? 'Yangi hash (' + cpTargetRole + '):\n' + newHash + '\n\nBu qiymatni GitHub fayliga saqlang!'
+      : 'New hash (' + cpTargetRole + '):\n' + newHash + '\n\nSave this to your GitHub file!');
+    if (confirm(msg + '\n\n' + (lang === 'uz' ? 'Nusxa olishni xohlaysizmi?' : 'Copy to clipboard?'))) {
+      try { navigator.clipboard.writeText(newHash); showToast(lang === 'uz' ? 'Nusxa olindi!' : 'Copied!', 'success'); } catch(e) {}
+    }
+  }, 400);
+}
+
+// Load saved PIN hashes from localStorage on startup (overrides hardcoded ones)
+(function loadSavedPins() {
+  try {
+    var pinStore = JSON.parse(localStorage.getItem('pin_hashes') || '{}');
+    if (pinStore.manager) MANAGER_PIN_HASH = pinStore.manager;
+    if (pinStore.seller) SELLER_PIN_HASH = pinStore.seller;
+  } catch(e) {}
+})();
+
 // BARCODE SCANNER
 var scannerMode='sell',scannerActive=false,scannedBarcode=null,bcNewType='solid',lastBcTime=0,lastBcCode='';
 function openScanner(mode){
@@ -3317,6 +3429,52 @@ async function confirmNewProductFromBarcode(){
     <div class="modal-title" id="txDetailTitle">SOTUV MA'LUMOTI</div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px" id="txDetailBody"></div>
     <button class="btn-outline" onclick="closeTxDetail()" style="border-radius:12px;width:100%;margin-top:14px">Yopish</button>
+  </div>
+</div>
+
+
+<!-- CHANGE PIN MODAL -->
+<div class="modal-overlay" id="changePinModal" onclick="closeModal('changePinModal')">
+  <div class="modal" onclick="event.stopPropagation()" style="padding-bottom:40px">
+    <div class="modal-handle"></div>
+    <div class="modal-title">&#x1F512; PIN KODNI O'ZGARTIRISH</div>
+    <div style="font-size:12px;color:var(--muted2);margin:6px 0 16px">Faqat Manager uchun</div>
+
+    <!-- Which PIN to change -->
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button id="cpRoleManager" onclick="setCpRole('manager')"
+        style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--gold);background:var(--gold-dim);color:var(--gold);font-family:DM Sans,sans-serif;font-size:13px;font-weight:700;cursor:pointer">
+        &#x1F451; Manager PIN
+      </button>
+      <button id="cpRoleSeller" onclick="setCpRole('seller')"
+        style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:DM Sans,sans-serif;font-size:13px;font-weight:600;cursor:pointer">
+        &#x1F464; Seller PIN
+      </button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Joriy Manager PIN *</label>
+      <input class="form-input" id="cpCurrentPin" type="password" maxlength="6" inputmode="numeric" placeholder="••••" autocomplete="off">
+      <div id="cpCurrentError" style="font-size:11px;color:var(--danger);min-height:16px;margin-top:4px"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="cpNewLabel">Yangi PIN (4-6 raqam) *</label>
+      <input class="form-input" id="cpNewPin" type="password" maxlength="6" inputmode="numeric" placeholder="••••" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Yangi PIN tasdiqlash *</label>
+      <input class="form-input" id="cpConfirmPin" type="password" maxlength="6" inputmode="numeric" placeholder="••••" autocomplete="off">
+      <div id="cpMatchError" style="font-size:11px;color:var(--danger);min-height:16px;margin-top:4px"></div>
+    </div>
+
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--muted2);line-height:1.6">
+      &#x26A0;&#xFE0F; PIN o'zgargandan so'ng <b style="color:var(--gold)">GitHub</b>-ga yangilangan faylni yuklang. Aks holda keyingi yangilanishda eski PIN qaytib keladi.
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeModal('changePinModal')">Bekor</button>
+      <button class="btn btn-warn" id="cpSaveBtn" onclick="saveChangedPin()">&#x1F512; Saqlash</button>
+    </div>
   </div>
 </div>
 
