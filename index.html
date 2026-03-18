@@ -444,6 +444,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <span class="sync-dot" id="syncDot"></span>
         <div class="item-pill"><b id="totalCount">0</b> <span class="t" data-uz="tovar" data-en="items">tovar</span></div>
         <button class="lock-btn" onclick="lockApp()" title="Lock">&#x1F512;</button>
+        <button class="lock-btn" onclick="openChangePinModal()" id="changePinBtn" title="Change PIN" style="display:none">&#x2699;&#xFE0F;</button>
       </div>
     </div>
     <div class="tabs" id="tabBar">
@@ -717,6 +718,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div>
       <div class="section-header"><div class="section-title">&#x1F3C6; <span class="t" data-uz="Eng Kop" data-en="Top Items">Eng Kop</span></div></div>
       <div id="topGoods"></div>
+      <!-- FEATURE 8: Seller Performance -->
+      <div id="perfSection" style="display:none;margin-top:14px">
+        <div class="section-header"><div class="section-title">&#x1F465; <span class="t" data-uz="Sotuvchi Faoliyati" data-en="Performance">Sotuvchi Faoliyati</span></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
+          <div id="perfSellerCard" onclick="openPerfModal('seller')" style="background:var(--surface);border:1px solid rgba(77,159,255,0.35);border-radius:12px;padding:12px;cursor:pointer;transition:all .2s">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+              <div style="width:7px;height:7px;border-radius:50%;background:var(--blue);flex-shrink:0"></div>
+              <div style="font-size:11px;color:var(--blue);font-weight:700" class="t" data-uz="Sotuvchi" data-en="Seller">Sotuvchi</div>
+            </div>
+            <div style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--text)" id="perfSellerRev">$0</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px" id="perfSellerCount">0 ta sotuv</div>
+            <div style="margin-top:8px;height:3px;background:var(--surface2);border-radius:2px">
+              <div style="height:3px;background:var(--blue);border-radius:2px;transition:width .4s" id="perfSellerBar"></div>
+            </div>
+            <div style="font-size:10px;color:var(--muted2);margin-top:3px" id="perfSellerPct">0%</div>
+          </div>
+          <div id="perfManagerCard" onclick="openPerfModal('manager')" style="background:var(--surface);border:1px solid rgba(255,200,77,0.35);border-radius:12px;padding:12px;cursor:pointer;transition:all .2s">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+              <div style="width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0"></div>
+              <div style="font-size:11px;color:var(--gold);font-weight:700" class="t" data-uz="Manager" data-en="Manager">Manager</div>
+            </div>
+            <div style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--text)" id="perfManagerRev">$0</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px" id="perfManagerCount">0 ta sotuv</div>
+            <div style="margin-top:8px;height:3px;background:var(--surface2);border-radius:2px">
+              <div style="height:3px;background:var(--gold);border-radius:2px;transition:width .4s" id="perfManagerBar"></div>
+            </div>
+            <div style="font-size:10px;color:var(--muted2);margin-top:3px" id="perfManagerPct">0%</div>
+          </div>
+        </div>
+      </div>
       <div class="section-header" style="margin-top:14px">
         <div class="section-title">&#x1F553; <span class="t" data-uz="Sotuvlar" data-en="Transactions">Sotuvlar</span></div>
         <span id="editModeToggle" class="section-action" onclick="toggleEditMode()">&#x270F;&#xFE0F; <span class="t" data-uz="Boshqarish" data-en="Manage">Boshqarish</span></span>
@@ -727,6 +758,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <button class="manage-btn manage-btn-cancel" onclick="toggleEditMode()" id="manageDoneBtn"></button>
           <button class="manage-btn manage-btn-clear" onclick="openClearAllModal()" id="manageClearBtn"></button>
         </div>
+      </div>
+      <!-- FEATURE 7: Search box -->
+      <div class="search-wrap" id="txSearchWrap" style="margin-bottom:10px">
+        <span class="search-icon">&#x1F50D;</span>
+        <input type="text" id="txSearchInput" oninput="filterTxHistory()" style="font-family:'DM Sans',sans-serif">
       </div>
       <div id="txHistory"></div>
     </div>
@@ -886,8 +922,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 // ═══════════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════════
-var MANAGER_PIN = '1950';
-var SELLER_PIN  = '2290';
+var MANAGER_PIN_HASH = '3f5f3806e425deac33023e9764d08ac98397e6f1bc8599743cbb15a9cfdf8929';
+var SELLER_PIN_HASH  = '808c9cfebd38d4d93da5bb3b32be7e39cbb403672c5ce39b83bffe7d5660b114';
+
+// ═══════════════════════════════════════════════
+//  SHA256
+// ═══════════════════════════════════════════════
+async function sha256(message) {
+  var msgBuffer = new TextEncoder().encode(message);
+  var hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  var hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+}
+
+// Load saved PIN hashes from localStorage (overrides hardcoded ones)
+(function loadSavedPins() {
+  try {
+    var pinStore = JSON.parse(localStorage.getItem('pin_hashes') || '{}');
+    if (pinStore.manager) MANAGER_PIN_HASH = pinStore.manager;
+    if (pinStore.seller) SELLER_PIN_HASH = pinStore.seller;
+  } catch(e) {}
+})();
 
 // ═══════════════════════════════════════════════
 //  SUPABASE
@@ -942,6 +997,8 @@ var extendTargetDebtId = null;
 var _txPageData = [];
 var _txPageOffset = 0;
 var revenueChartInstance = null;
+var _filteredSales = [];
+var _filteredSvcSales = [];
 
 // ═══════════════════════════════════════════════
 //  TRANSLATIONS
@@ -1045,6 +1102,8 @@ function applyTranslations() {
   });
   var si = document.getElementById('searchInput');
   if (si) si.placeholder = t('searchPlaceholder');
+  var tsi = document.getElementById('txSearchInput');
+  if (tsi) tsi.placeholder = lang === 'uz' ? 'Kod yoki nom boyicha...' : 'Search by code or name...';
   var sc = document.getElementById('sellCode');
   if (sc) sc.placeholder = t('codePlaceholder');
   var ac = document.getElementById('addCode');
@@ -1382,30 +1441,33 @@ function checkPin() {
     document.getElementById('pinError').textContent = (lang==='uz'?'Bloklangan! '+s+' soniya':'Locked! '+s+'s left');
     pinInput=''; updatePinDots(); return;
   }
-  var correct = (pinRole==='manager'&&pinInput===MANAGER_PIN)||(pinRole==='seller'&&pinInput===SELLER_PIN);
-  if (correct) {
-    pinAttempts=0; pinLockedUntil=0;
-    currentRole=pinRole;
-    document.getElementById('pinScreen').style.display='none';
-    launchApp(); startSessionTimer();
-  } else {
-    pinAttempts++;
-    for (var i=0;i<4;i++) document.getElementById('pd'+i).className='pin-dot error';
-    if (pinAttempts>=MAX_PIN_ATTEMPTS) {
-      pinLockedUntil=Date.now()+LOCKOUT_MS; pinAttempts=0;
-      document.getElementById('pinError').textContent=(lang==='uz'?'5 ta xato! 5 daqiqa bloklandi.':'5 wrong! Locked 5 min.');
-      if(lockoutTimer)clearInterval(lockoutTimer);
-      lockoutTimer=setInterval(function(){
-        var r=pinLockedUntil-Date.now();
-        if(r<=0){clearInterval(lockoutTimer);document.getElementById('pinError').textContent='';}
-        else{document.getElementById('pinError').textContent=(lang==='uz'?'Bloklangan! '+Math.ceil(r/1000)+' soniya':'Locked! '+Math.ceil(r/1000)+'s');}
-      },1000);
+  sha256(pinInput).then(function(hash) {
+    var correct = (pinRole==='manager' && hash===MANAGER_PIN_HASH) ||
+                  (pinRole==='seller'  && hash===SELLER_PIN_HASH);
+    if (correct) {
+      pinAttempts=0; pinLockedUntil=0;
+      currentRole=pinRole;
+      document.getElementById('pinScreen').style.display='none';
+      launchApp(); startSessionTimer();
     } else {
-      var left=MAX_PIN_ATTEMPTS-pinAttempts;
-      document.getElementById('pinError').textContent=(lang==='uz'?'Xato PIN! '+left+' urinish qoldi.':'Wrong PIN! '+left+' left.');
+      pinAttempts++;
+      for (var i=0;i<4;i++) document.getElementById('pd'+i).className='pin-dot error';
+      if (pinAttempts>=MAX_PIN_ATTEMPTS) {
+        pinLockedUntil=Date.now()+LOCKOUT_MS; pinAttempts=0;
+        document.getElementById('pinError').textContent=(lang==='uz'?'5 ta xato! 5 daqiqa bloklandi.':'5 wrong! Locked 5 min.');
+        if(lockoutTimer)clearInterval(lockoutTimer);
+        lockoutTimer=setInterval(function(){
+          var r=pinLockedUntil-Date.now();
+          if(r<=0){clearInterval(lockoutTimer);document.getElementById('pinError').textContent='';}
+          else{document.getElementById('pinError').textContent=(lang==='uz'?'Bloklangan! '+Math.ceil(r/1000)+' soniya':'Locked! '+Math.ceil(r/1000)+'s');}
+        },1000);
+      } else {
+        var left=MAX_PIN_ATTEMPTS-pinAttempts;
+        document.getElementById('pinError').textContent=(lang==='uz'?'Xato PIN! '+left+' urinish qoldi.':'Wrong PIN! '+left+' left.');
+      }
+      setTimeout(function(){pinInput='';updatePinDots();},800);
     }
-    setTimeout(function(){pinInput='';updatePinDots();},800);
-  }
+  });
 }
 function startSessionTimer(){
   if(sessionTimer)clearTimeout(sessionTimer);
@@ -1437,6 +1499,8 @@ function launchApp() {
   document.getElementById('tab-analytics').style.display = isManager ? '' : 'none';
   var msw = document.getElementById('managerScanWrap');
   if (msw) msw.style.display = isManager ? '' : 'none';
+  var cpb = document.getElementById('changePinBtn');
+  if (cpb) cpb.style.display = isManager ? '' : 'none';
   var ssw = document.getElementById('sellerScanWrap');
   if (ssw) ssw.style.display = isManager ? 'none' : '';
   var saw = document.getElementById('svcAddWrap');
@@ -1990,6 +2054,9 @@ function renderAnalytics() {
   analyticsCache = { key: cacheKey, salesLen: sales.length, svcLen: serviceSales.length };
   var filteredSales = (analyticsView === 'services') ? [] : sales.filter(function(s) { return s.ts >= start && s.ts <= end; });
   var filteredSvcSales = (analyticsView === 'products') ? [] : serviceSales.filter(function(s) { return s.ts >= start && s.ts <= end; });
+  _filteredSales = filteredSales;
+  _filteredSvcSales = filteredSvcSales;
+  document.getElementById('txSearchInput').value = '';
 
   var totalRev = filteredSales.reduce(function(a,s) { return a+s.revenue; }, 0)
                + filteredSvcSales.reduce(function(a,s) { return a+s.price; }, 0);
@@ -2049,6 +2116,34 @@ function renderAnalytics() {
   // Revenue chart — wrapped so any crash never blocks tx cards below
   try { renderRevenueChart(filteredSales, filteredSvcSales); } catch(e) { console.warn('Chart error:', e); }
 
+  // Seller performance section (manager only)
+  var perfSection = document.getElementById('perfSection');
+  if (currentRole === 'manager' && (filteredSales.length || filteredSvcSales.length)) {
+    perfSection.style.display = '';
+    var sellerRev = 0, sellerCount = 0, mgrRev = 0, mgrCount = 0;
+    filteredSales.forEach(function(s) {
+      if (s.soldBy === 'seller') { sellerRev += s.revenue; sellerCount++; }
+      else { mgrRev += s.revenue; mgrCount++; }
+    });
+    filteredSvcSales.forEach(function(s) {
+      if (s.soldBy === 'seller') { sellerRev += s.price; sellerCount++; }
+      else { mgrRev += s.price; mgrCount++; }
+    });
+    var grandRev = sellerRev + mgrRev;
+    var sellerPct = grandRev ? Math.round((sellerRev / grandRev) * 100) : 0;
+    var mgrPct = grandRev ? Math.round((mgrRev / grandRev) * 100) : 0;
+    document.getElementById('perfSellerRev').textContent = fmt(sellerRev);
+    document.getElementById('perfSellerCount').textContent = sellerCount + (lang === 'uz' ? ' ta sotuv' : ' sales');
+    document.getElementById('perfSellerBar').style.width = sellerPct + '%';
+    document.getElementById('perfSellerPct').textContent = sellerPct + '%';
+    document.getElementById('perfManagerRev').textContent = fmt(mgrRev);
+    document.getElementById('perfManagerCount').textContent = mgrCount + (lang === 'uz' ? ' ta sotuv' : ' sales');
+    document.getElementById('perfManagerBar').style.width = mgrPct + '%';
+    document.getElementById('perfManagerPct').textContent = mgrPct + '%';
+  } else {
+    perfSection.style.display = 'none';
+  }
+
   // Transaction history (combined, sorted by ts)
   var txContainer = document.getElementById('txHistory');
   var allTx = [];
@@ -2063,54 +2158,7 @@ function renderAnalytics() {
   var shown = allTx.slice(0, PAGE);
   var rest = allTx.length - PAGE;
 
-  txContainer.innerHTML = shown.map(function(tx) {
-    var d = new Date(tx.ts);
-    var ts = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
-    if (tx.kind === 'prod') {
-      var s = tx.data;
-      var g = goods[s.code];
-      var unit = g ? (g.type === 'liquid' ? 'L' : 'd') : '';
-      var isMgr = currentRole === 'manager';
-      var setPrice = s.setPrice != null ? s.setPrice : (g ? g.sellPrice : null);
-      var priceInline = '';
-      if (isMgr) {
-        if (s.actualPrice != null && setPrice != null && Math.abs(s.actualPrice - setPrice) > 0.001) {
-          priceInline = '<div class="tx-price-inline"><span style="text-decoration:line-through;color:var(--muted)">' + fmt(setPrice) + '</span> → <span style="color:var(--gold)">' + fmt(s.actualPrice) + '</span></div>';
-        } else {
-          var dp = s.actualPrice != null ? s.actualPrice : setPrice;
-          priceInline = dp != null ? '<div class="tx-price-inline" style="color:var(--muted2)">' + fmt(dp) + '</div>' : '';
-        }
-      }
-      var tapAttr = isMgr ? ' onclick="openTxDetail(\'prod\',\'' + s.id + '\')" style="cursor:pointer"' : '';
-      return '<div class="tx-row ' + (editModeActive ? 'edit-mode' : '') + '"' + tapAttr + '>' +
-        '<div class="tx-actions">' +
-          '<button class="tx-btn tx-undo-btn" onclick="event.stopPropagation();openUndoTx(\'' + s.id + '\')" title="Undo">↩️</button>' +
-          '<button class="tx-btn tx-del-btn" onclick="event.stopPropagation();openDeleteTx(\'' + s.id + '\')" title="Delete">🗑</button>' +
-        '</div>' +
-        '<div class="tx-info"><div class="tx-code">' + esc(s.code) + '<span class="tx-type-badge prod">PRD</span></div><div class="tx-time">' + ts + '</div>' + priceInline + '</div>' +
-        '<div class="tx-right">' +
-          '<div class="tx-revenue">' + fmt(s.revenue) + '</div>' +
-          '<div class="tx-profit" style="color:' + (s.profit>=0?'var(--accent)':'var(--danger)') + '">' + (s.profit>=0?'+':'') + fmt(s.profit) + '</div>' +
-          '<div class="tx-qty">' + (s.qty%1===0?s.qty:s.qty.toFixed(2)) + ' ' + unit + '</div>' +
-        '</div>' +
-      '</div>';
-    } else {
-      var ss = tx.data;
-      var isMgr = currentRole === 'manager';
-      var tapAttr = isMgr ? ' onclick="openTxDetail(\'svc\',\'' + ss.id + '\')" style="cursor:pointer"' : '';
-      return '<div class="tx-row tx-svc ' + (editModeActive ? 'edit-mode' : '') + '"' + tapAttr + '>' +
-        '<div class="tx-actions">' +
-          '<button class="tx-btn tx-del-btn" onclick="event.stopPropagation();openDeleteSvcTx(\'' + ss.id + '\')" title="Delete">🗑</button>' +
-        '</div>' +
-        '<div class="tx-info"><div class="tx-code">' + esc(ss.serviceName) + '<span class="tx-type-badge svc">SVC</span></div>' +
-        '<div class="tx-time">' + ts + (ss.note ? ' · ' + esc(ss.note) : '') + '</div></div>' +
-        '<div class="tx-right">' +
-          '<div class="tx-revenue svc">' + fmt(ss.price) + '</div>' +
-          '<div class="tx-profit" style="color:var(--teal)">+' + fmt(ss.price) + '</div>' +
-        '</div>' +
-      '</div>';
-    }
-  }).join('');
+  txContainer.innerHTML = shown.map(function(tx) { return buildTxRowHTML(tx); }).join('');
 
   if (rest > 0) {
     _txPageData = allTx;
@@ -2129,49 +2177,124 @@ function loadMoreTx() {
   if (btn) btn.remove();
   var shown = allTx.slice(from, from + PAGE);
   var rest = allTx.length - from - PAGE;
-  txContainer.innerHTML += shown.map(function(tx) {
-    var d = new Date(tx.ts);
-    var ts = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
-    if (tx.kind === 'prod') {
-      var s = tx.data;
-      var g = goods[s.code];
-      var unit = g ? (g.type === 'liquid' ? 'L' : 'd') : '';
-      var isMgr = currentRole === 'manager';
-      var setPrice = s.setPrice != null ? s.setPrice : (g ? g.sellPrice : null);
-      var priceInline = '';
-      if (isMgr) {
-        if (s.actualPrice != null && setPrice != null && Math.abs(s.actualPrice - setPrice) > 0.001) {
-          priceInline = '<div class="tx-price-inline"><span style="text-decoration:line-through;color:var(--muted)">' + fmt(setPrice) + '</span> → <span style="color:var(--gold)">' + fmt(s.actualPrice) + '</span></div>';
-        } else {
-          var dp = s.actualPrice != null ? s.actualPrice : setPrice;
-          priceInline = dp != null ? '<div class="tx-price-inline" style="color:var(--muted2)">' + fmt(dp) + '</div>' : '';
-        }
-      }
-      var tapAttr = isMgr ? ' onclick="openTxDetail(\'prod\',\'' + s.id + '\')" style="cursor:pointer"' : '';
-      return '<div class="tx-row ' + (editModeActive ? 'edit-mode' : '') + '"' + tapAttr + '>' +
-        '<div class="tx-actions"><button class="tx-btn tx-undo-btn" onclick="event.stopPropagation();openUndoTx(\'' + s.id + '\')" title="Undo">↩️</button>' +
-        '<button class="tx-btn tx-del-btn" onclick="event.stopPropagation();openDeleteTx(\'' + s.id + '\')" title="Delete">🗑</button></div>' +
-        '<div class="tx-info"><div class="tx-code">' + esc(s.code) + '<span class="tx-type-badge prod">PRD</span></div><div class="tx-time">' + ts + '</div>' + priceInline + '</div>' +
-        '<div class="tx-right"><div class="tx-revenue">' + fmt(s.revenue) + '</div>' +
-        '<div class="tx-profit" style="color:' + (s.profit>=0?'var(--accent)':'var(--danger)') + '">' + (s.profit>=0?'+':'') + fmt(s.profit) + '</div>' +
-        '<div class="tx-qty">' + (s.qty%1===0?s.qty:s.qty.toFixed(2)) + ' ' + unit + '</div></div></div>';
-    } else {
-      var ss = tx.data;
-      var isMgr = currentRole === 'manager';
-      var tapAttr = isMgr ? ' onclick="openTxDetail(\'svc\',\'' + ss.id + '\')" style="cursor:pointer"' : '';
-      return '<div class="tx-row tx-svc ' + (editModeActive ? 'edit-mode' : '') + '"' + tapAttr + '>' +
-        '<div class="tx-actions"><button class="tx-btn tx-del-btn" onclick="event.stopPropagation();openDeleteSvcTx(\'' + ss.id + '\')" title="Delete">🗑</button></div>' +
-        '<div class="tx-info"><div class="tx-code">' + esc(ss.serviceName) + '<span class="tx-type-badge svc">SVC</span></div>' +
-        '<div class="tx-time">' + ts + (ss.note ? ' · ' + esc(ss.note) : '') + '</div></div>' +
-        '<div class="tx-right"><div class="tx-revenue svc">' + fmt(ss.price) + '</div>' +
-        '<div class="tx-profit" style="color:var(--teal)">+' + fmt(ss.price) + '</div></div></div>';
-    }
-  }).join('');
+  txContainer.innerHTML += shown.map(function(tx) { return buildTxRowHTML(tx); }).join('');
   if (rest > 0) {
     _txPageOffset = from + PAGE;
     txContainer.innerHTML += '<button onclick="loadMoreTx()" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">' +
       (lang==='uz' ? '+ Yana ' + rest + " ta ko'rish" : '+ Load ' + rest + ' more') + '</button>';
   }
+}
+
+// ═══════════════════════════════════════════════
+//  FEATURE 7 — TX SEARCH
+// ═══════════════════════════════════════════════
+function filterTxHistory() {
+  var q = document.getElementById('txSearchInput').value.trim().toLowerCase();
+  var allTx = [];
+  _filteredSales.forEach(function(s) { allTx.push({ kind:'prod', data:s, ts:s.ts }); });
+  _filteredSvcSales.forEach(function(s) { allTx.push({ kind:'svc', data:s, ts:s.ts }); });
+  allTx.sort(function(a,b) { return b.ts-a.ts; });
+  if (q) {
+    allTx = allTx.filter(function(tx) {
+      if (tx.kind === 'prod') return tx.data.code.toLowerCase().includes(q) || (tx.data.note||'').toLowerCase().includes(q);
+      return tx.data.serviceName.toLowerCase().includes(q) || (tx.data.note||'').toLowerCase().includes(q);
+    });
+  }
+  var txContainer = document.getElementById('txHistory');
+  if (!allTx.length) { txContainer.innerHTML = '<div class="no-data">' + (lang==='uz'?'Hech narsa topilmadi':'Nothing found') + '</div>'; return; }
+  txContainer.className = editModeActive ? 'edit-mode-on' : '';
+  var PAGE = 50;
+  var shown = allTx.slice(0, PAGE);
+  var rest = allTx.length - PAGE;
+  txContainer.innerHTML = shown.map(function(tx) { return buildTxRowHTML(tx); }).join('');
+  if (rest > 0) {
+    _txPageData = allTx; _txPageOffset = PAGE;
+    txContainer.innerHTML += '<button onclick="loadMoreTx()" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:DM Sans,sans-serif;font-size:13px;cursor:pointer">' +
+      (lang==='uz' ? '+ Yana ' + rest + " ta ko'rish" : '+ Load ' + rest + ' more') + '</button>';
+  }
+}
+
+function buildTxRowHTML(tx) {
+  var d = new Date(tx.ts);
+  var ts = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+  if (tx.kind === 'prod') {
+    var s = tx.data;
+    var g = goods[s.code];
+    var unit = g ? (g.type === 'liquid' ? 'L' : 'd') : '';
+    var isMgr = currentRole === 'manager';
+    var setPrice = s.setPrice != null ? s.setPrice : (g ? g.sellPrice : null);
+    var priceInline = '';
+    if (isMgr) {
+      if (s.actualPrice != null && setPrice != null && Math.abs(s.actualPrice - setPrice) > 0.001) {
+        priceInline = '<div class="tx-price-inline"><span style="text-decoration:line-through;color:var(--muted)">' + fmt(setPrice) + '</span> → <span style="color:var(--gold)">' + fmt(s.actualPrice) + '</span></div>';
+      } else {
+        var dp = s.actualPrice != null ? s.actualPrice : setPrice;
+        priceInline = dp != null ? '<div class="tx-price-inline" style="color:var(--muted2)">' + fmt(dp) + '</div>' : '';
+      }
+    }
+    var tapAttr = isMgr ? ' onclick="openTxDetail(\'prod\',\'' + s.id + '\')" style="cursor:pointer"' : '';
+    return '<div class="tx-row ' + (editModeActive ? 'edit-mode' : '') + '"' + tapAttr + '>' +
+      '<div class="tx-actions">' +
+        '<button class="tx-btn tx-undo-btn" onclick="event.stopPropagation();openUndoTx(\'' + s.id + '\')" title="Undo">↩️</button>' +
+        '<button class="tx-btn tx-del-btn" onclick="event.stopPropagation();openDeleteTx(\'' + s.id + '\')" title="Delete">🗑</button>' +
+      '</div>' +
+      '<div class="tx-info"><div class="tx-code">' + esc(s.code) + '<span class="tx-type-badge prod">PRD</span></div><div class="tx-time">' + ts + '</div>' + priceInline + '</div>' +
+      '<div class="tx-right">' +
+        '<div class="tx-revenue">' + fmt(s.revenue) + '</div>' +
+        '<div class="tx-profit" style="color:' + (s.profit>=0?'var(--accent)':'var(--danger)') + '">' + (s.profit>=0?'+':'') + fmt(s.profit) + '</div>' +
+        '<div class="tx-qty">' + (s.qty%1===0?s.qty:s.qty.toFixed(2)) + ' ' + unit + '</div>' +
+      '</div>' +
+    '</div>';
+  } else {
+    var ss = tx.data;
+    var isMgr = currentRole === 'manager';
+    var tapAttr = isMgr ? ' onclick="openTxDetail(\'svc\',\'' + ss.id + '\')" style="cursor:pointer"' : '';
+    return '<div class="tx-row tx-svc ' + (editModeActive ? 'edit-mode' : '') + '"' + tapAttr + '>' +
+      '<div class="tx-actions"><button class="tx-btn tx-del-btn" onclick="event.stopPropagation();openDeleteSvcTx(\'' + ss.id + '\')" title="Delete">🗑</button></div>' +
+      '<div class="tx-info"><div class="tx-code">' + esc(ss.serviceName) + '<span class="tx-type-badge svc">SVC</span></div>' +
+      '<div class="tx-time">' + ts + (ss.note ? ' · ' + esc(ss.note) : '') + '</div></div>' +
+      '<div class="tx-right"><div class="tx-revenue svc">' + fmt(ss.price) + '</div>' +
+      '<div class="tx-profit" style="color:var(--teal)">+' + fmt(ss.price) + '</div>' +
+      '</div></div>';
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  FEATURE 8 — PERFORMANCE MODAL
+// ═══════════════════════════════════════════════
+function openPerfModal(role) {
+  var isSeller = role === 'seller';
+  var color = isSeller ? 'var(--blue)' : 'var(--gold)';
+  var label = isSeller ? (lang==='uz'?'Sotuvchi':'Seller') : (lang==='uz'?'Manager':'Manager');
+  document.getElementById('perfModalDot').style.background = color;
+  document.getElementById('perfModalTitle').textContent = label.toUpperCase() + ' ' + (lang==='uz'?'SOTUVLARI':'SALES');
+
+  var txList = [];
+  _filteredSales.forEach(function(s) {
+    if ((s.soldBy || 'manager') === role) txList.push({ kind:'prod', data:s, ts:s.ts });
+  });
+  _filteredSvcSales.forEach(function(s) {
+    if ((s.soldBy || 'manager') === role) txList.push({ kind:'svc', data:s, ts:s.ts });
+  });
+  txList.sort(function(a,b) { return b.ts-a.ts; });
+
+  var totalRev = txList.reduce(function(a,tx) {
+    return a + (tx.kind==='prod' ? tx.data.revenue : tx.data.price);
+  }, 0);
+  document.getElementById('perfModalSub').textContent =
+    txList.length + (lang==='uz' ? ' ta sotuv · ' : ' sales · ') + fmt(totalRev);
+
+  var listEl = document.getElementById('perfModalList');
+  if (!txList.length) {
+    listEl.innerHTML = '<div class="no-data">' + (lang==='uz'?'Sotuv yoq':'No sales') + '</div>';
+  } else {
+    listEl.innerHTML = txList.map(function(tx) { return buildTxRowHTML(tx); }).join('');
+  }
+  document.getElementById('perfModal').classList.add('open');
+}
+
+function closePerfModal() {
+  document.getElementById('perfModal').classList.remove('open');
 }
 
 // ═══════════════════════════════════════════════
@@ -3125,6 +3248,74 @@ async function confirmNewProductFromBarcode(){
   try{await dbSaveGood(code);closeModal('barcodeNewModal');showToast(code.toUpperCase()+' '+(lang==='uz'?'saqlandi':'saved'),'success');renderInventory();scannedBarcode=null;}
   catch(e){delete goods[code];showToast(t('saveFail'),'error');}
 }
+
+// ═══════════════════════════════════════════════
+//  CHANGE PIN
+// ═══════════════════════════════════════════════
+var cpTargetRole = 'manager';
+
+function openChangePinModal() {
+  if (currentRole !== 'manager') return;
+  document.getElementById('cpCurrentPin').value = '';
+  document.getElementById('cpNewPin').value = '';
+  document.getElementById('cpConfirmPin').value = '';
+  document.getElementById('cpCurrentError').textContent = '';
+  document.getElementById('cpMatchError').textContent = '';
+  setCpRole('manager');
+  document.getElementById('changePinModal').classList.add('open');
+}
+
+function setCpRole(role) {
+  cpTargetRole = role;
+  var mBtn = document.getElementById('cpRoleManager');
+  var sBtn = document.getElementById('cpRoleSeller');
+  var lbl = document.getElementById('cpNewLabel');
+  mBtn.style.borderColor = role === 'manager' ? 'var(--gold)' : 'var(--border)';
+  mBtn.style.background = role === 'manager' ? 'var(--gold-dim)' : 'var(--surface2)';
+  mBtn.style.color = role === 'manager' ? 'var(--gold)' : 'var(--muted2)';
+  sBtn.style.borderColor = role === 'seller' ? 'var(--blue)' : 'var(--border)';
+  sBtn.style.background = role === 'seller' ? 'var(--blue-dim)' : 'var(--surface2)';
+  sBtn.style.color = role === 'seller' ? 'var(--blue)' : 'var(--muted2)';
+  lbl.textContent = role === 'manager'
+    ? (lang === 'uz' ? 'Manager uchun yangi PIN (4-6 raqam) *' : 'New Manager PIN (4-6 digits) *')
+    : (lang === 'uz' ? 'Seller uchun yangi PIN (4-6 raqam) *' : 'New Seller PIN (4-6 digits) *');
+}
+
+async function saveChangedPin() {
+  var currentPin = document.getElementById('cpCurrentPin').value.trim();
+  var newPin = document.getElementById('cpNewPin').value.trim();
+  var confirmPin = document.getElementById('cpConfirmPin').value.trim();
+  document.getElementById('cpCurrentError').textContent = '';
+  document.getElementById('cpMatchError').textContent = '';
+  if (!currentPin) { document.getElementById('cpCurrentError').textContent = lang==='uz'?'Joriy PIN kiriting!':'Enter current PIN!'; return; }
+  if (!newPin || newPin.length < 4) { document.getElementById('cpMatchError').textContent = lang==='uz'?'Yangi PIN kamida 4 raqam!':'New PIN must be 4+ digits!'; return; }
+  if (!/^\d+$/.test(newPin)) { document.getElementById('cpMatchError').textContent = lang==='uz'?'Faqat raqamlar!':'Digits only!'; return; }
+  if (newPin !== confirmPin) { document.getElementById('cpMatchError').textContent = lang==='uz'?'PIN lar mos kelmaydi!':'PINs do not match!'; return; }
+  var currentHash = await sha256(currentPin);
+  if (currentHash !== MANAGER_PIN_HASH) {
+    document.getElementById('cpCurrentError').textContent = lang==='uz'?'Joriy Manager PIN notogri!':'Current Manager PIN is wrong!';
+    return;
+  }
+  var newHash = await sha256(newPin);
+  if (cpTargetRole === 'manager') { MANAGER_PIN_HASH = newHash; }
+  else { SELLER_PIN_HASH = newHash; }
+  try {
+    var pinStore = JSON.parse(localStorage.getItem('pin_hashes') || '{}');
+    pinStore[cpTargetRole] = newHash;
+    localStorage.setItem('pin_hashes', JSON.stringify(pinStore));
+  } catch(e) {}
+  closeModal('changePinModal');
+  var roleLabel = cpTargetRole === 'manager' ? 'Manager' : 'Seller';
+  showToast(roleLabel + ' PIN ' + (lang==='uz'?'yangilandi!':'updated!'), 'success');
+  setTimeout(function() {
+    var msg = (lang==='uz'
+      ? 'Yangi hash (' + cpTargetRole + '):\n' + newHash + '\n\nBu qiymatni GitHub fayliga saqlang!'
+      : 'New hash (' + cpTargetRole + '):\n' + newHash + '\n\nSave this to your GitHub file!');
+    if (confirm(msg + '\n\n' + (lang==='uz'?'Nusxa olishni xohlaysizmi?':'Copy to clipboard?'))) {
+      try { navigator.clipboard.writeText(newHash); showToast(lang==='uz'?'Nusxa olindi!':'Copied!', 'success'); } catch(e) {}
+    }
+  }, 400);
+}
 </script>
 
 <!-- SCANNER OVERLAY -->
@@ -3304,6 +3495,20 @@ async function confirmNewProductFromBarcode(){
   </div>
 </div>
 
+<!-- PERFORMANCE DRILL-DOWN MODAL -->
+<div class="modal-overlay" id="perfModal" onclick="closePerfModal()">
+  <div class="modal" onclick="event.stopPropagation()" style="max-height:80vh;overflow-y:auto;padding-bottom:40px">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <div style="width:10px;height:10px;border-radius:50%;flex-shrink:0" id="perfModalDot"></div>
+      <div class="modal-title" id="perfModalTitle"></div>
+    </div>
+    <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted2);margin-bottom:14px" id="perfModalSub"></div>
+    <div id="perfModalList"></div>
+    <button class="btn-outline" onclick="closePerfModal()" style="border-radius:12px;width:100%;margin-top:12px">Yopish</button>
+  </div>
+</div>
+
 <!-- TX DETAIL MODAL -->
 <div class="modal-overlay" id="txDetailModal" onclick="closeTxDetail()">
   <div class="modal" onclick="event.stopPropagation()">
@@ -3311,6 +3516,40 @@ async function confirmNewProductFromBarcode(){
     <div class="modal-title" id="txDetailTitle">SOTUV MA'LUMOTI</div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px" id="txDetailBody"></div>
     <button class="btn-outline" onclick="closeTxDetail()" style="border-radius:12px;width:100%;margin-top:14px">Yopish</button>
+  </div>
+</div>
+
+<!-- CHANGE PIN MODAL -->
+<div class="modal-overlay" id="changePinModal" onclick="closeModal('changePinModal')">
+  <div class="modal" onclick="event.stopPropagation()" style="padding-bottom:40px">
+    <div class="modal-handle"></div>
+    <div class="modal-title">&#x1F512; PIN KODNI O'ZGARTIRISH</div>
+    <div style="font-size:12px;color:var(--muted2);margin:6px 0 16px">Faqat Manager uchun</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button id="cpRoleManager" onclick="setCpRole('manager')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--gold);background:var(--gold-dim);color:var(--gold);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer">&#x1F451; Manager PIN</button>
+      <button id="cpRoleSeller" onclick="setCpRole('seller')" style="flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">&#x1F464; Seller PIN</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Joriy Manager PIN *</label>
+      <input class="form-input" id="cpCurrentPin" type="password" maxlength="6" inputmode="numeric" placeholder="••••" autocomplete="off">
+      <div id="cpCurrentError" style="font-size:11px;color:var(--danger);min-height:16px;margin-top:4px"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="cpNewLabel">Yangi PIN (4-6 raqam) *</label>
+      <input class="form-input" id="cpNewPin" type="password" maxlength="6" inputmode="numeric" placeholder="••••" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Yangi PIN tasdiqlash *</label>
+      <input class="form-input" id="cpConfirmPin" type="password" maxlength="6" inputmode="numeric" placeholder="••••" autocomplete="off">
+      <div id="cpMatchError" style="font-size:11px;color:var(--danger);min-height:16px;margin-top:4px"></div>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--muted2);line-height:1.6">
+      &#x26A0;&#xFE0F; PIN o'zgargandan so'ng <b style="color:var(--gold)">GitHub</b>-ga yangilangan faylni yuklang. Aks holda keyingi yangilanishda eski PIN qaytib keladi.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeModal('changePinModal')">Bekor</button>
+      <button class="btn btn-warn" onclick="saveChangedPin()">&#x1F512; Saqlash</button>
+    </div>
   </div>
 </div>
 
