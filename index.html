@@ -1017,6 +1017,7 @@ var T = {
     marginHint: 'Marjinni korish uchun sotuv narxini kiriting', margin: 'Marjin', perUnit: 'dona uchun',
     saved: 'saqlandi', updated: 'yangilandi', removed: 'ochirildi', added: 'qoshildi', soldMsg: 'dan sotildi',
     enterCode: 'Kodni kiriting!', codeFormat: 'Kod: faqat harf va raqamlar', saveFail: 'Saqlash muvaffaqiyatsiz',
+    codeAlreadyTaken: 'Bu kod allaqachon band:', codeChooseOther: '— boshqa kod tanlang.',
     notFound: 'Tovar topilmadi', enterQty: 'Miqdorni kiriting', saleFail: 'Sotuv muvaffaqiyatsiz',
     onlyAvail: 'mavjud!', txDeleted: 'Sotuv ochirildi', txUndone: 'Sotuv bekor qilindi — tovar qaytarildi',
     cleared: 'Sotuvlar tozalandi', deleteFail: 'Ochirish muvaffaqiyatsiz', failed: 'Muvaffaqiyatsiz',
@@ -1054,6 +1055,7 @@ var T = {
     marginHint: 'Add sell price to see margin', margin: 'Margin', perUnit: 'per unit',
     saved: 'saved', updated: 'updated', removed: 'removed', added: 'added', soldMsg: 'sold from',
     enterCode: 'Enter a code!', codeFormat: 'Code: letters & numbers only', saveFail: 'Save failed',
+    codeAlreadyTaken: 'This code is already taken by:', codeChooseOther: '— choose a different code.',
     notFound: 'Good not found', enterQty: 'Enter quantity', saleFail: 'Sale failed — check connection',
     onlyAvail: 'available!', txDeleted: 'Transaction deleted', txUndone: 'Sale undone — stock restored',
     cleared: 'Transactions cleared', deleteFail: 'Delete failed', failed: 'Failed',
@@ -1640,17 +1642,18 @@ async function addGood() {
   var sellPrice = spVal !== '' ? parseFloat(spVal) : null;
   if (!code) { showToast(t('enterCode'), 'error'); return; }
   if (!/^[a-z0-9]+$/.test(code)) { showToast(t('codeFormat'), 'error'); return; }
+  if (goods[code]) {
+    var existingName = goods[code].name ? goods[code].name.toUpperCase() : code.toUpperCase();
+    showToast(t('codeAlreadyTaken') + ' "' + existingName + '" ' + t('codeChooseOther'), 'error');
+    var codeInputEl = document.getElementById('addCode');
+    codeInputEl.style.borderColor = 'var(--danger)';
+    setTimeout(function(){ codeInputEl.style.borderColor = ''; }, 2500);
+    return;
+  }
   var btn = document.getElementById('addBtn');
   btn.disabled = true;
   try {
-    if (goods[code]) {
-      goods[code].qty += qty;
-      if (name) goods[code].name = name;
-      if (costPrice !== null) goods[code].costPrice = costPrice;
-      if (sellPrice !== null) goods[code].sellPrice = sellPrice;
-    } else {
-      goods[code] = { type: selectedType, qty: qty, name: name, costPrice: costPrice, sellPrice: sellPrice, barcode: null };
-    }
+    goods[code] = { type: selectedType, qty: qty, name: name, costPrice: costPrice, sellPrice: sellPrice, barcode: null };
     await dbSaveGood(code);
     ['addCode','addName','addQty','addCostPrice','addSellPrice'].forEach(function(id) { document.getElementById(id).value = ''; });
     document.getElementById('marginPreview').textContent = '';
