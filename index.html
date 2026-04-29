@@ -1642,6 +1642,12 @@ async function addGood() {
   var sellPrice = spVal !== '' ? parseFloat(spVal) : null;
   if (!code) { showToast(t('enterCode'), 'error'); return; }
   if (!/^[a-z0-9]+$/.test(code)) { showToast(t('codeFormat'), 'error'); return; }
+  // Reject negative or non-finite qty / prices
+  if (!isFinite(qty) || qty < 0) { showToast(t('enterQty'), 'error'); return; }
+  if (costPrice !== null && (!isFinite(costPrice) || costPrice < 0)) { showToast(t('enterQty'), 'error'); return; }
+  if (sellPrice !== null && (!isFinite(sellPrice) || sellPrice < 0)) { showToast(t('enterQty'), 'error'); return; }
+  // Solid goods must be whole units
+  if (selectedType === 'solid' && qty % 1 !== 0) { showToast(t('enterQty'), 'error'); return; }
   if (goods[code]) {
     var existingName = goods[code].name ? goods[code].name.toUpperCase() : code.toUpperCase();
     showToast(t('codeAlreadyTaken') + ' "' + existingName + '" ' + t('codeChooseOther'), 'error');
@@ -1652,14 +1658,28 @@ async function addGood() {
   }
   var btn = document.getElementById('addBtn');
   btn.disabled = true;
+  // Stage the new good in memory so dbSaveGood can read it, but be ready to roll back.
+  goods[code] = { type: selectedType, qty: qty, name: name, costPrice: costPrice, sellPrice: sellPrice, barcode: null };
   try {
-    goods[code] = { type: selectedType, qty: qty, name: name, costPrice: costPrice, sellPrice: sellPrice, barcode: null };
+    // 1. Write to DB
     await dbSaveGood(code);
+    // 2. Verify the row actually persisted (defends against silent RLS / no-op upsert
+    //    where the API returns no error but nothing was written).
+    var verify = await db.from('goods').select('id').eq('id', code).maybeSingle();
+    if (verify.error) throw verify.error;
+    if (!verify.data) throw new Error('Write did not persist');
+    // 3. Now safe to clear UI and confirm to user
     ['addCode','addName','addQty','addCostPrice','addSellPrice'].forEach(function(id) { document.getElementById(id).value = ''; });
     document.getElementById('marginPreview').textContent = '';
     showToast(code.toUpperCase() + ' ' + t('saved'), 'success');
     switchTab('inventory');
-  } catch(e) { showToast(t('saveFail'), 'error'); }
+  } catch(e) {
+    // Roll back the in-memory entry so it doesn't sit there pretending to be saved
+    delete goods[code];
+    saveCache();
+    console.error('addGood failed:', e);
+    showToast(t('saveFail'), 'error');
+  }
   finally { btn.disabled = false; }
 }
 
@@ -1724,18 +1744,21 @@ async function sellGood() {
   var code = document.getElementById('sellCode').value.trim().toLowerCase();
   var qty = parseFloat(document.getElementById('sellQty').value);
   if (!code || !goods[code]) { showToast(t('notFound'), 'error'); return; }
-  if (!qty || qty <= 0) { showToast(t('enterQty'), 'error'); return; }
+  if (!qty || qty <= 0 || !isFinite(qty)) { showToast(t('enterQty'), 'error'); return; }
   var g = goods[code];
+  if (g.type === 'solid' && qty % 1 !== 0) { showToast(t('enterQty'), 'error'); return; }
   if (qty > g.qty) { showToast(t('onlyAvail') + ' ' + fmtQty(g.qty, g.type), 'error'); return; }
   var btn = document.getElementById('sellBtn');
   btn.disabled = true;
 
   var overrideVal = document.getElementById('sellPriceOverride').value;
   var actualPrice = overrideVal !== '' ? parseFloat(overrideVal) : (g.sellPrice || 0);
+  if (!isFinite(actualPrice) || actualPrice < 0) { showToast(t('enterQty'), 'error'); btn.disabled = false; return; }
   var revenue = qty * actualPrice;
   var profit = revenue - qty * (g.costPrice || 0);
   var saleNote = document.getElementById('sellNote') ? document.getElementById('sellNote').value.trim() : '';
-  var sale = { code: code, qty: qty, revenue: revenue, profit: profit, ts: Date.now(), actualPrice: actualPrice, setPrice: g.sellPrice || null, note: saleNote, soldBy: currentRole, id: 'tmp_' + Date.now() };
+  var tmpId = 'tmp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+  var sale = { code: code, qty: qty, revenue: revenue, profit: profit, ts: Date.now(), actualPrice: actualPrice, setPrice: g.sellPrice || null, note: saleNote, soldBy: currentRole, id: tmpId };
 
   // ⚡ Optimistic update — instant UI response
   var prevQty = g.qty;
@@ -1759,9 +1782,10 @@ async function sellGood() {
       renderAnalytics();
     }
   } catch(e) {
-    // Roll back on failure
+    // Roll back on failure — use the tmpId snapshot, not sale.id, in case the
+    // id was mutated mid-flight by a partial success.
     g.qty = prevQty;
-    sales = sales.filter(function(s) { return s.id !== sale.id; });
+    sales = sales.filter(function(s) { return s.id !== tmpId && s.id !== sale.id; });
     analyticsCache.key = null;
     showToast(t('saleFail'), 'error');
     onSellCodeInput();
@@ -2912,13 +2936,26 @@ function openDeleteTx(id) {
 async function confirmDeleteTx() {
   if (!deleteTxTarget) return;
   var id = deleteTxTarget;
+  var s = sales.find(function(x) { return x.id === id; });
   closeModal('deleteTxModal');
+  if (!s) return;
+  // Snapshot for rollback
+  var prevQty = (goods[s.code] != null) ? goods[s.code].qty : null;
   try {
+    // Restore stock first (matches the semantics already used by confirmUndoTx).
+    if (goods[s.code]) {
+      goods[s.code].qty = parseFloat((goods[s.code].qty + s.qty).toFixed(4));
+      await dbSaveGood(s.code);
+    }
     await dbDeleteSale(id);
-    sales = sales.filter(function(s) { return s.id !== id; });
+    sales = sales.filter(function(x) { return x.id !== id; });
     showToast(t('txDeleted'), 'warn');
     renderAnalytics();
-  } catch(e) { showToast(t('deleteFail'), 'error'); }
+    renderInventory();
+  } catch(e) {
+    if (goods[s.code] && prevQty != null) goods[s.code].qty = prevQty;
+    showToast(t('deleteFail'), 'error');
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -2989,8 +3026,10 @@ function openQuickAdd(code) {
 
 async function confirmQuickAdd() {
   var qty = parseFloat(document.getElementById('quickAddQty').value);
-  if (!qty || qty <= 0) { showToast(t('enterQty'), 'error'); return; }
+  if (!qty || qty <= 0 || !isFinite(qty)) { showToast(t('enterQty'), 'error'); return; }
   var code = quickAddTarget;
+  if (!goods[code]) { showToast(t('saveFail'), 'error'); closeModal('quickAddModal'); return; }
+  if (goods[code].type === 'solid' && qty % 1 !== 0) { showToast(t('enterQty'), 'error'); return; }
   var prev = goods[code].qty;
   goods[code].qty = parseFloat((goods[code].qty + qty).toFixed(4));
   closeModal('quickAddModal');
@@ -3050,13 +3089,35 @@ async function confirmEditGood() {
   if (!newCode) { showToast(t('enterCode'), 'error'); return; }
   if (!/^[a-z0-9]+$/.test(newCode)) { showToast(t('codeFormat'), 'error'); return; }
   if (newCode !== oldCode && goods[newCode]) { showToast(t('editCodeExists'), 'error'); return; }
+  // Reject negative or non-finite qty / prices
+  if (!isFinite(qty) || qty < 0) { showToast(t('enterQty'), 'error'); return; }
+  if (costPrice !== null && (!isFinite(costPrice) || costPrice < 0)) { showToast(t('enterQty'), 'error'); return; }
+  if (sellPrice !== null && (!isFinite(sellPrice) || sellPrice < 0)) { showToast(t('enterQty'), 'error'); return; }
+  if (editSelectedType === 'solid' && qty % 1 !== 0) { showToast(t('enterQty'), 'error'); return; }
   var btn = document.getElementById('editSaveBtn');
   btn.disabled = true;
+  // Snapshot for rollback
+  var oldSnapshot = goods[oldCode] ? Object.assign({}, goods[oldCode]) : null;
+  var preservedBarcode = oldSnapshot ? (oldSnapshot.barcode || null) : null;
   try {
     if (newCode !== oldCode) {
-      goods[newCode] = { type: editSelectedType, qty: qty, name: name, costPrice: costPrice, sellPrice: sellPrice };
-      await dbSaveGood(newCode);
-      await dbDeleteGood(oldCode);
+      // Rename: write new row, then delete old row. Roll back on partial failure.
+      goods[newCode] = { type: editSelectedType, qty: qty, name: name, costPrice: costPrice, sellPrice: sellPrice, barcode: preservedBarcode };
+      try {
+        await dbSaveGood(newCode);
+      } catch(e) {
+        delete goods[newCode];
+        throw e;
+      }
+      try {
+        await dbDeleteGood(oldCode);
+      } catch(e) {
+        // New row is in DB but old row delete failed — undo the new write so we
+        // don't leave a duplicate behind.
+        try { await dbDeleteGood(newCode); } catch(_) {}
+        delete goods[newCode];
+        throw e;
+      }
       delete goods[oldCode];
       sales.forEach(function(s) { if (s.code === oldCode) s.code = newCode; });
     } else {
@@ -3065,12 +3126,21 @@ async function confirmEditGood() {
       goods[oldCode].name = name;
       goods[oldCode].costPrice = costPrice;
       goods[oldCode].sellPrice = sellPrice;
-      await dbSaveGood(oldCode);
+      try {
+        await dbSaveGood(oldCode);
+      } catch(e) {
+        // Restore in-memory state on failure
+        if (oldSnapshot) goods[oldCode] = oldSnapshot;
+        throw e;
+      }
     }
     closeModal('editModal');
     showToast(newCode.toUpperCase() + ' ' + t('editUpdated'), 'success');
     renderInventory();
-  } catch(e) { showToast(t('saveFail'), 'error'); }
+  } catch(e) {
+    console.error('confirmEditGood failed:', e);
+    showToast(t('saveFail'), 'error');
+  }
   finally { btn.disabled = false; }
 }
 
