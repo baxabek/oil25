@@ -775,24 +775,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div>
       <div class="totals-strip">
         <div class="totals-card">
-          <div class="totals-label t" data-uz="Ombor Qiymati" data-en="Inventory Value">Ombor Qiymati</div>
+          <div class="totals-label t" data-uz="Umumiy Qiymat" data-en="Total Value">Umumiy Qiymat</div>
           <div class="totals-val c-purple" id="ts-inv-value">$0.00</div>
-          <div class="totals-sub t" data-uz="Joriy ombor (sotuv)" data-en="Current stock (sell)">Joriy ombor (sotuv)</div>
+          <div class="totals-sub t" data-uz="Barcha tovarlar (tannarx)" data-en="All products (cost)">Barcha tovarlar (tannarx)</div>
         </div>
         <div class="totals-card">
           <div class="totals-label t" data-uz="Jami Tushum" data-en="Total Revenue">Jami Tushum</div>
           <div class="totals-val c-accent" id="ts-revenue">$0.00</div>
-          <div class="totals-sub t" data-uz="Tanlangan davr" data-en="Selected period">Tanlangan davr</div>
+          <div class="totals-sub t" data-uz="Hammasi sotilsa" data-en="If all sold">Hammasi sotilsa</div>
         </div>
         <div class="totals-card">
           <div class="totals-label t" data-uz="Jami Foyda" data-en="Total Profit">Jami Foyda</div>
           <div class="totals-val c-gold" id="ts-profit">$0.00</div>
-          <div class="totals-sub t" data-uz="Tanlangan davr" data-en="Selected period">Tanlangan davr</div>
+          <div class="totals-sub t" data-uz="Hammasi sotilsa" data-en="If all sold">Hammasi sotilsa</div>
         </div>
         <div class="totals-card">
           <div class="totals-label t" data-uz="O'rtacha Marjin" data-en="Avg Margin">O'rtacha Marjin</div>
           <div class="totals-val c-blue" id="ts-margin">0%</div>
-          <div class="totals-sub t" data-uz="Foyda / Tushum" data-en="Profit / Revenue">Foyda / Tushum</div>
+          <div class="totals-sub t" data-uz="Tovarlar bo'yicha" data-en="Across products">Tovarlar bo'yicha</div>
         </div>
       </div>
       <div class="section-header" style="margin-top:14px">
@@ -2231,25 +2231,39 @@ function renderAnalytics() {
   document.getElementById('ac-units').textContent = totalQty % 1 === 0 ? totalQty : totalQty.toFixed(2);
   document.getElementById('ac-avg').textContent = fmt(avgSale);
 
-  // Totals strip — inventory value + period revenue/profit/margin
+  // Totals strip — based on ALL current products (theoretical "if all sold")
   try {
-    var invValue = 0;
+    var allCost = 0;       // total cost of inventory  (sum of qty * cost)
+    var allRev = 0;        // potential revenue        (sum of qty * sell)
+    var allProfit = 0;     // potential profit         (sum of qty * (sell - cost))
+    var marginPctSum = 0;  // for averaging margins
+    var marginCount = 0;   // # of products with valid margin
     Object.values(goods).forEach(function(g){
-      var price = (g.sellPrice != null && isFinite(g.sellPrice)) ? g.sellPrice
-                : (g.costPrice != null && isFinite(g.costPrice)) ? g.costPrice : 0;
-      invValue += (g.qty || 0) * price;
+      var qty = (g.qty != null && isFinite(g.qty)) ? g.qty : 0;
+      var cp  = (g.costPrice != null && isFinite(g.costPrice)) ? g.costPrice : null;
+      var sp  = (g.sellPrice != null && isFinite(g.sellPrice)) ? g.sellPrice : null;
+      if (cp != null) allCost += qty * cp;
+      if (sp != null) allRev  += qty * sp;
+      if (cp != null && sp != null) {
+        allProfit += qty * (sp - cp);
+        if (sp > 0) {
+          marginPctSum += ((sp - cp) / sp) * 100;
+          marginCount++;
+        }
+      }
     });
+    var avgMarginPct = marginCount ? (marginPctSum / marginCount) : 0;
     var tsInv = document.getElementById('ts-inv-value');
     var tsRev = document.getElementById('ts-revenue');
     var tsPro = document.getElementById('ts-profit');
     var tsMar = document.getElementById('ts-margin');
-    if (tsInv) tsInv.textContent = fmt(invValue);
-    if (tsRev) tsRev.textContent = fmt(totalRev);
+    if (tsInv) tsInv.textContent = fmt(allCost);
+    if (tsRev) tsRev.textContent = fmt(allRev);
     if (tsPro) {
-      tsPro.textContent = (totalProfit >= 0 ? '+' : '') + fmt(totalProfit);
-      tsPro.style.color = totalProfit >= 0 ? 'var(--gold)' : 'var(--danger)';
+      tsPro.textContent = (allProfit >= 0 ? '+' : '') + fmt(allProfit);
+      tsPro.style.color = allProfit >= 0 ? 'var(--gold)' : 'var(--danger)';
     }
-    if (tsMar) tsMar.textContent = margin + '%';
+    if (tsMar) tsMar.textContent = avgMarginPct.toFixed(1) + '%';
   } catch(e) { console.warn('totals strip:', e); }
 
   // Top items
