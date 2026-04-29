@@ -159,6 +159,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* SELL PANEL */
 .sell-found-card{background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:14px;margin-bottom:10px;display:none;animation:slideIn .2s ease}
+.sell-suggest{display:none;margin-top:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;max-height:300px;overflow-y:auto;animation:slideIn .15s ease}
+.sell-suggest.open{display:block}
+.sell-suggest-item{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;background:var(--surface)}
+.sell-suggest-item:last-child{border-bottom:none}
+.sell-suggest-item:active{background:var(--surface2)}
+.sell-suggest-item:hover{background:var(--surface2)}
+.sell-suggest-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.sell-suggest-icon.solid{background:rgba(180,139,250,.15);color:var(--purple)}
+.sell-suggest-icon.liquid{background:rgba(77,159,255,.15);color:var(--blue)}
+.sell-suggest-info{flex:1;min-width:0}
+.sell-suggest-code{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;text-transform:uppercase;color:var(--text)}
+.sell-suggest-name{font-size:11px;color:var(--muted2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sell-suggest-qty{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);flex-shrink:0;text-align:right}
+.sell-suggest-empty{padding:14px;text-align:center;color:var(--muted);font-size:12px}
+.sell-suggest mark{background:var(--gold-dim);color:var(--gold);padding:0 2px;border-radius:3px}
 .sell-found-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
 .sell-code{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;text-transform:uppercase}
 .sell-name{font-size:12px;color:var(--muted2);margin-top:2px}
@@ -224,6 +239,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .hero-profit-label{font-size:11px;color:var(--muted);margin-right:4px}
 .hero-txn{font-size:12px;color:var(--muted2);margin-top:6px}
 .analytics-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.totals-strip{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+.totals-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 12px}
+.totals-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.totals-val{font-family:'Space Mono',monospace;font-size:16px;font-weight:700}
+.totals-sub{font-size:9px;color:var(--muted2);margin-top:3px}
 .analytics-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 12px}
 .ac-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
 .ac-val{font-family:'Space Mono',monospace;font-size:17px;font-weight:700}
@@ -240,7 +260,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .tx-row.edit-mode{border-color:rgba(255,84,112,.35)}
 .tx-row.tx-svc{border-color:rgba(0,212,200,.2)}
 .tx-info{flex:1;min-width:0}
-.tx-code{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;text-transform:uppercase}
+.tx-code{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;text-transform:uppercase;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.tx-name-inline{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;color:var(--muted2);text-transform:none;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
 .tx-time{font-size:10px;color:var(--muted);margin-top:1px}
 .tx-right{text-align:right;flex-shrink:0}
 .tx-revenue{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--accent)}
@@ -544,7 +565,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <button class="scan-btn" onclick="openScanner('sell')">&#x1F4F7; <span class="t" data-uz="Barkod Skanerlash" data-en="Scan Barcode">Barkod Skanerlash</span></button>
         <div class="form-group" style="margin-bottom:0">
             <label class="form-label t" data-uz="Tovar Kodi" data-en="Good Code">Tovar Kodi</label>
-            <input class="form-input" id="sellCode" type="text" oninput="onSellCodeInput()" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+            <input class="form-input" id="sellCode" type="text" oninput="onSellCodeInput()" maxlength="40" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="Kod yoki nom...">
+            <div class="sell-suggest" id="sellSuggest"></div>
           </div>
         </div>
         <div class="sell-found-card" id="sellResult">
@@ -746,6 +768,31 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             </div>
             <div style="font-size:10px;color:var(--muted2);margin-top:3px" id="perfManagerPct">0%</div>
           </div>
+        </div>
+      </div>
+      <div class="section-header" style="margin-top:14px">
+        <div class="section-title">&#x1F4CB; <span class="t" data-uz="Umumiy Hisobot" data-en="Overall Summary">Umumiy Hisobot</span></div>
+      </div>
+      <div class="totals-strip">
+        <div class="totals-card">
+          <div class="totals-label t" data-uz="Ombor Qiymati" data-en="Inventory Value">Ombor Qiymati</div>
+          <div class="totals-val c-purple" id="ts-inv-value">$0.00</div>
+          <div class="totals-sub t" data-uz="Joriy ombor (sotuv)" data-en="Current stock (sell)">Joriy ombor (sotuv)</div>
+        </div>
+        <div class="totals-card">
+          <div class="totals-label t" data-uz="Jami Tushum" data-en="Total Revenue">Jami Tushum</div>
+          <div class="totals-val c-accent" id="ts-revenue">$0.00</div>
+          <div class="totals-sub t" data-uz="Tanlangan davr" data-en="Selected period">Tanlangan davr</div>
+        </div>
+        <div class="totals-card">
+          <div class="totals-label t" data-uz="Jami Foyda" data-en="Total Profit">Jami Foyda</div>
+          <div class="totals-val c-gold" id="ts-profit">$0.00</div>
+          <div class="totals-sub t" data-uz="Tanlangan davr" data-en="Selected period">Tanlangan davr</div>
+        </div>
+        <div class="totals-card">
+          <div class="totals-label t" data-uz="O'rtacha Marjin" data-en="Avg Margin">O'rtacha Marjin</div>
+          <div class="totals-val c-blue" id="ts-margin">0%</div>
+          <div class="totals-sub t" data-uz="Foyda / Tushum" data-en="Profit / Revenue">Foyda / Tushum</div>
         </div>
       </div>
       <div class="section-header" style="margin-top:14px">
@@ -1687,9 +1734,21 @@ async function addGood() {
 //  SELL PRODUCT
 // ═══════════════════════════════════════════════
 function onSellCodeInput() {
-  var code = document.getElementById('sellCode').value.trim().toLowerCase();
+  var raw = document.getElementById('sellCode').value.trim();
+  var code = raw.toLowerCase();
   var el = document.getElementById('sellResult');
-  if (!code || !goods[code]) { el.style.display = 'none'; return; }
+  var sugEl = document.getElementById('sellSuggest');
+  // No input — hide both
+  if (!code) { el.style.display = 'none'; if (sugEl) { sugEl.classList.remove('open'); sugEl.innerHTML = ''; } return; }
+  // Exact code match — show found-card, hide suggestions
+  if (goods[code]) {
+    if (sugEl) { sugEl.classList.remove('open'); sugEl.innerHTML = ''; }
+  } else {
+    // No exact match — show suggestion list filtered by code or name
+    el.style.display = 'none';
+    if (sugEl) { renderSellSuggestions(code); }
+    return;
+  }
   var g = goods[code];
   el.style.display = 'block';
   document.getElementById('sellResultCode').textContent = code.toUpperCase();
@@ -1707,6 +1766,65 @@ function onSellCodeInput() {
   document.getElementById('sellOverrideHint').style.display = 'none';
   document.getElementById('sellQty').value = '';
   updateSellPreview();
+}
+
+// ── Sell suggestions: search by code OR name ──
+function renderSellSuggestions(q) {
+  var sugEl = document.getElementById('sellSuggest');
+  if (!sugEl) return;
+  q = (q || '').toLowerCase().trim();
+  if (!q) { sugEl.classList.remove('open'); sugEl.innerHTML = ''; return; }
+  var matches = Object.keys(goods).filter(function(k){
+    var g = goods[k];
+    return k.includes(q) || ((g.name || '').toLowerCase().includes(q));
+  }).sort(function(a,b){
+    // Prioritise codes that start with the query, then name matches
+    var aStart = a.indexOf(q) === 0 ? 0 : 1;
+    var bStart = b.indexOf(q) === 0 ? 0 : 1;
+    if (aStart !== bStart) return aStart - bStart;
+    return a.localeCompare(b);
+  }).slice(0, 25);
+  if (!matches.length) {
+    sugEl.innerHTML = '<div class="sell-suggest-empty">' + (lang === 'uz' ? 'Hech narsa topilmadi' : 'Nothing found') + '</div>';
+    sugEl.classList.add('open');
+    return;
+  }
+  function hl(text, qq) {
+    if (!text) return '';
+    var t = String(text);
+    var lo = t.toLowerCase();
+    var i = lo.indexOf(qq);
+    if (i < 0) return esc(t);
+    return esc(t.slice(0, i)) + '<mark>' + esc(t.slice(i, i + qq.length)) + '</mark>' + esc(t.slice(i + qq.length));
+  }
+  sugEl.innerHTML = matches.map(function(k){
+    var g = goods[k];
+    var icon = g.type === 'liquid' ? '💧' : '📦';
+    var unit = g.type === 'liquid' ? 'L' : (typeof t === 'function' ? t('unit') : 'dona');
+    var qtyTxt = (typeof fmtQty === 'function' ? fmtQty(g.qty, g.type) : g.qty) + ' ' + unit;
+    var nameTxt = g.name || (g.type === 'liquid' ? (typeof t === 'function' ? t('liquidGood') : 'Suyuq') : (typeof t === 'function' ? t('solidGood') : 'Qattiq'));
+    return '<div class="sell-suggest-item" onclick="pickSellSuggestion(\''+ esc(k) +'\')">' +
+      '<div class="sell-suggest-icon ' + g.type + '">' + icon + '</div>' +
+      '<div class="sell-suggest-info">' +
+        '<div class="sell-suggest-code">' + hl(k, q) + '</div>' +
+        '<div class="sell-suggest-name">' + hl(nameTxt, q) + '</div>' +
+      '</div>' +
+      '<div class="sell-suggest-qty">' + qtyTxt + '</div>' +
+    '</div>';
+  }).join('');
+  sugEl.classList.add('open');
+}
+
+function pickSellSuggestion(code) {
+  var input = document.getElementById('sellCode');
+  if (!input) return;
+  input.value = code;
+  var sugEl = document.getElementById('sellSuggest');
+  if (sugEl) { sugEl.classList.remove('open'); sugEl.innerHTML = ''; }
+  onSellCodeInput();
+  // Focus the qty input for fast checkout
+  var q = document.getElementById('sellQty');
+  if (q) try { q.focus(); } catch(e) {}
 }
 
 function updateSellPreview() {
@@ -2113,6 +2231,27 @@ function renderAnalytics() {
   document.getElementById('ac-units').textContent = totalQty % 1 === 0 ? totalQty : totalQty.toFixed(2);
   document.getElementById('ac-avg').textContent = fmt(avgSale);
 
+  // Totals strip — inventory value + period revenue/profit/margin
+  try {
+    var invValue = 0;
+    Object.values(goods).forEach(function(g){
+      var price = (g.sellPrice != null && isFinite(g.sellPrice)) ? g.sellPrice
+                : (g.costPrice != null && isFinite(g.costPrice)) ? g.costPrice : 0;
+      invValue += (g.qty || 0) * price;
+    });
+    var tsInv = document.getElementById('ts-inv-value');
+    var tsRev = document.getElementById('ts-revenue');
+    var tsPro = document.getElementById('ts-profit');
+    var tsMar = document.getElementById('ts-margin');
+    if (tsInv) tsInv.textContent = fmt(invValue);
+    if (tsRev) tsRev.textContent = fmt(totalRev);
+    if (tsPro) {
+      tsPro.textContent = (totalProfit >= 0 ? '+' : '') + fmt(totalProfit);
+      tsPro.style.color = totalProfit >= 0 ? 'var(--gold)' : 'var(--danger)';
+    }
+    if (tsMar) tsMar.textContent = margin + '%';
+  } catch(e) { console.warn('totals strip:', e); }
+
   // Top items
   var byItem = {};
   filteredSales.forEach(function(s) {
@@ -2265,7 +2404,7 @@ function buildTxRowHTML(tx) {
         '<button class="tx-btn tx-undo-btn" onclick="event.stopPropagation();openUndoTx(\'' + s.id + '\')" title="Undo">↩️</button>' +
         '<button class="tx-btn tx-del-btn" onclick="event.stopPropagation();openDeleteTx(\'' + s.id + '\')" title="Delete">🗑</button>' +
       '</div>' +
-      '<div class="tx-info"><div class="tx-code">' + esc(s.code) + '<span class="tx-type-badge prod">PRD</span></div><div class="tx-time">' + ts + '</div>' + priceInline + '</div>' +
+      '<div class="tx-info"><div class="tx-code">' + esc(s.code) + '<span class="tx-type-badge prod">PRD</span>' + (g && g.name ? '<span class="tx-name-inline">' + esc(g.name) + '</span>' : '') + '</div><div class="tx-time">' + ts + '</div>' + priceInline + '</div>' +
       '<div class="tx-right">' +
         '<div class="tx-revenue">' + fmt(s.revenue) + '</div>' +
         '<div class="tx-profit" style="color:' + (s.profit>=0?'var(--accent)':'var(--danger)') + '">' + (s.profit>=0?'+':'') + fmt(s.profit) + '</div>' +
