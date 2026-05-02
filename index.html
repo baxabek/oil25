@@ -403,6 +403,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .customer-pill{padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
 .customer-pill:active{border-color:var(--accent);color:var(--accent)}
 .tx-price-inline{font-family:'Space Mono',monospace;font-size:10px;margin-top:2px;letter-spacing:.2px}
+
+/* BRANCH BAR */
+.branch-bar{display:flex;gap:6px;padding:6px 16px 8px;background:var(--surface)}
+.branch-btn{flex:1;padding:6px 10px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.5px;-webkit-appearance:none}
+.branch-btn.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+.branch-btn:active{transform:scale(.96)}
+
+/* HISTORY */
+.history-entry{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:7px;display:flex;align-items:center;gap:10px;animation:slideIn .2s ease}
+.history-entry.restock{border-left:3px solid var(--accent)}
+.history-entry.new_product{border-left:3px solid var(--blue)}
+.history-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.history-icon.restock{background:var(--accent-dim)}
+.history-icon.new_product{background:var(--blue-dim)}
+.history-info{flex:1;min-width:0}
+.history-code{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.history-name{font-size:11px;color:var(--muted2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-right{text-align:right;flex-shrink:0}
+.history-qty{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--accent)}
+.history-qty.new_product{color:var(--blue)}
+.history-time{font-size:10px;color:var(--muted);margin-top:2px}
+.history-branch-badge{font-size:8px;padding:1px 5px;border-radius:10px;font-family:'Space Mono',monospace;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(255,200,77,.3);margin-left:5px;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -468,6 +490,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <button class="lock-btn" onclick="openChangePinModal()" id="changePinBtn" title="Change PIN" style="display:none">&#x2699;&#xFE0F;</button>
       </div>
     </div>
+    <div class="branch-bar" id="branchBar" style="display:none">
+      <button class="branch-btn active" id="branchBtn1" onclick="switchBranch(1)">&#x1F3EA; Branch 1</button>
+      <button class="branch-btn" id="branchBtn2" onclick="switchBranch(2)">&#x1F3EA; Branch 2</button>
+    </div>
     <div class="tabs" id="tabBar">
       <button class="tab active" id="tab-inventory" onclick="switchTab('inventory')">&#x1F4E6; <span class="t" data-uz="Ombor" data-en="Inventory">Ombor</span></button>
       <button class="tab" id="tab-add" onclick="switchTab('add')">&#x2795; <span class="t" data-uz="Qoshish" data-en="Add">Qoshish</span></button>
@@ -475,6 +501,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <button class="tab" id="tab-services" onclick="switchTab('services')">&#x2699;&#xFE0F; <span class="t" data-uz="Xizmatlar" data-en="Services">Xizmatlar</span></button>
       <button class="tab" id="tab-debts" onclick="switchTab('debts')">&#x1F4B3; <span class="t" data-uz="Qarzlar" data-en="Debts">Qarzlar</span></button>
       <button class="tab" id="tab-analytics" onclick="switchTab('analytics')">&#x1F4CA; <span class="t" data-uz="Tahlil" data-en="Analytics">Tahlil</span></button>
+      <button class="tab" id="tab-history" onclick="switchTab('history')" style="display:none">&#x1F4CB; <span class="t" data-uz="Tarix" data-en="History">Tarix</span></button>
     </div>
   </div>
   <div class="sync-bar ok" id="syncBar">
@@ -546,6 +573,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           </div>
         </div>
         <div id="marginPreview" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);min-height:16px"></div>
+      </div>
+      <!-- BRANCH SELECTOR (manager only) -->
+      <div id="addBranchWrap" style="display:none;margin-bottom:10px">
+        <div class="form-label" style="margin-bottom:7px">&#x1F3EA; <span class="t" data-uz="Qaysi filialga qo'shish?" data-en="Add to which branch?">Add to which branch?</span></div>
+        <div class="type-toggle">
+          <button class="type-btn" id="addBranchBtn1" onclick="setAddBranch(1)" style="font-size:12px">Branch 1</button>
+          <button class="type-btn" id="addBranchBtn2" onclick="setAddBranch(2)" style="font-size:12px">Branch 2</button>
+          <button class="type-btn" id="addBranchBtnBoth" onclick="setAddBranch('both')" style="font-size:12px">Both</button>
+        </div>
       </div>
       <button class="btn btn-add" id="addBtn" onclick="addGood()">&#x2795; <span class="t" data-uz="Tovarni Saqlash" data-en="Save Good">Tovarni Saqlash</span></button>
     </div>
@@ -814,6 +850,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div id="txHistory"></div>
     </div>
 
+    <!-- HISTORY -->
+    <div class="panel" id="panel-history">
+      <div class="search-wrap">
+        <span class="search-icon">&#x1F50D;</span>
+        <input type="text" id="historySearch" oninput="filterHistory()" placeholder="Search code or name...">
+      </div>
+      <div id="historyList"></div>
+    </div>
+
   </div>
 </div>
 
@@ -1001,7 +1046,12 @@ var db = supabase.createClient(SUPA_URL, SUPA_KEY);
 // ═══════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════
-var goods = {};
+var goods = {};       // Always points to CURRENT branch inventory
+var goodsBranch1 = {}; // Branch 1 snapshot (restored when switching back)
+var goods2 = {};       // Branch 2 inventory
+var stockLogs = [];
+var currentBranch = 1;
+var addBranchTarget = 1; // 1, 2, or 'both'
 var sales = [];
 var services = {};      // id -> { name, defaultPrice }
 var serviceSales = [];  // service sale records
@@ -1256,8 +1306,9 @@ function startSyncMonitor() {
 
 async function dbLoad() {
   var cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000;
-  var [g, s, sv, ss, db_debts, db_dpay] = await Promise.all([
+  var [g, g2, s, sv, ss, db_debts, db_dpay] = await Promise.all([
     db.from('goods').select('*'),
+    db.from('goods2').select('*'),
     db.from('sales').select('*').gte('ts', cutoff).order('ts', { ascending: false }),
     db.from('services').select('*').order('created_at', { ascending: true }),
     db.from('service_sales').select('*').gte('ts', cutoff).order('ts', { ascending: false }),
@@ -1273,6 +1324,13 @@ async function dbLoad() {
     newGoods[r.id] = { type: r.type, qty: Number(r.qty), name: r.name || '', costPrice: r.cost_price != null ? Number(r.cost_price) : null, sellPrice: r.sell_price != null ? Number(r.sell_price) : null, barcode: r.barcode || null };
   });
   goods = newGoods;
+  goodsBranch1 = newGoods;
+  var newGoods2 = {};
+  ((g2 && !g2.error ? g2.data : null) || []).forEach(function(r) {
+    newGoods2[r.id] = { type: r.type, qty: Number(r.qty), name: r.name || '', costPrice: r.cost_price != null ? Number(r.cost_price) : null, sellPrice: r.sell_price != null ? Number(r.sell_price) : null, barcode: r.barcode || null };
+  });
+  goods2 = newGoods2;
+  await dbLoadStockLogs();
   sales = (s.data || []).map(function(r) {
     return { id: r.id, code: r.code, qty: Number(r.qty), revenue: Number(r.revenue), profit: Number(r.profit), ts: Number(r.ts), note: r.note||'', actualPrice: r.actual_price!=null?Number(r.actual_price):null, setPrice: r.set_price!=null?Number(r.set_price):null, soldBy: r.sold_by||'manager' };
   });
@@ -1295,17 +1353,71 @@ async function dbLoad() {
 
 async function dbSaveGood(code) {
   setSync('syncing');
-  var g = goods[code];
-  var res = await db.from('goods').upsert({ id: code, type: g.type, qty: g.qty, name: g.name || null, cost_price: g.costPrice, sell_price: g.sellPrice, barcode: g.barcode || null });
+  var tbl = currentBranch === 2 ? 'goods2' : 'goods';
+  var g = goods[code]; // goods always points to current branch
+  var res = await db.from(tbl).upsert({ id: code, type: g.type, qty: g.qty, name: g.name || null, cost_price: g.costPrice, sell_price: g.sellPrice, barcode: g.barcode || null });
   if (res.error) { setSync('error'); throw res.error; }
   setSync('ok'); saveCache();
 }
 
+async function dbSaveGoodToTable(code, g, tbl) {
+  var res = await db.from(tbl).upsert({ id: code, type: g.type, qty: g.qty, name: g.name || null, cost_price: g.costPrice, sell_price: g.sellPrice, barcode: g.barcode || null });
+  if (res.error) throw res.error;
+}
+
 async function dbDeleteGood(code) {
   setSync('syncing');
-  var res = await db.from('goods').delete().eq('id', code);
+  var tbl = currentBranch === 2 ? 'goods2' : 'goods';
+  var res = await db.from(tbl).delete().eq('id', code);
   if (res.error) { setSync('error'); throw res.error; }
   setSync('ok');
+}
+
+async function dbSaveStockLog(entry) {
+  try {
+    await db.from('stock_logs').insert({
+      code: entry.code, name: entry.name || null, qty_added: entry.qtyAdded,
+      unit: entry.unit, action_type: entry.actionType, ts: entry.ts,
+      done_by: entry.doneBy || 'manager', branch: entry.branch || 1
+    });
+    stockLogs.unshift(entry);
+  } catch(e) { console.warn('stock_log insert failed:', e); }
+}
+
+async function dbLoadStockLogs() {
+  try {
+    var res = await db.from('stock_logs').select('*').order('ts', { ascending: false }).limit(500);
+    if (res.error) throw res.error;
+    stockLogs = (res.data || []).map(function(r) {
+      return { id: r.id, code: r.code, name: r.name||'', qtyAdded: Number(r.qty_added), unit: r.unit, actionType: r.action_type, ts: Number(r.ts), doneBy: r.done_by||'manager', branch: r.branch||1 };
+    });
+  } catch(e) { console.warn('stock_logs load failed:', e); stockLogs = []; }
+}
+
+async function dbCopyBranch1ToBranch2() {
+  // goodsBranch1 is always branch 1 (we are currently viewing branch 2 when this is called)
+  var src = goodsBranch1;
+  var entries = Object.keys(src);
+  if (!entries.length) { showToast('Branch 1 is empty!', 'error'); return; }
+  setSync('syncing');
+  try {
+    var rows = entries.map(function(code) {
+      var g = src[code];
+      return { id: code, type: g.type, qty: g.qty, name: g.name || null, cost_price: g.costPrice, sell_price: g.sellPrice, barcode: g.barcode || null };
+    });
+    var res = await db.from('goods2').upsert(rows);
+    if (res.error) throw res.error;
+    rows.forEach(function(r) {
+      goods[r.id] = { type: r.type, qty: Number(r.qty), name: r.name||'', costPrice: r.cost_price!=null?Number(r.cost_price):null, sellPrice: r.sell_price!=null?Number(r.sell_price):null, barcode: r.barcode||null };
+    });
+    goods2 = goods; // keep goods2 in sync
+    setSync('ok');
+    showToast(lang==='uz'?'Barcha tovarlar Branch 2 ga nusxalandi!':'All products copied to Branch 2!', 'success');
+    renderInventory();
+  } catch(e) {
+    setSync('error');
+    showToast('Copy failed: ' + (e.message || ''), 'error');
+  }
 }
 
 async function dbSaveSale(sale) {
@@ -1546,6 +1658,12 @@ function launchApp() {
   document.getElementById('tab-services').style.display = ''; // both roles
   document.getElementById('tab-debts').style.display = '';
   document.getElementById('tab-analytics').style.display = isManager ? '' : 'none';
+  document.getElementById('tab-history').style.display = isManager ? '' : 'none';
+  var branchBar = document.getElementById('branchBar');
+  if (branchBar) branchBar.style.display = isManager ? 'flex' : 'none';
+  var addBranchWrap = document.getElementById('addBranchWrap');
+  if (addBranchWrap) addBranchWrap.style.display = isManager ? '' : 'none';
+  if (isManager) { addBranchTarget = currentBranch; setAddBranch(currentBranch); }
   var msw = document.getElementById('managerScanWrap');
   if (msw) msw.style.display = isManager ? '' : 'none';
   var cpb = document.getElementById('changePinBtn');
@@ -1573,7 +1691,7 @@ document.addEventListener('click',resetSessionTimer,{passive:true});
 //  TABS
 // ═══════════════════════════════════════════════
 function switchTab(tab) {
-  var allTabs = ['inventory', 'add', 'sell', 'services', 'debts', 'analytics'];
+  var allTabs = ['inventory', 'add', 'sell', 'services', 'debts', 'analytics', 'history'];
   allTabs.forEach(function(name) {
     var tabEl = document.getElementById('tab-' + name);
     var panelEl = document.getElementById('panel-' + name);
@@ -1581,6 +1699,7 @@ function switchTab(tab) {
     if (panelEl) panelEl.classList.toggle('active', name === tab);
   });
   if (tab === 'inventory') renderInventory();
+  if (tab === 'history') renderHistory();
   if (tab === 'services') renderServices();
   if (tab === 'sell') { renderSvcSellList(); }
   if (tab === 'debts') renderDebts();
@@ -1637,8 +1756,13 @@ function renderInventory() {
   }).sort();
 
   var list = document.getElementById('goodsList');
+  if (!keys.length && currentBranch === 2 && currentRole === 'manager' && Object.keys(goodsBranch1).length > 0) {
+    list.innerHTML = '<div class="empty-state"><div class="emoji">&#x1F3EA;</div><p style="margin-bottom:14px">' + (lang==='uz'?'Branch 2 bo\'sh. Barcha tovarlarni nusxalash:':'Branch 2 is empty. Copy all products from Branch 1:') + '</p>' +
+      '<button onclick="dbCopyBranch1ToBranch2()" style="padding:12px 24px;background:var(--gold);color:#1a1000;border:none;border-radius:12px;font-family:DM Sans,sans-serif;font-size:14px;font-weight:700;cursor:pointer">&#x1F4CB; ' + (lang==='uz'?'Branch 1 dan nusxalash':'Copy from Branch 1') + '</button></div>';
+    return;
+  }
   if (!keys.length) {
-    list.innerHTML = '<div class="empty-state"><div class="emoji">' + (q ? '🔍' : '📦') + '</div><p>' + (q ? t('nothingFound') : t('noGoods')) + '</p></div>';
+    list.innerHTML = '<div class="empty-state"><div class="emoji">' + (q ? '&#x1F50D;' : '&#x1F4E6;') + '</div><p>' + (q ? t('nothingFound') : t('noGoods')) + '</p></div>';
     return;
   }
 
@@ -1695,8 +1819,9 @@ async function addGood() {
   if (sellPrice !== null && (!isFinite(sellPrice) || sellPrice < 0)) { showToast(t('enterQty'), 'error'); return; }
   // Solid goods must be whole units
   if (selectedType === 'solid' && qty % 1 !== 0) { showToast(t('enterQty'), 'error'); return; }
-  if (goods[code]) {
-    var existingName = goods[code].name ? goods[code].name.toUpperCase() : code.toUpperCase();
+  var checkSrc = (addBranchTarget === 2) ? goods2 : goods;
+  if (checkSrc[code]) {
+    var existingName = checkSrc[code].name ? checkSrc[code].name.toUpperCase() : code.toUpperCase();
     showToast(t('codeAlreadyTaken') + ' "' + existingName + '" ' + t('codeChooseOther'), 'error');
     var codeInputEl = document.getElementById('addCode');
     codeInputEl.style.borderColor = 'var(--danger)';
@@ -1705,24 +1830,46 @@ async function addGood() {
   }
   var btn = document.getElementById('addBtn');
   btn.disabled = true;
-  // Stage the new good in memory so dbSaveGood can read it, but be ready to roll back.
-  goods[code] = { type: selectedType, qty: qty, name: name, costPrice: costPrice, sellPrice: sellPrice, barcode: null };
+  var newEntry = { type: selectedType, qty: qty, name: name, costPrice: costPrice, sellPrice: sellPrice, barcode: null };
+  var unit = selectedType === 'liquid' ? 'L' : 'dona';
+  var targBranch = addBranchTarget; // 1, 2, or 'both'
+  // Stage in memory. goods always = current branch. goods2/goodsBranch1 = the other.
+  goods[code] = newEntry;
+  if (targBranch === 'both') {
+    var otherRef = currentBranch === 2 ? goodsBranch1 : goods2;
+    otherRef[code] = Object.assign({}, newEntry);
+  }
   try {
-    // 1. Write to DB
-    await dbSaveGood(code);
-    // 2. Verify the row actually persisted (defends against silent RLS / no-op upsert
-    //    where the API returns no error but nothing was written).
-    var verify = await db.from('goods').select('id').eq('id', code).maybeSingle();
-    if (verify.error) throw verify.error;
-    if (!verify.data) throw new Error('Write did not persist');
-    // 3. Now safe to clear UI and confirm to user
+    var tblCurrent = currentBranch === 2 ? 'goods2' : 'goods';
+    var tblOther   = currentBranch === 2 ? 'goods' : 'goods2';
+    // Only save current branch table if target is current or both
+    if (targBranch === currentBranch || targBranch === 'both') {
+      await dbSaveGoodToTable(code, newEntry, tblCurrent);
+      var verify1 = await db.from(tblCurrent).select('id').eq('id', code).maybeSingle();
+      if (verify1.error) throw verify1.error;
+      if (!verify1.data) throw new Error('Write did not persist');
+    }
+    // Only save other branch if target is the other or both
+    if (targBranch !== currentBranch || targBranch === 'both') {
+      if (targBranch === 'both' || targBranch !== currentBranch) {
+        await dbSaveGoodToTable(code, newEntry, tblOther);
+      }
+    }
+    setSync('ok'); saveCache();
     ['addCode','addName','addQty','addCostPrice','addSellPrice'].forEach(function(id) { document.getElementById(id).value = ''; });
     document.getElementById('marginPreview').textContent = '';
-    showToast(code.toUpperCase() + ' ' + t('saved'), 'success');
+    var branchLabel = targBranch === 'both' ? (lang==='uz'?' (Ikkala filial)':' (Both branches)') : (' Branch ' + targBranch);
+    showToast(code.toUpperCase() + ' ' + t('saved') + branchLabel, 'success');
+    if (qty > 0) {
+      var logBranches = targBranch === 'both' ? [1, 2] : [targBranch === currentBranch ? currentBranch : (currentBranch === 1 ? 2 : 1)];
+      logBranches.forEach(function(b) {
+        dbSaveStockLog({ code: code, name: name, qtyAdded: qty, unit: unit, actionType: 'new_product', ts: Date.now(), doneBy: currentRole || 'manager', branch: b });
+      });
+    }
     switchTab('inventory');
   } catch(e) {
-    // Roll back the in-memory entry so it doesn't sit there pretending to be saved
     delete goods[code];
+    if (targBranch === 'both') { var or2 = currentBranch === 2 ? goodsBranch1 : goods2; delete or2[code]; }
     saveCache();
     console.error('addGood failed:', e);
     showToast(t('saveFail'), 'error');
@@ -3188,8 +3335,10 @@ async function confirmQuickAdd() {
   closeModal('quickAddModal');
   try {
     await dbSaveGood(code);
+    var unit = goods[code].type === 'liquid' ? 'L' : 'dona';
     showToast(code.toUpperCase() + ' +' + qty + ' ' + t('added'), 'success');
     renderInventory();
+    dbSaveStockLog({ code: code, name: goods[code].name || '', qtyAdded: qty, unit: unit, actionType: 'restock', ts: Date.now(), doneBy: currentRole || 'manager', branch: currentBranch });
   } catch(e) {
     goods[code].qty = prev;
     showToast(t('saveFail'), 'error');
@@ -3542,6 +3691,75 @@ async function saveChangedPin() {
     }
   }, 400);
 }
+
+// ═══════════════════════════════════════════════
+//  BRANCH SWITCHING
+// ═══════════════════════════════════════════════
+function switchBranch(n) {
+  if (currentBranch === n) return;
+  // Swap goods references so ALL existing functions work on the new branch
+  if (n === 2) {
+    goodsBranch1 = goods;  // save branch 1 state
+    goods = goods2;        // point to branch 2
+  } else {
+    goods2 = goods;        // save branch 2 state
+    goods = goodsBranch1;  // restore branch 1
+  }
+  currentBranch = n;
+  document.getElementById('branchBtn1').classList.toggle('active', n === 1);
+  document.getElementById('branchBtn2').classList.toggle('active', n === 2);
+  setAddBranch(n);
+  switchTab('inventory');
+}
+
+function setAddBranch(val) {
+  addBranchTarget = val;
+  var b1 = document.getElementById('addBranchBtn1');
+  var b2 = document.getElementById('addBranchBtn2');
+  var bb = document.getElementById('addBranchBtnBoth');
+  if (!b1) return;
+  b1.className = 'type-btn' + (val === 1 ? ' active-liquid' : '');
+  b2.className = 'type-btn' + (val === 2 ? ' active-liquid' : '');
+  bb.className = 'type-btn' + (val === 'both' ? ' active-solid' : '');
+}
+
+// ═══════════════════════════════════════════════
+//  HISTORY (STOCK LOG)
+// ═══════════════════════════════════════════════
+function renderHistory() {
+  var q = (document.getElementById('historySearch') ? document.getElementById('historySearch').value.trim().toLowerCase() : '');
+  var list = document.getElementById('historyList');
+  if (!list) return;
+  var filtered = stockLogs.filter(function(e) {
+    if (!q) return true;
+    return e.code.toLowerCase().includes(q) || (e.name && e.name.toLowerCase().includes(q));
+  });
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-state"><div class="emoji">&#x1F4CB;</div><p>' + (lang === 'uz' ? 'Tarix yoq' : 'No history yet') + '</p></div>';
+    return;
+  }
+  list.innerHTML = filtered.map(function(e) {
+    var isNew = e.actionType === 'new_product';
+    var icon = isNew ? '&#x1F195;' : '&#x2795;';
+    var color = isNew ? 'new_product' : 'restock';
+    var dateStr = new Date(e.ts).toLocaleString(lang === 'uz' ? 'ru-RU' : 'en-GB', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+    var typeLabel = isNew ? (lang === 'uz' ? 'Yangi tovar' : 'New product') : (lang === 'uz' ? 'Qo\'shildi' : 'Restocked');
+    var branchLabel = e.branch ? '<span class="history-branch-badge">B' + e.branch + '</span>' : '';
+    return '<div class="history-entry ' + color + '">' +
+      '<div class="history-icon ' + color + '">' + icon + '</div>' +
+      '<div class="history-info">' +
+        '<div class="history-code">' + e.code.toUpperCase() + branchLabel + '</div>' +
+        '<div class="history-name">' + (e.name || typeLabel) + '</div>' +
+      '</div>' +
+      '<div class="history-right">' +
+        '<div class="history-qty ' + color + '">+' + e.qtyAdded + ' ' + e.unit + '</div>' +
+        '<div class="history-time">' + dateStr + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function filterHistory() { renderHistory(); }
 </script>
 
 <!-- SCANNER OVERLAY -->
