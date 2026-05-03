@@ -232,6 +232,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .av-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
 .av-btn.active.svc{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
 .av-btn.active.both{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+
+/* Analytics branch toggle */
+.analytics-branch-tabs{display:flex;gap:6px;margin-bottom:10px}
+.ab-btn{flex:1;padding:7px 4px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s;text-align:center;letter-spacing:.5px;-webkit-appearance:none}
+.ab-btn.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+.ab-btn.active.both{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
 .analytics-hero{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 16px;margin-bottom:10px;text-align:center}
 .hero-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
 .hero-revenue{font-family:'Space Mono',monospace;font-size:30px;font-weight:700;color:var(--accent);line-height:1;margin-bottom:4px}
@@ -425,6 +431,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .history-qty.new_product{color:var(--blue)}
 .history-time{font-size:10px;color:var(--muted);margin-top:2px}
 .history-branch-badge{font-size:8px;padding:1px 5px;border-radius:10px;font-family:'Space Mono',monospace;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(255,200,77,.3);margin-left:5px;vertical-align:middle}
+
+/* History view toggle (Stock | Edits) */
+.hist-view-tabs{display:flex;gap:6px;margin-bottom:10px}
+.hv-btn{flex:1;padding:8px 4px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-family:'Space Mono',monospace;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s;text-align:center;letter-spacing:.5px;-webkit-appearance:none}
+.hv-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.hv-btn.active.edits{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+
+/* Edit-log table */
+.edit-table{width:100%;border-collapse:collapse;font-size:11px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.edit-table thead th{background:var(--surface2);color:var(--muted2);text-align:left;padding:8px 9px;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.4px;border-bottom:1px solid var(--border);white-space:nowrap}
+.edit-table tbody td{padding:8px 9px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text)}
+.edit-table tbody tr:last-child td{border-bottom:none}
+.edit-table tbody tr:hover{background:var(--surface2)}
+.edit-cell-code{font-family:'Space Mono',monospace;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text)}
+.edit-cell-name{font-size:10px;color:var(--muted2);margin-top:2px}
+.edit-cell-field{font-family:'Space Mono',monospace;color:var(--purple);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.edit-cell-old{font-family:'Space Mono',monospace;color:var(--muted);text-decoration:line-through;font-size:10px;word-break:break-word;max-width:140px;display:inline-block}
+.edit-cell-new{font-family:'Space Mono',monospace;color:var(--accent);font-size:11px;font-weight:700;word-break:break-word;max-width:140px;display:inline-block}
+.edit-cell-time{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap}
+.edit-cell-by{font-size:10px;color:var(--muted2)}
+.edit-cell-branch{font-size:9px;padding:1px 5px;border-radius:8px;font-family:'Space Mono',monospace;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(255,200,77,.3)}
+.edit-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 </style>
 </head>
 <body>
@@ -491,8 +519,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div>
     </div>
     <div class="branch-bar" id="branchBar" style="display:none">
-      <button class="branch-btn active" id="branchBtn1" onclick="switchBranch(1)">&#x1F3EA; Branch 1</button>
-      <button class="branch-btn" id="branchBtn2" onclick="switchBranch(2)">&#x1F3EA; Branch 2</button>
+      <button class="branch-btn active" id="branchBtn1" onclick="switchBranch(1)">&#x1F3EA; 025</button>
+      <button class="branch-btn" id="branchBtn2" onclick="switchBranch(2)">&#x1F3EA; 303</button>
     </div>
     <div class="tabs" id="tabBar">
       <button class="tab active" id="tab-inventory" onclick="switchTab('inventory')">&#x1F4E6; <span class="t" data-uz="Ombor" data-en="Inventory">Ombor</span></button>
@@ -754,6 +782,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <button class="date-apply-btn" onclick="applyDateFilter()">&#x2713; Qollash</button>
         </div>
       </div>
+      <div class="analytics-branch-tabs" id="analyticsBranchTabs">
+        <button class="ab-btn" id="ab-1" onclick="setAnalyticsBranch('1')">&#x1F3EA; 025</button>
+        <button class="ab-btn" id="ab-2" onclick="setAnalyticsBranch('2')">&#x1F3EA; 303</button>
+        <button class="ab-btn active both" id="ab-both" onclick="setAnalyticsBranch('both')">&#x1F4CA; <span class="t" data-uz="Birga" data-en="Both">Birga</span></button>
+      </div>
       <div class="analytics-view-tabs">
         <button class="av-btn active" id="av-products" onclick="setAnalyticsView('products')">&#x1F4E6; <span class="t" data-uz="Tovarlar" data-en="Products">Tovarlar</span></button>
         <button class="av-btn" id="av-services" onclick="setAnalyticsView('services')">&#x2699;&#xFE0F; <span class="t" data-uz="Xizmatlar" data-en="Services">Xizmatlar</span></button>
@@ -852,6 +885,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
     <!-- HISTORY -->
     <div class="panel" id="panel-history">
+      <div class="hist-view-tabs">
+        <button class="hv-btn active" id="hv-stock" onclick="setHistoryView('stock')">&#x1F4E6; <span class="t" data-uz="Ombor" data-en="Stock">Ombor</span></button>
+        <button class="hv-btn" id="hv-edits" onclick="setHistoryView('edits')">&#x270F;&#xFE0F; <span class="t" data-uz="Tahrirlar" data-en="Edits">Tahrirlar</span></button>
+      </div>
       <div class="search-wrap">
         <span class="search-icon">&#x1F50D;</span>
         <input type="text" id="historySearch" oninput="filterHistory()" placeholder="Search code or name...">
@@ -1086,6 +1123,8 @@ var goods = {};       // Always points to CURRENT branch inventory
 var goodsBranch1 = {}; // Branch 1 snapshot (restored when switching back)
 var goods2 = {};       // Branch 2 inventory
 var stockLogs = [];
+var editLogs = [];      // edit history (product/service edits)
+var historyView = 'stock'; // 'stock' | 'edits'
 var currentBranch = 1;
 var addBranchTarget = 1; // 1, 2, or 'both'
 var sales = [];
@@ -1097,6 +1136,7 @@ var activePeriod = 'day';
 var customDateFrom = null;
 var customDateTo = null;
 var analyticsView = 'products'; // 'products' | 'services' | 'both'
+var analyticsBranch = 'both';   // '1' | '2' | 'both'  — per-branch analytics filter
 var lang = 'uz';
 var pinInput = '';
 var pinRole = 'manager';
@@ -1388,15 +1428,16 @@ async function dbLoad() {
   });
   goods2 = newGoods2;
   await dbLoadStockLogs();
+  await dbLoadEditLogs();
   sales = (s.data || []).map(function(r) {
-    return { id: r.id, code: r.code, qty: Number(r.qty), revenue: Number(r.revenue), profit: Number(r.profit), ts: Number(r.ts), note: r.note||'', actualPrice: r.actual_price!=null?Number(r.actual_price):null, setPrice: r.set_price!=null?Number(r.set_price):null, soldBy: r.sold_by||'manager' };
+    return { id: r.id, code: r.code, qty: Number(r.qty), revenue: Number(r.revenue), profit: Number(r.profit), ts: Number(r.ts), note: r.note||'', actualPrice: r.actual_price!=null?Number(r.actual_price):null, setPrice: r.set_price!=null?Number(r.set_price):null, soldBy: r.sold_by||'manager', branch: r.branch != null ? Number(r.branch) : 1 };
   });
   services = {};
   (sv.data || []).forEach(function(r) {
     services[r.id] = { name: r.name, defaultPrice: r.default_price != null ? Number(r.default_price) : null };
   });
   serviceSales = (ss.data || []).map(function(r) {
-    return { id: r.id, serviceId: r.service_id, serviceName: r.service_name, price: Number(r.price), note: r.note || '', ts: Number(r.ts), soldBy: r.sold_by||'manager' };
+    return { id: r.id, serviceId: r.service_id, serviceName: r.service_name, price: Number(r.price), note: r.note || '', ts: Number(r.ts), soldBy: r.sold_by||'manager', branch: r.branch != null ? Number(r.branch) : 1 };
   });
   debts = (db_debts.data || []).map(function(r) {
     return { id: r.id, customerName: r.customer_name, amount: Number(r.amount), paidAmount: Number(r.paid_amount || 0), dueDate: r.due_date, note: r.note || '', status: r.status || 'active', createdAt: r.created_at };
@@ -1451,6 +1492,61 @@ async function dbLoadStockLogs() {
   } catch(e) { console.warn('stock_logs load failed:', e); stockLogs = []; }
 }
 
+// ── Edit-history (product & service edits) ────────────────────────────
+async function dbSaveEditLog(entry) {
+  try {
+    await db.from('edit_logs').insert({
+      ts:          entry.ts,
+      done_by:     entry.doneBy || 'manager',
+      branch:      entry.branch || 1,
+      entity_type: entry.entityType,
+      entity_id:   entry.entityId,
+      entity_name: entry.entityName || null,
+      field:       entry.field,
+      old_value:   entry.oldValue == null ? null : String(entry.oldValue),
+      new_value:   entry.newValue == null ? null : String(entry.newValue)
+    });
+    editLogs.unshift(entry);
+  } catch(e) { console.warn('edit_log insert failed:', e); }
+}
+
+async function dbLoadEditLogs() {
+  try {
+    var res = await db.from('edit_logs').select('*').order('ts', { ascending: false }).limit(500);
+    if (res.error) throw res.error;
+    editLogs = (res.data || []).map(function(r) {
+      return {
+        id: r.id, ts: Number(r.ts),
+        doneBy: r.done_by || 'manager', branch: r.branch || 1,
+        entityType: r.entity_type, entityId: r.entity_id, entityName: r.entity_name || '',
+        field: r.field, oldValue: r.old_value, newValue: r.new_value
+      };
+    });
+  } catch(e) { console.warn('edit_logs load failed:', e); editLogs = []; }
+}
+
+// Diff two objects and log every changed field (used by Edit Product / Edit Service).
+function logEdits(entityType, entityId, entityName, oldObj, newObj, fields) {
+  var ts = Date.now();
+  fields.forEach(function(f) {
+    var ov = oldObj ? oldObj[f] : null;
+    var nv = newObj ? newObj[f] : null;
+    var same = (ov == null && nv == null) || (String(ov) === String(nv));
+    if (same) return;
+    dbSaveEditLog({
+      ts: ts,
+      doneBy: currentRole || 'manager',
+      branch: currentBranch,
+      entityType: entityType,
+      entityId: entityId,
+      entityName: entityName,
+      field: f,
+      oldValue: ov,
+      newValue: nv
+    });
+  });
+}
+
 async function dbCopyBranch1ToBranch2() {
   // goodsBranch1 is always branch 1 (we are currently viewing branch 2 when this is called)
   var src = goodsBranch1;
@@ -1482,7 +1578,7 @@ async function dbCopyBranch1ToBranch2() {
 
 async function dbSaveSale(sale) {
   setSync('syncing');
-  var res = await db.from('sales').insert({ code: sale.code, qty: sale.qty, revenue: sale.revenue, profit: sale.profit, ts: sale.ts, actual_price: sale.actualPrice || null, set_price: sale.setPrice || null, note: sale.note || null, sold_by: sale.soldBy || 'manager' }).select('id').single();
+  var res = await db.from('sales').insert({ code: sale.code, qty: sale.qty, revenue: sale.revenue, profit: sale.profit, ts: sale.ts, actual_price: sale.actualPrice || null, set_price: sale.setPrice || null, note: sale.note || null, sold_by: sale.soldBy || 'manager', branch: sale.branch || 1 }).select('id').single();
   if (res.error) { setSync('error'); throw res.error; }
   setSync('ok'); saveCache();
   return res.data.id;
@@ -1527,7 +1623,7 @@ async function dbDeleteService(id) {
 
 async function dbSaveServiceSale(ss) {
   setSync('syncing');
-  var res = await db.from('service_sales').insert({ service_id: ss.serviceId, service_name: ss.serviceName, price: ss.price, note: ss.note || null, ts: ss.ts, sold_by: ss.soldBy || 'manager' }).select('id').single();
+  var res = await db.from('service_sales').insert({ service_id: ss.serviceId, service_name: ss.serviceName, price: ss.price, note: ss.note || null, ts: ss.ts, sold_by: ss.soldBy || 'manager', branch: ss.branch || 1 }).select('id').single();
   if (res.error) { setSync('error'); throw res.error; }
   setSync('ok'); saveCache();
   return res.data.id;
@@ -2105,7 +2201,7 @@ async function sellGood() {
   var profit = revenue - qty * (g.costPrice || 0);
   var saleNote = document.getElementById('sellNote') ? document.getElementById('sellNote').value.trim() : '';
   var tmpId = 'tmp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-  var sale = { code: code, qty: qty, revenue: revenue, profit: profit, ts: Date.now(), actualPrice: actualPrice, setPrice: g.sellPrice || null, note: saleNote, soldBy: currentRole, id: tmpId };
+  var sale = { code: code, qty: qty, revenue: revenue, profit: profit, ts: Date.now(), actualPrice: actualPrice, setPrice: g.sellPrice || null, note: saleNote, soldBy: currentRole, id: tmpId, branch: currentBranch };
 
   // ⚡ Optimistic update — instant UI response
   g.qty = roundQty(g.qty - qty);
@@ -2218,8 +2314,16 @@ async function confirmEditService() {
   btn.disabled = true;
   try {
     var svc = { name: name, defaultPrice: defaultPrice };
+    var oldSvc = services[id] ? Object.assign({}, services[id]) : null;
     await dbUpdateService(id, svc);
     services[id] = svc;
+    // Log every changed field to edit_logs
+    if (oldSvc) {
+      logEdits('service', id, name,
+        { name: oldSvc.name, price: oldSvc.defaultPrice },
+        { name: svc.name,    price: svc.defaultPrice },
+        ['name', 'price']);
+    }
     closeModal('editSvcModal');
     showToast(t('svcUpdated'), 'success');
     renderServices();
@@ -2308,7 +2412,7 @@ async function sellService() {
   var note = document.getElementById('sellSvcNote').value.trim();
   var btn = document.getElementById('sellSvcBtn');
   btn.disabled = true;
-  var ss = { serviceId: id, serviceName: s.name, price: price, note: note, ts: Date.now(), soldBy: currentRole };
+  var ss = { serviceId: id, serviceName: s.name, price: price, note: note, ts: Date.now(), soldBy: currentRole, branch: currentBranch };
   try {
     var newId = await dbSaveServiceSale(ss);
     ss.id = newId;
@@ -2332,7 +2436,7 @@ async function sellFreeService() {
   if (price == null || isNaN(price) || price <= 0) { showToast(t('enterSvcPrice'), 'error'); return; }
   var btn = document.getElementById('freeSvcBtn');
   btn.disabled = true;
-  var ss = { serviceId: null, serviceName: name, price: price, note: note, ts: Date.now(), soldBy: currentRole };
+  var ss = { serviceId: null, serviceName: name, price: price, note: note, ts: Date.now(), soldBy: currentRole, branch: currentBranch };
   try {
     var newId = await dbSaveServiceSale(ss);
     ss.id = newId;
@@ -2405,6 +2509,28 @@ function setAnalyticsView(v) {
   renderAnalytics();
 }
 
+// Branch filter for analytics: '1' (025) | '2' (303) | 'both'
+function setAnalyticsBranch(b) {
+  analyticsBranch = b;
+  document.getElementById('ab-1').className    = 'ab-btn' + (b === '1'    ? ' active' : '');
+  document.getElementById('ab-2').className    = 'ab-btn' + (b === '2'    ? ' active' : '');
+  document.getElementById('ab-both').className = 'ab-btn' + (b === 'both' ? ' active both' : '');
+  analyticsCache.key = null;
+  renderAnalytics();
+}
+
+function _saleMatchesAnalyticsBranch(s) {
+  if (analyticsBranch === 'both') return true;
+  return Number(s.branch || 1) === Number(analyticsBranch);
+}
+
+// Get a branch's inventory dictionary (handles the goods/goods2/goodsBranch1 swap).
+function _getBranchGoods(b) {
+  if (b === 1) return currentBranch === 1 ? goods : goodsBranch1;
+  if (b === 2) return currentBranch === 2 ? goods : goods2;
+  return {};
+}
+
 function periodStart(p) {
   if (p === 'custom') return customDateFrom || 0;
   var now = new Date();
@@ -2426,15 +2552,19 @@ function renderAnalytics() {
   // length, so we also fingerprint the most recent sale's id+ts.
   var fp = (sales.length && sales[0]) ? (sales[0].id + ':' + sales[0].ts) : '';
   fp += '|' + ((serviceSales.length && serviceSales[0]) ? (serviceSales[0].id + ':' + serviceSales[0].ts) : '');
-  var cacheKey = activePeriod + '|' + analyticsView + '|' + (customDateFrom||'') + '|' + (customDateTo||'');
+  var cacheKey = activePeriod + '|' + analyticsView + '|' + analyticsBranch + '|' + (customDateFrom||'') + '|' + (customDateTo||'');
   if (!editModeActive &&
       analyticsCache.key === cacheKey &&
       analyticsCache.salesLen === sales.length &&
       analyticsCache.svcLen === serviceSales.length &&
       analyticsCache.fp === fp) return;
   analyticsCache = { key: cacheKey, salesLen: sales.length, svcLen: serviceSales.length, fp: fp };
-  var filteredSales = (analyticsView === 'services') ? [] : sales.filter(function(s) { return s.ts >= start && s.ts <= end; });
-  var filteredSvcSales = (analyticsView === 'products') ? [] : serviceSales.filter(function(s) { return s.ts >= start && s.ts <= end; });
+  var filteredSales = (analyticsView === 'services') ? [] : sales.filter(function(s) {
+    return s.ts >= start && s.ts <= end && _saleMatchesAnalyticsBranch(s);
+  });
+  var filteredSvcSales = (analyticsView === 'products') ? [] : serviceSales.filter(function(s) {
+    return s.ts >= start && s.ts <= end && _saleMatchesAnalyticsBranch(s);
+  });
   _filteredSales = filteredSales;
   _filteredSvcSales = filteredSvcSales;
   document.getElementById('txSearchInput').value = '';
@@ -2453,10 +2583,14 @@ function renderAnalytics() {
   var viewSuffix = analyticsView === 'products' ? (' · ' + t('analyticsProducts')) :
                    analyticsView === 'services' ? (' · ' + t('analyticsServices')) : (' · ' + t('analyticsBoth'));
 
+  var branchSuffix = analyticsBranch === 'both'
+    ? (' · ' + (lang === 'uz' ? '025 + 303' : '025 + 303'))
+    : (' · ' + (analyticsBranch === '2' ? '303' : '025'));
+
   var periodLabel = activePeriod === 'custom'
     ? (lang === 'uz' ? 'Tanlangan davr' : 'Custom Range')
     : t(lk[activePeriod]);
-  document.getElementById('heroLabel').textContent = periodLabel + ' ' + t('revenue') + viewSuffix;
+  document.getElementById('heroLabel').textContent = periodLabel + ' ' + t('revenue') + viewSuffix + branchSuffix;
   document.getElementById('heroRevenue').textContent = fmt(totalRev);
   var hp = document.getElementById('heroProfit');
   hp.textContent = (totalProfit >= 0 ? '+' : '') + fmt(totalProfit);
@@ -2467,26 +2601,31 @@ function renderAnalytics() {
   document.getElementById('ac-units').textContent = totalQty % 1 === 0 ? totalQty : totalQty.toFixed(2);
   document.getElementById('ac-avg').textContent = fmt(avgSale);
 
-  // Totals strip — based on ALL current products (theoretical "if all sold")
+  // Totals strip — based on inventory of the selected branch(es).
   try {
     var allCost = 0;       // total cost of inventory  (sum of qty * cost)
     var allRev = 0;        // potential revenue        (sum of qty * sell)
     var allProfit = 0;     // potential profit         (sum of qty * (sell - cost))
     var marginPctSum = 0;  // for averaging margins
     var marginCount = 0;   // # of products with valid margin
-    Object.values(goods).forEach(function(g){
-      var qty = (g.qty != null && isFinite(g.qty)) ? g.qty : 0;
-      var cp  = (g.costPrice != null && isFinite(g.costPrice)) ? g.costPrice : null;
-      var sp  = (g.sellPrice != null && isFinite(g.sellPrice)) ? g.sellPrice : null;
-      if (cp != null) allCost += qty * cp;
-      if (sp != null) allRev  += qty * sp;
-      if (cp != null && sp != null) {
-        allProfit += qty * (sp - cp);
-        if (sp > 0) {
-          marginPctSum += ((sp - cp) / sp) * 100;
-          marginCount++;
+    var invBuckets = [];
+    if (analyticsBranch === 'both') { invBuckets = [_getBranchGoods(1), _getBranchGoods(2)]; }
+    else { invBuckets = [_getBranchGoods(parseInt(analyticsBranch))]; }
+    invBuckets.forEach(function(bucket){
+      Object.values(bucket || {}).forEach(function(g){
+        var qty = (g.qty != null && isFinite(g.qty)) ? g.qty : 0;
+        var cp  = (g.costPrice != null && isFinite(g.costPrice)) ? g.costPrice : null;
+        var sp  = (g.sellPrice != null && isFinite(g.sellPrice)) ? g.sellPrice : null;
+        if (cp != null) allCost += qty * cp;
+        if (sp != null) allRev  += qty * sp;
+        if (cp != null && sp != null) {
+          allProfit += qty * (sp - cp);
+          if (sp > 0) {
+            marginPctSum += ((sp - cp) / sp) * 100;
+            marginCount++;
+          }
         }
-      }
+      });
     });
     var avgMarginPct = marginCount ? (marginPctSum / marginCount) : 0;
     var tsInv = document.getElementById('ts-inv-value');
@@ -3569,6 +3708,27 @@ async function confirmEditGood() {
         throw e;
       }
     }
+    // Log every changed field to edit_logs (after DB confirms)
+    if (oldSnapshot) {
+      var oldFlat = {
+        code: oldCode,
+        name: oldSnapshot.name || '',
+        type: oldSnapshot.type,
+        qty: oldSnapshot.qty,
+        cost_price: oldSnapshot.costPrice,
+        sell_price: oldSnapshot.sellPrice
+      };
+      var newFlat = {
+        code: newCode,
+        name: name,
+        type: editSelectedType,
+        qty: qty,
+        cost_price: costPrice,
+        sell_price: sellPrice
+      };
+      logEdits('product', newCode, name, oldFlat, newFlat,
+               ['code', 'name', 'type', 'qty', 'cost_price', 'sell_price']);
+    }
     closeModal('editModal');
     showToast(newCode.toUpperCase() + ' ' + t('editUpdated'), 'success');
     renderInventory();
@@ -3873,7 +4033,17 @@ function setAddBranch(val) {
 // ═══════════════════════════════════════════════
 //  HISTORY (STOCK LOG)
 // ═══════════════════════════════════════════════
+function setHistoryView(v) {
+  historyView = v;
+  document.getElementById('hv-stock').className = 'hv-btn' + (v === 'stock' ? ' active' : '');
+  document.getElementById('hv-edits').className = 'hv-btn' + (v === 'edits' ? ' active edits' : '');
+  renderHistory();
+}
+
+function branchLabelText(b) { return b === 2 ? '303' : '025'; }
+
 function renderHistory() {
+  if (historyView === 'edits') { renderEditHistory(); return; }
   var q = (document.getElementById('historySearch') ? document.getElementById('historySearch').value.trim().toLowerCase() : '');
   var list = document.getElementById('historyList');
   if (!list) return;
@@ -3891,7 +4061,7 @@ function renderHistory() {
     var color = isNew ? 'new_product' : 'restock';
     var dateStr = new Date(e.ts).toLocaleString(lang === 'uz' ? 'ru-RU' : 'en-GB', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
     var typeLabel = isNew ? (lang === 'uz' ? 'Yangi tovar' : 'New product') : (lang === 'uz' ? 'Qo\'shildi' : 'Restocked');
-    var branchLabel = e.branch ? '<span class="history-branch-badge">B' + e.branch + '</span>' : '';
+    var branchLabel = e.branch ? '<span class="history-branch-badge">' + branchLabelText(e.branch) + '</span>' : '';
     return '<div class="history-entry ' + color + '">' +
       '<div class="history-icon ' + color + '">' + icon + '</div>' +
       '<div class="history-info">' +
@@ -3904,6 +4074,64 @@ function renderHistory() {
       '</div>' +
     '</div>';
   }).join('');
+}
+
+// Render the edit-history table.
+function renderEditHistory() {
+  var q = (document.getElementById('historySearch') ? document.getElementById('historySearch').value.trim().toLowerCase() : '');
+  var list = document.getElementById('historyList');
+  if (!list) return;
+  var fieldLabels = {
+    code:        lang === 'uz' ? 'Kod'        : 'Code',
+    name:        lang === 'uz' ? 'Nomi'       : 'Name',
+    type:        lang === 'uz' ? 'Turi'       : 'Type',
+    qty:         lang === 'uz' ? 'Miqdor'     : 'Quantity',
+    cost_price:  lang === 'uz' ? 'Tannarx'    : 'Cost price',
+    sell_price:  lang === 'uz' ? 'Sotuv narx' : 'Sell price',
+    price:       lang === 'uz' ? 'Narx'       : 'Price'
+  };
+  var roleLabels = {
+    manager: lang === 'uz' ? 'Manager'  : 'Manager',
+    seller:  lang === 'uz' ? 'Sotuvchi' : 'Seller'
+  };
+  var filtered = editLogs.filter(function(e) {
+    if (!q) return true;
+    return (e.entityId || '').toLowerCase().includes(q)
+        || (e.entityName || '').toLowerCase().includes(q)
+        || (e.field || '').toLowerCase().includes(q);
+  });
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-state"><div class="emoji">&#x270F;&#xFE0F;</div><p>' +
+      (lang === 'uz' ? 'Hozircha tahrirlar yoq' : 'No edits yet') + '</p></div>';
+    return;
+  }
+  var rows = filtered.map(function(e) {
+    var dateStr = new Date(e.ts).toLocaleString(lang === 'uz' ? 'ru-RU' : 'en-GB',
+      { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' });
+    var fieldText = fieldLabels[e.field] || e.field;
+    var ov = (e.oldValue == null || e.oldValue === '') ? '—' : esc(e.oldValue);
+    var nv = (e.newValue == null || e.newValue === '') ? '—' : esc(e.newValue);
+    var who = roleLabels[e.doneBy] || e.doneBy || '—';
+    var br  = '<span class="edit-cell-branch">' + branchLabelText(e.branch) + '</span>';
+    var typeBadge = e.entityType === 'service'
+      ? '<span class="tx-type-badge svc" style="margin-left:4px">SVC</span>'
+      : '<span class="tx-type-badge prod" style="margin-left:4px">PRD</span>';
+    return '<tr>' +
+      '<td><div class="edit-cell-code">' + esc(String(e.entityId || '').toUpperCase()) + typeBadge + '</div>' +
+        (e.entityName ? '<div class="edit-cell-name">' + esc(e.entityName) + '</div>' : '') + '</td>' +
+      '<td><span class="edit-cell-field">' + esc(fieldText) + '</span></td>' +
+      '<td><span class="edit-cell-old">' + ov + '</span> &rarr; <span class="edit-cell-new">' + nv + '</span></td>' +
+      '<td><div class="edit-cell-time">' + dateStr + '</div>' +
+        '<div class="edit-cell-by">' + esc(who) + ' · ' + br + '</div></td>' +
+    '</tr>';
+  }).join('');
+  list.innerHTML = '<div class="edit-table-wrap"><table class="edit-table">' +
+    '<thead><tr>' +
+      '<th>' + (lang === 'uz' ? 'Tovar/Xizmat' : 'Item') + '</th>' +
+      '<th>' + (lang === 'uz' ? 'Maydon'       : 'Field') + '</th>' +
+      '<th>' + (lang === 'uz' ? "O'zgarish"    : 'Change') + '</th>' +
+      '<th>' + (lang === 'uz' ? 'Vaqt / Kim'   : 'When / Who') + '</th>' +
+    '</tr></thead><tbody>' + rows + '</tbody></table></div>';
 }
 
 function filterHistory() { renderHistory(); }
