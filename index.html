@@ -1417,16 +1417,29 @@ async function dbLoad() {
   (g.data || []).forEach(function(r) {
     newGoods[r.id] = { type: r.type, qty: Number(r.qty), name: r.name || '', costPrice: r.cost_price != null ? Number(r.cost_price) : null, sellPrice: r.sell_price != null ? Number(r.sell_price) : null, barcode: r.barcode || null };
   });
-  goods = newGoods;
-  // Build an independent copy for goodsBranch1 so mutations on goods (current branch)
-  // don't silently change the branch-1 snapshot.
-  goodsBranch1 = {};
-  Object.keys(newGoods).forEach(function(k){ goodsBranch1[k] = Object.assign({}, newGoods[k]); });
   var newGoods2 = {};
   ((g2 && !g2.error ? g2.data : null) || []).forEach(function(r) {
     newGoods2[r.id] = { type: r.type, qty: Number(r.qty), name: r.name || '', costPrice: r.cost_price != null ? Number(r.cost_price) : null, sellPrice: r.sell_price != null ? Number(r.sell_price) : null, barcode: r.barcode || null };
   });
-  goods2 = newGoods2;
+  // Respect currentBranch — `goods` MUST point to the active branch's data,
+  // otherwise reloading while on Branch 2 would silently swap the view back
+  // to Branch 1 inventory (and any subsequent add would write to the wrong
+  // in-memory dict). Mirror the swap that switchBranch() performs.
+  if (currentBranch === 2) {
+    // Active = Branch 2
+    goods = newGoods2;
+    goods2 = newGoods2;        // matches switchBranch convention (shared ref while active)
+    // Independent copy of the branch-1 snapshot so mutations on `goods` don't bleed in.
+    goodsBranch1 = {};
+    Object.keys(newGoods).forEach(function(k){ goodsBranch1[k] = Object.assign({}, newGoods[k]); });
+  } else {
+    // Active = Branch 1
+    goods = newGoods;
+    // Independent copy for the branch-1 snapshot.
+    goodsBranch1 = {};
+    Object.keys(newGoods).forEach(function(k){ goodsBranch1[k] = Object.assign({}, newGoods[k]); });
+    goods2 = newGoods2;
+  }
   await dbLoadStockLogs();
   await dbLoadEditLogs();
   sales = (s.data || []).map(function(r) {
