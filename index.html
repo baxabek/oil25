@@ -544,7 +544,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         </div>
         <div class="form-group">
           <label class="form-label t" data-uz="Nomi / Tavsifi" data-en="Name / Description">Nomi / Tavsifi</label>
-          <input class="form-input no-upper" id="addName" type="text" autocomplete="off">
+          <input class="form-input no-upper" id="addName" type="text" autocomplete="off" maxlength="100">
         </div>
         <div class="form-group">
           <label class="form-label t" data-uz="Turi" data-en="Type">Turi</label>
@@ -636,7 +636,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           </div>
           <div class="form-group">
             <label class="form-label t" data-uz="Izoh (ixtiyoriy)" data-en="Note (optional)">Izoh (ixtiyoriy)</label>
-            <input class="form-input no-upper" id="sellNote" type="text" autocomplete="off" style="text-transform:none">
+            <input class="form-input no-upper" id="sellNote" type="text" autocomplete="off" maxlength="200" style="text-transform:none">
           </div>
           <button class="btn btn-sell" id="sellBtn" onclick="sellGood()">&#x1F4B8; <span class="t" data-uz="Sotishni Tasdiqlash" data-en="Confirm Sale">Sotishni Tasdiqlash</span></button>
         </div>
@@ -658,7 +658,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           </div>
           <div class="form-group">
             <label class="form-label t" data-uz="Izoh (ixtiyoriy)" data-en="Note (optional)">Izoh (ixtiyoriy)</label>
-            <input class="form-input no-upper" id="sellSvcNote" type="text" autocomplete="off">
+            <input class="form-input no-upper" id="sellSvcNote" type="text" autocomplete="off" maxlength="200">
           </div>
           <div class="sell-price-preview" style="margin-bottom:14px">
             <div class="spp-item"><div class="spp-label t" data-uz="Standart" data-en="Default">Standart</div><div class="spp-val c-teal" id="svc-spp-default">&#x2014;</div></div>
@@ -679,7 +679,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="free-svc-card">
           <div class="form-group">
             <label class="form-label t" data-uz="Xizmat nomi *" data-en="Service name *">Xizmat nomi *</label>
-            <input class="form-input no-upper" id="freeSvcName" type="text" autocomplete="off">
+            <input class="form-input no-upper" id="freeSvcName" type="text" autocomplete="off" maxlength="100">
           </div>
           <div class="form-group">
             <label class="form-label t" data-uz="Narx *" data-en="Price *">Narx *</label>
@@ -687,7 +687,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           </div>
           <div class="form-group" style="margin-bottom:0">
             <label class="form-label t" data-uz="Izoh (ixtiyoriy)" data-en="Note (optional)">Izoh (ixtiyoriy)</label>
-            <input class="form-input no-upper" id="freeSvcNote" type="text" autocomplete="off">
+            <input class="form-input no-upper" id="freeSvcNote" type="text" autocomplete="off" maxlength="200">
           </div>
           <div style="margin-top:12px">
             <button class="btn btn-teal" id="freeSvcBtn" onclick="sellFreeService()">&#x2795; <span class="t" data-uz="Xizmatni Qayd Etish" data-en="Record Service">Xizmatni Qayd Etish</span></button>
@@ -703,7 +703,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="form-section-title">&#x2699;&#xFE0F; <span class="t" data-uz="Xizmat Qoshish" data-en="Add Service">Xizmat Qoshish</span></div>
         <div class="form-group">
           <label class="form-label t" data-uz="Xizmat nomi *" data-en="Service name *">Xizmat nomi *</label>
-          <input class="form-input no-upper" id="svcName" type="text" autocomplete="off">
+          <input class="form-input no-upper" id="svcName" type="text" autocomplete="off" maxlength="100">
         </div>
         <div class="form-group" style="margin-bottom:0">
           <label class="form-label t" data-uz="Standart narxi" data-en="Default price">Standart narxi</label>
@@ -941,7 +941,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div>
       <div class="form-group">
         <label class="form-label" id="editLabelName">Name</label>
-        <input class="form-input no-upper" id="editName" type="text" autocomplete="off">
+        <input class="form-input no-upper" id="editName" type="text" autocomplete="off" maxlength="100">
       </div>
       <div class="form-group">
         <label class="form-label" id="editLabelType">Type</label>
@@ -983,7 +983,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div style="margin-top:12px">
       <div class="form-group">
         <label class="form-label" id="editSvcLabelName">Name</label>
-        <input class="form-input no-upper" id="editSvcName" type="text" autocomplete="off">
+        <input class="form-input no-upper" id="editSvcName" type="text" autocomplete="off" maxlength="100">
       </div>
       <div class="form-group">
         <label class="form-label" id="editSvcLabelPrice">Default Price</label>
@@ -1006,6 +1006,42 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="modal-actions">
       <button class="btn-outline" id="cancelBtnSvcDel" onclick="closeModal('deleteSvcModal')"></button>
       <button class="btn btn-sell" id="deleteSvcConfirmBtn" onclick="confirmDeleteService()"></button>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PIN MODAL -->
+<div class="modal-overlay" id="changePinModal" onclick="closeModal('changePinModal')">
+  <div class="modal" onclick="event.stopPropagation()" style="padding-bottom:40px">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="cpTitle">Change PIN</div>
+    <div class="modal-sub" id="cpSub">Manager auth required to update either PIN.</div>
+    <div style="margin-top:12px">
+      <div class="form-group">
+        <label class="form-label" id="cpRoleLabel">Update PIN for</label>
+        <div class="type-toggle">
+          <button class="type-btn" id="cpRoleManager" onclick="setCpRole('manager')" type="button">&#x1F451; Manager</button>
+          <button class="type-btn" id="cpRoleSeller"  onclick="setCpRole('seller')"  type="button">&#x1F464; Seller</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="cpCurrentLabel">Current Manager PIN *</label>
+        <input class="form-input" id="cpCurrentPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off">
+        <div id="cpCurrentError" style="font-size:11px;color:var(--danger);min-height:14px;margin-top:5px"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="cpNewLabel">New PIN (4 digits) *</label>
+        <input class="form-input" id="cpNewPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="cpConfirmLabel">Confirm new PIN *</label>
+        <input class="form-input" id="cpConfirmPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off">
+        <div id="cpMatchError" style="font-size:11px;color:var(--danger);min-height:14px;margin-top:5px"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" id="cpCancelBtn" onclick="closeModal('changePinModal')">Cancel</button>
+      <button class="btn btn-add" id="cpSaveBtn" onclick="saveChangedPin()">Save</button>
     </div>
   </div>
 </div>
@@ -1096,6 +1132,18 @@ var _txPageOffset = 0;
 var revenueChartInstance = null;
 var _filteredSales = [];
 var _filteredSvcSales = [];
+
+// Per-code in-flight locks to prevent overlapping qty mutations from corrupting
+// each other's rollback snapshots. Each value is a Promise-chain tail.
+var _qtyLocks = {};
+function withQtyLock(code, fn) {
+  var prev = _qtyLocks[code] || Promise.resolve();
+  var next = prev.catch(function(){}).then(fn);
+  _qtyLocks[code] = next.finally(function(){
+    if (_qtyLocks[code] === next) delete _qtyLocks[code];
+  });
+  return next;
+}
 
 // ═══════════════════════════════════════════════
 //  TRANSLATIONS
@@ -1319,12 +1367,21 @@ async function dbLoad() {
   if (s.error) throw s.error;
   if (sv.error) throw sv.error;
   if (ss.error) throw ss.error;
+  // Don't silently drop a transient goods2 error — that makes Branch 2 look empty
+  // and any save in that state will create new rows from scratch.
+  if (g2 && g2.error) {
+    console.warn('goods2 load failed:', g2.error);
+    showToast(lang==='uz' ? 'Branch 2 yuklanmadi — qayta urinib koring' : 'Branch 2 failed to load — retry', 'error');
+  }
   var newGoods = {};
   (g.data || []).forEach(function(r) {
     newGoods[r.id] = { type: r.type, qty: Number(r.qty), name: r.name || '', costPrice: r.cost_price != null ? Number(r.cost_price) : null, sellPrice: r.sell_price != null ? Number(r.sell_price) : null, barcode: r.barcode || null };
   });
   goods = newGoods;
-  goodsBranch1 = newGoods;
+  // Build an independent copy for goodsBranch1 so mutations on goods (current branch)
+  // don't silently change the branch-1 snapshot.
+  goodsBranch1 = {};
+  Object.keys(newGoods).forEach(function(k){ goodsBranch1[k] = Object.assign({}, newGoods[k]); });
   var newGoods2 = {};
   ((g2 && !g2.error ? g2.data : null) || []).forEach(function(r) {
     newGoods2[r.id] = { type: r.type, qty: Number(r.qty), name: r.name || '', costPrice: r.cost_price != null ? Number(r.cost_price) : null, sellPrice: r.sell_price != null ? Number(r.sell_price) : null, barcode: r.barcode || null };
@@ -1410,7 +1467,10 @@ async function dbCopyBranch1ToBranch2() {
     rows.forEach(function(r) {
       goods[r.id] = { type: r.type, qty: Number(r.qty), name: r.name||'', costPrice: r.cost_price!=null?Number(r.cost_price):null, sellPrice: r.sell_price!=null?Number(r.sell_price):null, barcode: r.barcode||null };
     });
-    goods2 = goods; // keep goods2 in sync
+    // Keep goods2 in sync with an independent copy — never share a reference with goods,
+    // otherwise switching branches will desync the two stores in subtle ways.
+    goods2 = {};
+    Object.keys(goods).forEach(function(k){ goods2[k] = Object.assign({}, goods[k]); });
     setSync('ok');
     showToast(lang==='uz'?'Barcha tovarlar Branch 2 ga nusxalandi!':'All products copied to Branch 2!', 'success');
     renderInventory();
@@ -1496,9 +1556,11 @@ var CACHE_MAX_AGE = 5 * 60 * 1000; // 5 minutes
 function saveCache() {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({
-      ts: Date.now(), goods: goods, sales: sales,
-      services: services, serviceSales: serviceSales,
-      debts: debts, debtPayments: debtPayments
+      ts: Date.now(), goods: goods, goods2: goods2, goodsBranch1: goodsBranch1, currentBranch: currentBranch,
+      sales: sales, services: services, serviceSales: serviceSales,
+      debts: debts, debtPayments: debtPayments,
+      // Cap stockLogs to keep cache small (only the most recent 200).
+      stockLogs: stockLogs.slice(0, 200)
     }));
   } catch(e) {}
 }
@@ -1510,11 +1572,15 @@ function loadCache() {
     var c = JSON.parse(raw);
     if (Date.now() - c.ts > CACHE_MAX_AGE) return false;
     goods = c.goods || {};
+    goods2 = c.goods2 || {};
+    goodsBranch1 = c.goodsBranch1 || {};
+    if (typeof c.currentBranch === 'number') currentBranch = c.currentBranch;
     sales = c.sales || [];
     services = c.services || {};
     serviceSales = c.serviceSales || [];
     debts = c.debts || [];
     debtPayments = c.debtPayments || {};
+    stockLogs = c.stockLogs || [];
     return true;
   } catch(e) { return false; }
 }
@@ -1614,7 +1680,11 @@ function checkPin() {
       pinAttempts++;
       for (var i=0;i<4;i++) document.getElementById('pd'+i).className='pin-dot error';
       if (pinAttempts>=MAX_PIN_ATTEMPTS) {
-        pinLockedUntil=Date.now()+LOCKOUT_MS; pinAttempts=0;
+        // Exponential lockout: 5min, 10min, 20min, 40min, capped at 60min.
+        // Don't reset pinAttempts — keep counting so each lockout is longer than the last.
+        var overshoot = pinAttempts - MAX_PIN_ATTEMPTS;
+        var multiplier = Math.min(Math.pow(2, overshoot), 12); // 1,2,4,8,12 max
+        pinLockedUntil = Date.now() + LOCKOUT_MS * multiplier;
         document.getElementById('pinError').textContent=(lang==='uz'?'5 ta xato! 5 daqiqa bloklandi.':'5 wrong! Locked 5 min.');
         if(lockoutTimer)clearInterval(lockoutTimer);
         lockoutTimer=setInterval(function(){
@@ -1634,7 +1704,17 @@ function startSessionTimer(){
   if(sessionTimer)clearTimeout(sessionTimer);
   sessionTimer=setTimeout(function(){if(currentRole){lockApp();setTimeout(function(){document.getElementById('pinError').textContent=(lang==='uz'?'20 daqiqa faolsizlik - qayta kiring.':'20 min inactivity - please log in.');},100);}},SESSION_MS);
 }
-function resetSessionTimer(){if(currentRole)startSessionTimer();}
+// Throttle resets so the 20-min auto-lock can actually fire. Without this,
+// any tap (including ambient/edge touches) cancels the timer indefinitely.
+var _lastSessionReset = 0;
+var SESSION_RESET_THROTTLE_MS = 30 * 1000;
+function resetSessionTimer(){
+  if(!currentRole) return;
+  var now = Date.now();
+  if (now - _lastSessionReset < SESSION_RESET_THROTTLE_MS) return;
+  _lastSessionReset = now;
+  startSessionTimer();
+}
 
 function lockApp() {
   currentRole = null; editModeActive = false; pinInput = '';
@@ -1813,12 +1893,14 @@ async function addGood() {
   var sellPrice = spVal !== '' ? parseFloat(spVal) : null;
   if (!code) { showToast(t('enterCode'), 'error'); return; }
   if (!/^[a-z0-9]+$/.test(code)) { showToast(t('codeFormat'), 'error'); return; }
-  // Reject negative or non-finite qty / prices
-  if (!isFinite(qty) || qty < 0) { showToast(t('enterQty'), 'error'); return; }
-  if (costPrice !== null && (!isFinite(costPrice) || costPrice < 0)) { showToast(t('enterQty'), 'error'); return; }
-  if (sellPrice !== null && (!isFinite(sellPrice) || sellPrice < 0)) { showToast(t('enterQty'), 'error'); return; }
+  // Reject negative, non-finite, or absurdly large qty / prices.
+  if (!isSaneNumber(qty, MAX_QTY)) { showToast(t('enterQty'), 'error'); return; }
+  if (costPrice !== null && !isSaneNumber(costPrice, MAX_PRICE)) { showToast(t('enterQty'), 'error'); return; }
+  if (sellPrice !== null && !isSaneNumber(sellPrice, MAX_PRICE)) { showToast(t('enterQty'), 'error'); return; }
   // Solid goods must be whole units
-  if (selectedType === 'solid' && qty % 1 !== 0) { showToast(t('enterQty'), 'error'); return; }
+  if (selectedType === 'solid' && !isWholeQty(qty)) { showToast(t('enterQty'), 'error'); return; }
+  // Cap free-text fields so a runaway name can't break rendering.
+  if (name.length > 100) name = name.slice(0, 100);
   var checkSrc = (addBranchTarget === 2) ? goods2 : goods;
   if (checkSrc[code]) {
     var existingName = checkSrc[code].name ? checkSrc[code].name.toUpperCase() : code.toUpperCase();
@@ -1938,18 +2020,18 @@ function renderSellSuggestions(q) {
   }
   function hl(text, qq) {
     if (!text) return '';
-    var t = String(text);
-    var lo = t.toLowerCase();
+    var s = String(text);
+    var lo = s.toLowerCase();
     var i = lo.indexOf(qq);
-    if (i < 0) return esc(t);
-    return esc(t.slice(0, i)) + '<mark>' + esc(t.slice(i, i + qq.length)) + '</mark>' + esc(t.slice(i + qq.length));
+    if (i < 0) return esc(s);
+    return esc(s.slice(0, i)) + '<mark>' + esc(s.slice(i, i + qq.length)) + '</mark>' + esc(s.slice(i + qq.length));
   }
   sugEl.innerHTML = matches.map(function(k){
     var g = goods[k];
     var icon = g.type === 'liquid' ? '💧' : '📦';
-    var unit = g.type === 'liquid' ? 'L' : (typeof t === 'function' ? t('unit') : 'dona');
-    var qtyTxt = (typeof fmtQty === 'function' ? fmtQty(g.qty, g.type) : g.qty) + ' ' + unit;
-    var nameTxt = g.name || (g.type === 'liquid' ? (typeof t === 'function' ? t('liquidGood') : 'Suyuq') : (typeof t === 'function' ? t('solidGood') : 'Qattiq'));
+    var unit = g.type === 'liquid' ? 'L' : t('unit');
+    var qtyTxt = fmtQty(g.qty, g.type) + ' ' + unit;
+    var nameTxt = g.name || (g.type === 'liquid' ? t('liquidGood') : t('solidGood'));
     return '<div class="sell-suggest-item" onclick="pickSellSuggestion(\''+ esc(k) +'\')">' +
       '<div class="sell-suggest-icon ' + g.type + '">' + icon + '</div>' +
       '<div class="sell-suggest-info">' +
@@ -2011,7 +2093,7 @@ async function sellGood() {
   if (!code || !goods[code]) { showToast(t('notFound'), 'error'); return; }
   if (!qty || qty <= 0 || !isFinite(qty)) { showToast(t('enterQty'), 'error'); return; }
   var g = goods[code];
-  if (g.type === 'solid' && qty % 1 !== 0) { showToast(t('enterQty'), 'error'); return; }
+  if (g.type === 'solid' && !isWholeQty(qty)) { showToast(t('enterQty'), 'error'); return; }
   if (qty > g.qty) { showToast(t('onlyAvail') + ' ' + fmtQty(g.qty, g.type), 'error'); return; }
   var btn = document.getElementById('sellBtn');
   btn.disabled = true;
@@ -2026,8 +2108,7 @@ async function sellGood() {
   var sale = { code: code, qty: qty, revenue: revenue, profit: profit, ts: Date.now(), actualPrice: actualPrice, setPrice: g.sellPrice || null, note: saleNote, soldBy: currentRole, id: tmpId };
 
   // ⚡ Optimistic update — instant UI response
-  var prevQty = g.qty;
-  g.qty = parseFloat((g.qty - qty).toFixed(4));
+  g.qty = roundQty(g.qty - qty);
   sales.unshift(sale);
   analyticsCache.key = null; // invalidate analytics cache
   showToast(fmtQty(qty, g.type) + ' ' + t('soldMsg') + ' ' + code.toUpperCase(), 'success');
@@ -2038,23 +2119,26 @@ async function sellGood() {
   onSellCodeInput();
   btn.disabled = false;
 
-  // Sync to DB in background
-  try {
-    var results = await Promise.all([dbSaveGood(code), dbSaveSale(sale)]);
-    sale.id = results[1]; // replace tmp id with real uuid
-    analyticsCache.key = null; // force analytics re-render with real id
-    if (currentRole && document.getElementById('panel-analytics').classList.contains('active')) {
-      renderAnalytics();
+  // Serialise the DB write per code — concurrent sells of the same item
+  // can't corrupt each other's rollback because each waits its turn.
+  withQtyLock(code, async function() {
+    try {
+      var results = await Promise.all([dbSaveGood(code), dbSaveSale(sale)]);
+      sale.id = results[1]; // replace tmp id with real uuid
+      analyticsCache.key = null;
+      if (currentRole && document.getElementById('panel-analytics').classList.contains('active')) {
+        renderAnalytics();
+      }
+    } catch(e) {
+      // Rollback by re-adding the qty (composes correctly with concurrent ops).
+      if (goods[code]) goods[code].qty = roundQty(goods[code].qty + qty);
+      sales = sales.filter(function(s) { return s.id !== tmpId && s.id !== sale.id; });
+      analyticsCache.key = null;
+      showToast(t('saleFail'), 'error');
+      onSellCodeInput();
+      renderInventory();
     }
-  } catch(e) {
-    // Roll back on failure — use the tmpId snapshot, not sale.id, in case the
-    // id was mutated mid-flight by a partial success.
-    g.qty = prevQty;
-    sales = sales.filter(function(s) { return s.id !== tmpId && s.id !== sale.id; });
-    analyticsCache.key = null;
-    showToast(t('saleFail'), 'error');
-    onSellCodeInput();
-  }
+  });
 }
 
 function quickSell(code) {
@@ -2337,13 +2421,18 @@ function renderAnalytics() {
   var start = periodStart(activePeriod);
   var end = periodEnd(activePeriod);
 
-  // Skip full re-render if nothing changed
+  // Skip full re-render only when nothing relevant changed. Length alone isn't
+  // enough — mutating a sale's id (after DB confirms a tmp id) doesn't change
+  // length, so we also fingerprint the most recent sale's id+ts.
+  var fp = (sales.length && sales[0]) ? (sales[0].id + ':' + sales[0].ts) : '';
+  fp += '|' + ((serviceSales.length && serviceSales[0]) ? (serviceSales[0].id + ':' + serviceSales[0].ts) : '');
   var cacheKey = activePeriod + '|' + analyticsView + '|' + (customDateFrom||'') + '|' + (customDateTo||'');
   if (!editModeActive &&
       analyticsCache.key === cacheKey &&
       analyticsCache.salesLen === sales.length &&
-      analyticsCache.svcLen === serviceSales.length) return;
-  analyticsCache = { key: cacheKey, salesLen: sales.length, svcLen: serviceSales.length };
+      analyticsCache.svcLen === serviceSales.length &&
+      analyticsCache.fp === fp) return;
+  analyticsCache = { key: cacheKey, salesLen: sales.length, svcLen: serviceSales.length, fp: fp };
   var filteredSales = (analyticsView === 'services') ? [] : sales.filter(function(s) { return s.ts >= start && s.ts <= end; });
   var filteredSvcSales = (analyticsView === 'products') ? [] : serviceSales.filter(function(s) { return s.ts >= start && s.ts <= end; });
   _filteredSales = filteredSales;
@@ -2630,6 +2719,7 @@ function closePerfModal() {
 
 function autoUpdateDebtStatuses() {
   var today = new Date(); today.setHours(0,0,0,0);
+  var anyChanged = false;
   debts.forEach(function(d) {
     var prevStatus = d.status;
     if (d.paidAmount >= d.amount && d.status !== 'paid') {
@@ -2641,10 +2731,17 @@ function autoUpdateDebtStatuses() {
       }
     }
     if (d.status !== prevStatus) {
-      db.from('debts').update({ status: d.status }).eq('id', d.id);
-      saveCache();
+      anyChanged = true;
+      // Skip optimistic-only debts that haven't yet been confirmed by the server.
+      if (typeof d.id === 'string' && d.id.indexOf('tmp_') === 0) return;
+      // Persist so other devices see the new status. Errors are non-fatal — the
+      // status will be re-derived next time anyone opens the app.
+      db.from('debts').update({ status: d.status }).eq('id', d.id).then(function(res){
+        if (res && res.error) console.warn('debt status sync failed:', res.error);
+      });
     }
   });
+  if (anyChanged) saveCache();
 }
 
 function setDebtFilter(f) {
@@ -2715,11 +2812,15 @@ function renderDebts() {
     var initials = d.customerName.split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
     var dueStr = '';
     if (d.dueDate && d.status !== 'paid') {
-      var due = new Date(d.dueDate);
-      var daysLeft = Math.round((due - today) / 86400000);
-      if (d.status === 'overdue') dueStr = lang === 'uz' ? (Math.abs(daysLeft) + ' kun kech') : (Math.abs(daysLeft) + 'd overdue');
-      else if (daysLeft === 0) dueStr = lang === 'uz' ? 'Bugun muddat' : 'Due today';
-      else if (daysLeft > 0) dueStr = lang === 'uz' ? (daysLeft + ' kun qoldi') : (daysLeft + 'd left');
+      var due = new Date(d.dueDate); due.setHours(0,0,0,0);
+      // Use floor instead of round so any time *past* due date counts as ≥1 day overdue
+      // (no more "0d overdue" labels right after midnight).
+      var diffDays = Math.floor((due - today) / 86400000);
+      if (d.status === 'overdue') {
+        var late = Math.max(1, Math.abs(diffDays));
+        dueStr = lang === 'uz' ? (late + ' kun kech') : (late + 'd overdue');
+      } else if (diffDays === 0) dueStr = lang === 'uz' ? 'Bugun muddat' : 'Due today';
+      else if (diffDays > 0) dueStr = lang === 'uz' ? (diffDays + ' kun qoldi') : (diffDays + 'd left');
     }
     var lastPayStr = lastPay ? (lang === 'uz' ? 'Oxirgi: ' : 'Last: ') + fmt(lastPay.amount) + ' — ' + new Date(lastPay.paidAt).toLocaleDateString() : '';
 
@@ -2759,9 +2860,16 @@ function openAddDebt() {
   // show known customer suggestions
   var names = [...new Set(debts.map(function(d){ return d.customerName; }))].slice(0,5);
   var sugg = document.getElementById('customerSuggestions');
+  // Use data-name + delegation so customer names with quotes/HTML can never inject JS.
   sugg.innerHTML = names.map(function(n) {
-    return '<button class="customer-pill" onclick="document.getElementById(\'debtCustomer\').value=\'' + esc(n) + '\'">' + esc(n) + '</button>';
+    return '<button class="customer-pill" type="button" data-name="' + esc(n) + '">' + esc(n) + '</button>';
   }).join('');
+  // (Re)bind a single delegated click handler.
+  sugg.onclick = function(ev) {
+    var btn = ev.target.closest('.customer-pill');
+    if (!btn) return;
+    document.getElementById('debtCustomer').value = btn.getAttribute('data-name') || '';
+  };
   document.getElementById('addDebtModal').classList.add('open');
 }
 
@@ -2771,7 +2879,10 @@ async function saveNewDebt() {
   var due = document.getElementById('debtDueDate').value;
   var note = document.getElementById('debtNote').value.trim();
   if (!name) { showToast(lang === 'uz' ? 'Mijoz ismini kiriting!' : 'Enter customer name!', 'error'); return; }
-  if (!amt || amt <= 0) { showToast(lang === 'uz' ? 'Summani kiriting!' : 'Enter amount!', 'error'); return; }
+  if (!amt || amt <= 0 || !isSaneNumber(amt, MAX_AMOUNT)) { showToast(lang === 'uz' ? 'Summani kiriting!' : 'Enter amount!', 'error'); return; }
+  // Cap free-text fields so a runaway value can't break rendering or DB.
+  if (name.length > 100) name = name.slice(0, 100);
+  if (note.length > 300) note = note.slice(0, 300);
   var newDebt = { customerName: name, amount: amt, paidAmount: 0, dueDate: due || null, note: note, status: 'active', createdAt: new Date().toISOString(), id: 'tmp_' + Date.now() };
   debts.unshift(newDebt);
   closeModal('addDebtModal');
@@ -2805,7 +2916,8 @@ function openAddPayment(debtId) {
 async function savePayment() {
   var amt = parseFloat(document.getElementById('payAmount').value);
   var note = document.getElementById('payNote').value.trim();
-  if (!amt || amt <= 0) { showToast(lang === 'uz' ? 'Miqdorni kiriting!' : 'Enter amount!', 'error'); return; }
+  if (!amt || amt <= 0 || !isSaneNumber(amt, MAX_AMOUNT)) { showToast(lang === 'uz' ? 'Miqdorni kiriting!' : 'Enter amount!', 'error'); return; }
+  if (note.length > 300) note = note.slice(0, 300);
   var d = debts.find(function(x){ return x.id === payTargetDebtId; });
   if (!d) return;
   var maxPay = parseFloat((d.amount - d.paidAmount).toFixed(2));
@@ -3202,19 +3314,27 @@ async function confirmUndoTx() {
   var s = sales.find(function(x) { return x.id === id; });
   closeModal('undoTxModal');
   if (!s) return;
-  try {
-    if (goods[s.code]) {
-      goods[s.code].qty = parseFloat((goods[s.code].qty + s.qty).toFixed(4));
-      await dbSaveGood(s.code);
+  withQtyLock(s.code, async function() {
+    var qtyAddedToDb = false;
+    try {
+      if (goods[s.code]) {
+        goods[s.code].qty = roundQty(goods[s.code].qty + s.qty);
+        await dbSaveGood(s.code);
+        qtyAddedToDb = true;
+      }
+      await dbDeleteSale(id);
+      sales = sales.filter(function(x) { return x.id !== id; });
+      showToast(t('txUndone'), 'warn');
+      renderAnalytics(); renderInventory();
+    } catch(e) {
+      if (goods[s.code]) goods[s.code].qty = roundQty(goods[s.code].qty - s.qty);
+      if (qtyAddedToDb && goods[s.code]) {
+        try { await dbSaveGood(s.code); } catch(_) {}
+      }
+      showToast(t('failed'), 'error');
+      renderInventory();
     }
-    await dbDeleteSale(id);
-    sales = sales.filter(function(x) { return x.id !== id; });
-    showToast(t('txUndone'), 'warn');
-    renderAnalytics(); renderInventory();
-  } catch(e) {
-    if (goods[s.code]) goods[s.code].qty = parseFloat((goods[s.code].qty - s.qty).toFixed(4));
-    showToast(t('failed'), 'error');
-  }
+  });
 }
 
 // ═══════════════════════════════════════════════
@@ -3239,23 +3359,32 @@ async function confirmDeleteTx() {
   var s = sales.find(function(x) { return x.id === id; });
   closeModal('deleteTxModal');
   if (!s) return;
-  // Snapshot for rollback
-  var prevQty = (goods[s.code] != null) ? goods[s.code].qty : null;
-  try {
-    // Restore stock first (matches the semantics already used by confirmUndoTx).
-    if (goods[s.code]) {
-      goods[s.code].qty = parseFloat((goods[s.code].qty + s.qty).toFixed(4));
-      await dbSaveGood(s.code);
+  // Track whether we already mutated qty in DB so rollback can be precise.
+  withQtyLock(s.code, async function() {
+    var qtyAddedToDb = false;
+    try {
+      // Restore stock first (matches the semantics already used by confirmUndoTx).
+      if (goods[s.code]) {
+        goods[s.code].qty = roundQty(goods[s.code].qty + s.qty);
+        await dbSaveGood(s.code);
+        qtyAddedToDb = true;
+      }
+      await dbDeleteSale(id);
+      sales = sales.filter(function(x) { return x.id !== id; });
+      showToast(t('txDeleted'), 'warn');
+      renderAnalytics();
+      renderInventory();
+    } catch(e) {
+      // If the DB qty bump went through but the sale-delete failed, undo BOTH
+      // memory and DB so they stay consistent.
+      if (goods[s.code]) goods[s.code].qty = roundQty(goods[s.code].qty - s.qty);
+      if (qtyAddedToDb && goods[s.code]) {
+        try { await dbSaveGood(s.code); } catch(_) {}
+      }
+      showToast(t('deleteFail'), 'error');
+      renderInventory();
     }
-    await dbDeleteSale(id);
-    sales = sales.filter(function(x) { return x.id !== id; });
-    showToast(t('txDeleted'), 'warn');
-    renderAnalytics();
-    renderInventory();
-  } catch(e) {
-    if (goods[s.code] && prevQty != null) goods[s.code].qty = prevQty;
-    showToast(t('deleteFail'), 'error');
-  }
+  });
 }
 
 // ═══════════════════════════════════════════════
@@ -3329,20 +3458,23 @@ async function confirmQuickAdd() {
   if (!qty || qty <= 0 || !isFinite(qty)) { showToast(t('enterQty'), 'error'); return; }
   var code = quickAddTarget;
   if (!goods[code]) { showToast(t('saveFail'), 'error'); closeModal('quickAddModal'); return; }
-  if (goods[code].type === 'solid' && qty % 1 !== 0) { showToast(t('enterQty'), 'error'); return; }
-  var prev = goods[code].qty;
-  goods[code].qty = parseFloat((goods[code].qty + qty).toFixed(4));
+  if (goods[code].type === 'solid' && !isWholeQty(qty)) { showToast(t('enterQty'), 'error'); return; }
+  goods[code].qty = roundQty(goods[code].qty + qty);
   closeModal('quickAddModal');
-  try {
-    await dbSaveGood(code);
-    var unit = goods[code].type === 'liquid' ? 'L' : 'dona';
-    showToast(code.toUpperCase() + ' +' + qty + ' ' + t('added'), 'success');
-    renderInventory();
-    dbSaveStockLog({ code: code, name: goods[code].name || '', qtyAdded: qty, unit: unit, actionType: 'restock', ts: Date.now(), doneBy: currentRole || 'manager', branch: currentBranch });
-  } catch(e) {
-    goods[code].qty = prev;
-    showToast(t('saveFail'), 'error');
-  }
+  withQtyLock(code, async function() {
+    try {
+      await dbSaveGood(code);
+      var unit = goods[code].type === 'liquid' ? 'L' : 'dona';
+      showToast(code.toUpperCase() + ' +' + qty + ' ' + t('added'), 'success');
+      renderInventory();
+      dbSaveStockLog({ code: code, name: goods[code].name || '', qtyAdded: qty, unit: unit, actionType: 'restock', ts: Date.now(), doneBy: currentRole || 'manager', branch: currentBranch });
+    } catch(e) {
+      // Rollback by subtracting the same delta — composes cleanly with concurrent ops.
+      if (goods[code]) goods[code].qty = roundQty(goods[code].qty - qty);
+      showToast(t('saveFail'), 'error');
+      renderInventory();
+    }
+  });
 }
 
 // ═══════════════════════════════════════════════
@@ -3391,11 +3523,12 @@ async function confirmEditGood() {
   if (!newCode) { showToast(t('enterCode'), 'error'); return; }
   if (!/^[a-z0-9]+$/.test(newCode)) { showToast(t('codeFormat'), 'error'); return; }
   if (newCode !== oldCode && goods[newCode]) { showToast(t('editCodeExists'), 'error'); return; }
-  // Reject negative or non-finite qty / prices
-  if (!isFinite(qty) || qty < 0) { showToast(t('enterQty'), 'error'); return; }
-  if (costPrice !== null && (!isFinite(costPrice) || costPrice < 0)) { showToast(t('enterQty'), 'error'); return; }
-  if (sellPrice !== null && (!isFinite(sellPrice) || sellPrice < 0)) { showToast(t('enterQty'), 'error'); return; }
-  if (editSelectedType === 'solid' && qty % 1 !== 0) { showToast(t('enterQty'), 'error'); return; }
+  // Reject negative, non-finite, or absurdly large qty / prices.
+  if (!isSaneNumber(qty, MAX_QTY)) { showToast(t('enterQty'), 'error'); return; }
+  if (costPrice !== null && !isSaneNumber(costPrice, MAX_PRICE)) { showToast(t('enterQty'), 'error'); return; }
+  if (sellPrice !== null && !isSaneNumber(sellPrice, MAX_PRICE)) { showToast(t('enterQty'), 'error'); return; }
+  if (editSelectedType === 'solid' && !isWholeQty(qty)) { showToast(t('enterQty'), 'error'); return; }
+  if (name.length > 100) name = name.slice(0, 100);
   var btn = document.getElementById('editSaveBtn');
   btn.disabled = true;
   // Snapshot for rollback
@@ -3480,10 +3613,25 @@ function fmt(n) {
   return '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 function fmtQty(n, type) {
-  return type === 'liquid' ? (n%1===0 ? n : n.toFixed(1)) : (n%1===0 ? n : n.toFixed(2));
+  // Treat floats that are within 1e-6 of an integer as integers — avoids "19.9999 L"
+  // displays caused by accumulated rounding from many sales.
+  if (Math.abs(n - Math.round(n)) < 1e-6) return Math.round(n);
+  return type === 'liquid' ? Number(n.toFixed(1)) : Number(n.toFixed(2));
 }
+// Centralised qty rounder. 4 decimal places is enough for fractional-litre sales
+// without bleeding past floating-point precision.
+function roundQty(n) { return Math.round(n * 10000) / 10000; }
+// True integer check that tolerates float noise (1.0000000001 → still integer).
+function isWholeQty(n) { return Math.abs(n - Math.round(n)) < 1e-6; }
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+// Sanity ceilings — anything above these is almost certainly a typo.
+var MAX_QTY = 1e6;     // 1,000,000 units / litres
+var MAX_PRICE = 1e9;   // $1B per unit — more than enough headroom
+var MAX_AMOUNT = 1e10; // debt amount ceiling
+function isSaneNumber(n, max) {
+  return typeof n === 'number' && isFinite(n) && n >= 0 && n <= max;
 }
 
 // BARCODE SCANNER
@@ -3652,8 +3800,8 @@ function setCpRole(role) {
   sBtn.style.background = role === 'seller' ? 'var(--blue-dim)' : 'var(--surface2)';
   sBtn.style.color = role === 'seller' ? 'var(--blue)' : 'var(--muted2)';
   lbl.textContent = role === 'manager'
-    ? (lang === 'uz' ? 'Manager uchun yangi PIN (4-6 raqam) *' : 'New Manager PIN (4-6 digits) *')
-    : (lang === 'uz' ? 'Seller uchun yangi PIN (4-6 raqam) *' : 'New Seller PIN (4-6 digits) *');
+    ? (lang === 'uz' ? 'Manager uchun yangi PIN (4 raqam) *' : 'New Manager PIN (4 digits) *')
+    : (lang === 'uz' ? 'Seller uchun yangi PIN (4 raqam) *' : 'New Seller PIN (4 digits) *');
 }
 
 async function saveChangedPin() {
@@ -3663,8 +3811,7 @@ async function saveChangedPin() {
   document.getElementById('cpCurrentError').textContent = '';
   document.getElementById('cpMatchError').textContent = '';
   if (!currentPin) { document.getElementById('cpCurrentError').textContent = lang==='uz'?'Joriy PIN kiriting!':'Enter current PIN!'; return; }
-  if (!newPin || newPin.length < 4) { document.getElementById('cpMatchError').textContent = lang==='uz'?'Yangi PIN kamida 4 raqam!':'New PIN must be 4+ digits!'; return; }
-  if (!/^\d+$/.test(newPin)) { document.getElementById('cpMatchError').textContent = lang==='uz'?'Faqat raqamlar!':'Digits only!'; return; }
+  if (!/^\d{4}$/.test(newPin)) { document.getElementById('cpMatchError').textContent = lang==='uz'?'Yangi PIN aniq 4 raqam bolishi kerak!':'New PIN must be exactly 4 digits!'; return; }
   if (newPin !== confirmPin) { document.getElementById('cpMatchError').textContent = lang==='uz'?'PIN lar mos kelmaydi!':'PINs do not match!'; return; }
   var currentHash = await sha256(currentPin);
   if (currentHash !== MANAGER_PIN_HASH) {
@@ -3857,7 +4004,7 @@ function filterHistory() { renderHistory(); }
     <div class="modal-title t" data-uz="YANGI QARZ" data-en="NEW DEBT">YANGI QARZ</div>
     <div class="form-group" style="margin-top:10px">
       <label class="form-label t" data-uz="Mijoz ismi *" data-en="Customer name *">Mijoz ismi *</label>
-      <input class="form-input no-upper" id="debtCustomer" type="text" autocomplete="off" placeholder="Akbar Karimov">
+      <input class="form-input no-upper" id="debtCustomer" type="text" autocomplete="off" maxlength="100" placeholder="Akbar Karimov">
       <div class="customer-suggest" id="customerSuggestions"></div>
     </div>
     <div class="form-group">
@@ -3872,7 +4019,7 @@ function filterHistory() { renderHistory(); }
     </div>
     <div class="form-group">
       <label class="form-label t" data-uz="Izoh (mahsulotlar va h.k.)" data-en="Note (products etc.)">Izoh</label>
-      <input class="form-input no-upper" id="debtNote" type="text" placeholder="cs103 × 3">
+      <input class="form-input no-upper" id="debtNote" type="text" maxlength="300" placeholder="cs103 × 3">
     </div>
     <div class="modal-actions">
       <button class="btn-outline" onclick="closeModal('addDebtModal')" style="border-radius:12px">Bekor</button>
@@ -3902,7 +4049,7 @@ function filterHistory() { renderHistory(); }
     </div>
     <div class="form-group">
       <label class="form-label">Izoh (ixtiyoriy)</label>
-      <input class="form-input no-upper" id="payNote" type="text" placeholder="Naqd pul, karta...">
+      <input class="form-input no-upper" id="payNote" type="text" maxlength="300" placeholder="Naqd pul, karta...">
     </div>
     <div class="modal-actions">
       <button class="btn-outline" onclick="closeModal('addPaymentModal')" style="border-radius:12px">Bekor</button>
