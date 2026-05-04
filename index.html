@@ -1091,13 +1091,76 @@ var MANAGER_PIN_HASH = '3f5f3806e425deac33023e9764d08ac98397e6f1bc8599743cbb15a9
 var SELLER_PIN_HASH  = '808c9cfebd38d4d93da5bb3b32be7e39cbb403672c5ce39b83bffe7d5660b114';
 
 // ═══════════════════════════════════════════════
-//  SHA256
+//  PIN HASHING
 // ═══════════════════════════════════════════════
+// SECURITY NOTE
+// A 4-digit PIN has only 10,000 possible values. Plain SHA-256 of "1234" is
+// always the same digest, so anyone who can read the source can brute-force
+// the hash in milliseconds (or just use a precomputed rainbow table).
+//
+// We now hash via PBKDF2-SHA256 with a per-install salt and 250,000 iterations.
+// Brute-forcing 10k PINs through 250k iterations is ~10s of CPU on a laptop —
+// orders of magnitude slower than a plain SHA-256 hash, and it defeats every
+// off-the-shelf rainbow table.
+//
+// New format: "pbkdf2$<iterations>$<salt>$<hex-digest>"
+// Old format (raw hex SHA-256) is still accepted on read for backward compat,
+// so existing MANAGER_PIN_HASH / SELLER_PIN_HASH constants and any saved
+// localStorage entry from the previous version keep working until the user
+// changes their PIN, after which they're stored in the new stronger format.
+//
+// THIS IS STILL CLIENT-SIDE. For real security move PIN verification to a
+// Supabase RPC and rely on Row Level Security, so the hash never reaches the
+// browser at all.
+var PIN_PEPPER = 'tovar-mgr/v1/oil25';
+var PBKDF2_ITERATIONS = 250000;
+
 async function sha256(message) {
   var msgBuffer = new TextEncoder().encode(message);
   var hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
   var hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+}
+
+async function pbkdf2Hex(password, saltStr, iterations) {
+  var enc = new TextEncoder();
+  var keyMat = await crypto.subtle.importKey(
+    'raw', enc.encode(password), { name: 'PBKDF2' }, false, ['deriveBits']);
+  var bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: enc.encode(saltStr), iterations: iterations, hash: 'SHA-256' },
+    keyMat, 256);
+  var arr = Array.from(new Uint8Array(bits));
+  return arr.map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+}
+
+// Generate a random salt (16 random bytes, hex-encoded).
+function randomSaltHex() {
+  var buf = new Uint8Array(16);
+  crypto.getRandomValues(buf);
+  return Array.from(buf).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+}
+
+// Hash a fresh PIN for storage in the new stronger format.
+async function hashPinForStorage(pin) {
+  var salt = randomSaltHex();
+  var digest = await pbkdf2Hex(pin + PIN_PEPPER, salt, PBKDF2_ITERATIONS);
+  return 'pbkdf2$' + PBKDF2_ITERATIONS + '$' + salt + '$' + digest;
+}
+
+// Verify a PIN against either format (legacy raw SHA-256 hex, or pbkdf2$...).
+async function verifyPin(pin, storedHash) {
+  if (!storedHash) return false;
+  if (storedHash.indexOf('pbkdf2$') === 0) {
+    var parts = storedHash.split('$'); // ['pbkdf2', iter, salt, hex]
+    if (parts.length !== 4) return false;
+    var iter = parseInt(parts[1], 10);
+    if (!iter || iter < 1) return false;
+    var calc = await pbkdf2Hex(pin + PIN_PEPPER, parts[2], iter);
+    return calc === parts[3];
+  }
+  // Legacy format — bare SHA-256 hex digest.
+  var legacy = await sha256(pin);
+  return legacy === storedHash;
 }
 
 // Load saved PIN hashes from localStorage (overrides hardcoded ones)
@@ -1485,14 +1548,24 @@ async function dbDeleteGood(code) {
 }
 
 async function dbSaveStockLog(entry) {
+  // Supabase v2 returns {data, error} — it does NOT throw on RLS/column errors.
+  // We must check res.error explicitly, and only mutate the in-memory list
+  // AFTER the DB confirms the write, otherwise the entry vanishes on reload.
   try {
-    await db.from('stock_logs').insert({
+    var res = await db.from('stock_logs').insert({
       code: entry.code, name: entry.name || null, qty_added: entry.qtyAdded,
       unit: entry.unit, action_type: entry.actionType, ts: entry.ts,
       done_by: entry.doneBy || 'manager', branch: entry.branch || 1
-    });
+    }).select('id').single();
+    if (res.error) throw res.error;
+    if (res.data && res.data.id != null) entry.id = res.data.id;
     stockLogs.unshift(entry);
-  } catch(e) { console.warn('stock_log insert failed:', e); }
+    return entry;
+  } catch(e) {
+    console.warn('stock_log insert failed:', e);
+    showToast(lang === 'uz' ? 'Tarix saqlanmadi' : 'History save failed', 'error');
+    return null;
+  }
 }
 
 async function dbLoadStockLogs() {
@@ -1507,8 +1580,13 @@ async function dbLoadStockLogs() {
 
 // ── Edit-history (product & service edits) ────────────────────────────
 async function dbSaveEditLog(entry) {
+  // BUG FIX: Supabase v2 .insert() returns {data, error}; it does NOT throw on
+  // RLS / missing-column / unknown-table errors. The previous code unshifted to
+  // editLogs unconditionally, so edits "showed up" in History but were never
+  // actually persisted — they disappeared on reload. We now check res.error
+  // explicitly and only mutate memory after the DB confirms the write.
   try {
-    await db.from('edit_logs').insert({
+    var res = await db.from('edit_logs').insert({
       ts:          entry.ts,
       done_by:     entry.doneBy || 'manager',
       branch:      entry.branch || 1,
@@ -1518,9 +1596,16 @@ async function dbSaveEditLog(entry) {
       field:       entry.field,
       old_value:   entry.oldValue == null ? null : String(entry.oldValue),
       new_value:   entry.newValue == null ? null : String(entry.newValue)
-    });
+    }).select('id').single();
+    if (res.error) throw res.error;
+    if (res.data && res.data.id != null) entry.id = res.data.id;
     editLogs.unshift(entry);
-  } catch(e) { console.warn('edit_log insert failed:', e); }
+    return entry;
+  } catch(e) {
+    console.warn('edit_log insert failed:', e);
+    showToast(lang === 'uz' ? 'Tahrir tarixi saqlanmadi' : 'Edit history save failed', 'error');
+    return null;
+  }
 }
 
 async function dbLoadEditLogs() {
@@ -1777,9 +1862,8 @@ function checkPin() {
     document.getElementById('pinError').textContent = (lang==='uz'?'Bloklangan! '+s+' soniya':'Locked! '+s+'s left');
     pinInput=''; updatePinDots(); return;
   }
-  sha256(pinInput).then(function(hash) {
-    var correct = (pinRole==='manager' && hash===MANAGER_PIN_HASH) ||
-                  (pinRole==='seller'  && hash===SELLER_PIN_HASH);
+  var stored = pinRole === 'manager' ? MANAGER_PIN_HASH : SELLER_PIN_HASH;
+  verifyPin(pinInput, stored).then(function(correct) {
     if (correct) {
       pinAttempts=0; pinLockedUntil=0;
       currentRole=pinRole;
@@ -3129,12 +3213,16 @@ async function saveExtend() {
   renderDebts(); saveCache();
   showToast(lang === 'uz' ? 'Muddat yangilandi' : 'Due date updated', 'success');
   try {
-    await Promise.all([
+    // Supabase v2 doesn't throw — must check .error on each response.
+    var [er1, er2] = await Promise.all([
       db.from('debts').update({ due_date: newDate, status: 'active' }).eq('id', d.id),
       db.from('debt_payments').insert({ debt_id: d.id, amount: 0, note: logNote })
     ]);
+    if (er1 && er1.error) throw er1.error;
+    if (er2 && er2.error) throw er2.error;
     saveCache();
   } catch(e) {
+    console.warn('saveExtend failed:', e);
     d.dueDate = oldDate;
     renderDebts(); saveCache();
     showToast(lang === 'uz' ? 'Saqlash muvaffaqiyatsiz' : 'Save failed', 'error');
@@ -3986,12 +4074,13 @@ async function saveChangedPin() {
   if (!currentPin) { document.getElementById('cpCurrentError').textContent = lang==='uz'?'Joriy PIN kiriting!':'Enter current PIN!'; return; }
   if (!/^\d{4}$/.test(newPin)) { document.getElementById('cpMatchError').textContent = lang==='uz'?'Yangi PIN aniq 4 raqam bolishi kerak!':'New PIN must be exactly 4 digits!'; return; }
   if (newPin !== confirmPin) { document.getElementById('cpMatchError').textContent = lang==='uz'?'PIN lar mos kelmaydi!':'PINs do not match!'; return; }
-  var currentHash = await sha256(currentPin);
-  if (currentHash !== MANAGER_PIN_HASH) {
+  var currentOk = await verifyPin(currentPin, MANAGER_PIN_HASH);
+  if (!currentOk) {
     document.getElementById('cpCurrentError').textContent = lang==='uz'?'Joriy Manager PIN notogri!':'Current Manager PIN is wrong!';
     return;
   }
-  var newHash = await sha256(newPin);
+  // Store the new PIN with the stronger PBKDF2 format.
+  var newHash = await hashPinForStorage(newPin);
   if (cpTargetRole === 'manager') { MANAGER_PIN_HASH = newHash; }
   else { SELLER_PIN_HASH = newHash; }
   try {
